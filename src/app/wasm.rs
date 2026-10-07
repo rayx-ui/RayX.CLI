@@ -231,14 +231,46 @@ fn ensure_wasm_bindgen_cli(app: &AppDescriptor) -> Result<()> {
             )
         })?;
     let text = String::from_utf8_lossy(&output.stdout);
-    let installed = text.split_whitespace().nth(1).unwrap_or_default();
-    if installed != locked.value {
+    check_wasm_bindgen_version(
+        text.split_whitespace().nth(1).unwrap_or_default(),
+        &locked.value,
+    )
+}
+
+/// Errors unless the installed `wasm-bindgen` CLI version is the one the project locks.
+pub fn check_wasm_bindgen_version(installed: &str, locked: &str) -> Result<()> {
+    if installed != locked {
         bail!(
-            "the wasm-bindgen CLI is {installed} but Cargo.lock locks {}: run `rayx setup --web`",
-            locked.value
+            "the wasm-bindgen CLI is {installed} but Cargo.lock locks {locked}: run `rayx setup --web`"
         );
     }
     Ok(())
+}
+
+/// The `cargo build` of the generated web entry crate: the pinned nightly with `build-std`, the
+/// shared-memory flags, and the workspace's own target directory.
+pub fn cargo_build_command(
+    app: &AppDescriptor,
+    web_manifest: &Path,
+    profile: BuildProfile,
+) -> Result<Command> {
+    let mut cargo = Command::new("cargo");
+    cargo
+        .arg(format!("+{}", app.context.pins.web_toolchain.value))
+        .arg("build")
+        .arg("--manifest-path")
+        .arg(web_manifest)
+        .args(["--target", "wasm32-unknown-unknown", "--target-dir"])
+        .arg(app.target_dir()?)
+        .args(["-Z", "build-std=std,panic_abort"])
+        .env("RUSTFLAGS", WASM_RUSTFLAGS)
+        .env("CFLAGS_wasm32_unknown_unknown", WASM_CFLAGS)
+        .env("CXXFLAGS_wasm32_unknown_unknown", WASM_CFLAGS)
+        .env("CARGO_FUTURE_INCOMPAT_REPORT_FREQUENCY", "never");
+    if let Some(profile_arg) = profile.cargo_arg() {
+        cargo.arg(profile_arg);
+    }
+    Ok(cargo)
 }
 
 fn build_with_profile(
@@ -248,26 +280,9 @@ fn build_with_profile(
 ) -> Result<PathBuf> {
     let root = app.context.workspace_root().to_path_buf();
     ensure_wasm_bindgen_cli(app)?;
-    let target_dir = app.target_dir()?;
     let web_manifest = app.web_manifest(features)?;
     let module_base = app.web_module_base();
-    let toolchain = app.context.pins.web_toolchain.value.clone();
-    let mut cargo = Command::new("cargo");
-    cargo
-        .arg(format!("+{toolchain}"))
-        .arg("build")
-        .arg("--manifest-path")
-        .arg(&web_manifest)
-        .args(["--target", "wasm32-unknown-unknown", "--target-dir"])
-        .arg(&target_dir)
-        .args(["-Z", "build-std=std,panic_abort"])
-        .env("RUSTFLAGS", WASM_RUSTFLAGS)
-        .env("CFLAGS_wasm32_unknown_unknown", WASM_CFLAGS)
-        .env("CXXFLAGS_wasm32_unknown_unknown", WASM_CFLAGS)
-        .env("CARGO_FUTURE_INCOMPAT_REPORT_FREQUENCY", "never");
-    if let Some(profile_arg) = profile.cargo_arg() {
-        cargo.arg(profile_arg);
-    }
+    let mut cargo = cargo_build_command(app, &web_manifest, profile)?;
     run_process(&mut cargo)?;
 
     let out_dir = app.artifact_root()?.join("wasm").join(profile.name());

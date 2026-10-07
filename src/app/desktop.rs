@@ -21,7 +21,13 @@ pub fn build(
     let target_triple = desktop_target_triple(target_name, &app.context.host, &mut args)?;
     ensure_empty(&args)?;
     let manifest = desktop_manifest(app, target_name)?;
-    build_manifest(&manifest, features, profile, target_triple.as_deref())
+    build_manifest(
+        &manifest,
+        &app.target_dir()?,
+        features,
+        profile,
+        target_triple.as_deref(),
+    )
 }
 
 pub fn run(
@@ -43,7 +49,7 @@ pub fn run(
         .arg("--manifest-path")
         .arg(&manifest)
         .arg("--target-dir")
-        .arg("target")
+        .arg(app.target_dir()?)
         .env(RAYX_ASSETS_ROOT_ENV, &assets_root)
         .env(RAYX_APP_CONTENT_ROOT_ENV, &content_root);
     if let Some(target_triple) = target_triple.as_deref() {
@@ -69,7 +75,13 @@ pub fn pack(
     let target_triple = desktop_target_triple(target_name, &app.context.host, &mut args)?;
     ensure_empty(&args)?;
     let manifest = desktop_manifest(app, target_name)?;
-    build_manifest(&manifest, features, profile, target_triple.as_deref())?;
+    build_manifest(
+        &manifest,
+        &app.target_dir()?,
+        features,
+        profile,
+        target_triple.as_deref(),
+    )?;
 
     let package_name = package_name_from_manifest(&manifest)?;
     let exe_name = executable_name_for_target(&package_name, target_triple.as_deref());
@@ -116,6 +128,7 @@ pub fn build_mobile_crate(
 
 pub fn build_manifest(
     manifest: &Path,
+    target_dir: &Path,
     features: &AppFeatureSelection,
     profile: BuildProfile,
     target: Option<&str>,
@@ -126,7 +139,7 @@ pub fn build_manifest(
         .arg("--manifest-path")
         .arg(manifest)
         .arg("--target-dir")
-        .arg("target");
+        .arg(target_dir);
     if let Some(target) = target {
         command.args(["--target", target]);
     }
@@ -134,6 +147,38 @@ pub fn build_manifest(
         command.arg(profile_arg);
     }
     features.apply_to_cargo(&mut command)?;
+    run_process(&mut command)
+}
+
+/// `rayx app <dir> test host|windows|linux|macos`: the app package's own tests, `cargo test -p
+/// <package>` run from the workspace root with the selected features and profile. Arguments after
+/// `--` go to the test binary.
+pub fn test(
+    app: &AppDescriptor,
+    features: &AppFeatureSelection,
+    target_name: &str,
+    profile: BuildProfile,
+    mut args: Vec<String>,
+) -> Result<()> {
+    let target_triple = desktop_target_triple(target_name, &app.context.host, &mut args)?;
+    let test_args = split_app_args(&mut args);
+    ensure_empty(&args)?;
+    let package_name = package_name_from_manifest(&desktop_manifest(app, target_name)?)?;
+    let mut command = Command::new("cargo");
+    command
+        .current_dir(app.context.workspace_root())
+        .args(["test", "-p", &package_name, "--target-dir"])
+        .arg(app.target_dir()?);
+    if let Some(target_triple) = target_triple.as_deref() {
+        command.args(["--target", target_triple]);
+    }
+    if let Some(profile_arg) = profile.cargo_arg() {
+        command.arg(profile_arg);
+    }
+    features.apply_to_cargo(&mut command)?;
+    if !test_args.is_empty() {
+        command.arg("--").args(test_args);
+    }
     run_process(&mut command)
 }
 
@@ -146,7 +191,7 @@ fn desktop_manifest(app: &AppDescriptor, target_name: &str) -> Result<PathBuf> {
 
 /// The explicit `--target`, else the native triple of the host for `windows`, `linux` and `macos`
 /// (an ARM64 Windows machine builds `aarch64-pc-windows-msvc`).
-fn desktop_target_triple(
+pub fn desktop_target_triple(
     target_name: &str,
     host: &HostFacts,
     args: &mut Vec<String>,

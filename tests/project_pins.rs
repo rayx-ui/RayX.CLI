@@ -98,7 +98,10 @@ fn no_source_file_reads_a_compile_time_path() {
             } else if path.extension().is_some_and(|e| e == "rs") {
                 // Test-only code may read the fixtures by their compile-time location: the unit
                 // test module at the end of a file and the `test_support` module.
-                if path.file_name().is_some_and(|name| name == "test_support.rs") {
+                if path
+                    .file_name()
+                    .is_some_and(|name| name == "test_support.rs")
+                {
                     continue;
                 }
                 let text = fs::read_to_string(&path).expect("read source");

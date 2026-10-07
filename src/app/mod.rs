@@ -12,21 +12,30 @@ mod fs_util;
 mod ios;
 mod package_assets;
 pub mod playwright;
+pub mod prereqs;
 mod process;
 #[cfg(test)]
 mod test_support;
 mod wasm;
 
-pub use context::ProjectContext;
+pub use context::{ProjectContext, dependency_toml};
 pub use descriptor::*;
+pub use desktop::desktop_target_triple;
+pub use wasm::{cargo_build_command as wasm_cargo_command, check_wasm_bindgen_version};
 
 use anyhow::{Context, Result, bail};
-use args::take_profile;
+use args::{take_bool_flag, take_profile};
 use std::path::Path;
 
 /// Runs `rayx app` with the arguments after `app`.
 pub fn run(args: Vec<String>) -> Result<()> {
-    app_command(args)
+    app_command(args, true)
+}
+
+/// Like [`run`] without the prerequisite step: the caller has made sure the machine has what the
+/// target needs (the tests of this crate run fixture apps this way).
+pub fn run_unchecked(args: Vec<String>) -> Result<()> {
+    app_command(args, false)
 }
 
 /// The actions of `rayx app`. The app directory is optional and defaults to the current
@@ -35,7 +44,7 @@ const ACTIONS: [&str; 7] = [
     "build", "run", "pack", "publish", "deploy", "test", "assets",
 ];
 
-fn app_command(mut args: Vec<String>) -> Result<()> {
+fn app_command(mut args: Vec<String>, check_prerequisites: bool) -> Result<()> {
     if args.is_empty() {
         print_help();
         bail!("app command requires an action");
@@ -63,10 +72,14 @@ fn app_command(mut args: Vec<String>) -> Result<()> {
         bail!("app action {action} requires a target");
     }
     let target = normalize_target(&args.remove(0));
+    let no_install = take_bool_flag(&mut args, "--no-install");
     let profile = take_profile(&mut args)?;
     let features = AppFeatureSelection::take_from_args(&mut args)?;
     features.validate_for(&app.manifest())?;
     validate_diagnostic_feature_policy(app.diagnostic_harness, &action, &features)?;
+    if check_prerequisites && ACTIONS.contains(&action.as_str()) {
+        prereqs::ensure_for_command(&context, &action, &target, no_install)?;
+    }
 
     match action.as_str() {
         "build" => build_target(&app, &features, profile, &target, args),
@@ -172,8 +185,16 @@ fn test_target(
     args: Vec<String>,
 ) -> Result<()> {
     match target {
+        "host" | "windows" | "linux" | "macos" => {
+            desktop::test(app, features, target, profile, args)
+        }
         "wasm" => wasm::test(app, features, profile, args),
-        other => bail!("app test is currently supported only for wasm, not {other}"),
+        "android" | "ios" | "mobile" => {
+            bail!(
+                "app test for {target} is not supported yet: use `host`, a desktop target or `wasm`"
+            )
+        }
+        other => bail!("unknown app test target: {other}"),
     }
 }
 
@@ -188,10 +209,10 @@ fn print_help() {
     println!(
         "rayx app [<app-dir>] <action> <target> [options]   (the app directory defaults to .)"
     );
-    println!("  actions: build, run, pack, publish, deploy (android), test (wasm), assets");
+    println!("  actions: build, run, pack, publish, deploy (android), test (host, wasm), assets");
     println!("  targets: host, windows, linux, macos, ios, android, mobile, wasm (alias web)");
     println!(
-        "  options: [--debug|--development] [--features <list>] [--all-features|--no-default-features] [-- <app arguments>]"
+        "  options: [--debug|--development] [--features <list>] [--all-features|--no-default-features] [--no-install] [-- <app arguments>]"
     );
     println!(
         "  rayx app [<app-dir>] assets <generate|validate|list> [--output <path>] [--manifest <path>] [--features <list>] [--all-features|--no-default-features]"
