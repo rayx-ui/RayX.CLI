@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 18,
+  "revision": 19,
   "planRevision": 4,
   "specHashes": {
     "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
@@ -457,7 +457,18 @@
       "recordedAt": "2026-10-07T21:23:13Z"
     }
   },
-  "checkpoints": {},
+  "checkpoints": {
+    "s1-foundation": {
+      "snapshotId": "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f",
+      "commits": {
+        "rayx-cli": "6c2ea3115d5f79bcf43c329c0687522268cfed93",
+        "rayx": "f1a9be7b2aaa46948fd4a0563acfc0df71695f18",
+        "gpux": "937ac2f61b5d0655aa345e57e3147d1f6736a963"
+      },
+      "reviewHash": "0ce5c387fbdb8173e5fb0c96ec6c7f6d463e0a1137524b0730b17e2d8577f09d",
+      "recordedAt": "2026-10-07T21:23:41Z"
+    }
+  },
   "findings": [
     {
       "id": "F-HOST2-SUDO-DECLINE",
