@@ -1,0 +1,534 @@
+{
+  "schemaVersion": 6,
+  "epicId": "rayx-cli-foundation",
+  "decisions": [
+    {
+      "id": "d-single-package",
+      "requirementIds": [
+        "REPO"
+      ],
+      "descriptionMarkdown": "One Cargo package `rayx-cli` at the repository root: library `rayx_cli` (`src/lib.rs`) and binary `rayx` (`src/main.rs`, which only calls `rayx_cli::run`). Modules:\n\n- `cli` — top-level parsing;\n- `host` — host facts, the command runner, PATH editing;\n- `project` — workspace discovery and pins;\n- `setup` — requirement sets, plans, installers; `setup::wsl`;\n- `doctor` — the report;\n- `update` — self update;\n- `app` — the pipeline moved from RayX xtask (`app`, `args`, `assets`, `package_assets`, `desktop`, `wasm`, `android`, `ios`, `node_tools`, `process`, `fs_util`);\n- `fmt`.\n\nIntegration test groups are `tests/<feature>.rs`; fixture projects are `tests/fixtures/<name>/`, each with its own empty `[workspace]` table so they never join the package.",
+      "invariantsMarkdown": "- Dependencies come from crates.io only; no `path`, `git` or `[patch]`.\n- No module reads a compile-time path to decide what to work on.\n- A new crate is added only when a second consumer needs a module (for example a future `rayx new` template crate or a shared library with gpux-testkit), not in advance.",
+      "rationaleMarkdown": "Nothing outside the CLI consumes its modules yet, so splitting into `rayx_host`/`rayx_setup`/`rayx_app` crates would add manifests and version coupling without a second user. RayX's own rule is that a crate must earn its boundary; the same rule applies here. The library target exists so integration tests can drive internals with fakes.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.toml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/lib.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/runtime/workspace/2026-10-05-runtime-workspace-crate-consolidation.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/repository/2026-10-07-repository-memory-taxonomy.md"
+        }
+      ]
+    },
+    {
+      "id": "d-cli-surface",
+      "requirementIds": [
+        "REPO",
+        "APP"
+      ],
+      "descriptionMarkdown": "`clap` (derive) parses the top level: `setup`, `doctor`, `self update`, `fmt`, `app`, `--help`, `--version`. `app` takes its arguments as raw trailing values and hands them to the moved xtask parser unchanged, so the app grammar, its error messages and its tests stay exactly as they are.",
+      "rationaleMarkdown": "Re-modelling the app grammar in clap would change accepted spellings and error text that RayX docs, CI and agents rely on, and would rewrite well-tested parsing for no user benefit. Top-level commands are new, so clap gives them help and errors for free.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/command.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/args.rs"
+        }
+      ],
+      "supersedesMemoryDecisions": [
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/platform/packaging-targets/2026-06-29-platform-packaging-targets-app-directory-xtask.md"
+        }
+      ]
+    },
+    {
+      "id": "d-host",
+      "requirementIds": [
+        "HOST"
+      ],
+      "descriptionMarkdown": "`host::facts()` builds `HostFacts { os, arch, emulated, wsl, distro }` from a `Probe` trait (environment variables, file reads, `IsWow64Process2` through `windows-sys`, `sysctlbyname(\"sysctl.proc_translated\")` through `libc`). Tests construct `HostFacts` through fixture probes.\n\n`host::Runner` executes a `CommandSpec { program, args, env, cwd, privilege: None | Root | Admin, interactive }` in one of three modes: `Execute`, `Print` (writes the exact command line, prefixing `sudo` for `Root` when not root and marking `Admin`) and `Record` (tests). An `Admin` command on Windows runs as one elevated child through `ShellExecuteExW` with the `runas` verb, writing its output to a temporary file the parent reads back. Interactive commands inherit the console so `sudo`, UAC and license prompts reach the user.\n\n`host::path_env` edits the user PATH: the Windows registry through a `PathStore` trait (real `HKCU\\Environment` store plus `WM_SETTINGCHANGE` broadcast, or an in-memory store for tests), and a marked block in the shell profile on Unix.",
+      "invariantsMarkdown": "- The CLI never reads, stores or forwards a password or token and never runs itself elevated; elevation is per command, through the operating system's prompt.\n- `Print` mode performs no side effects at all, including PATH edits.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/runner.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/path_env.rs"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".claude/skills/gpux/scripts/install-windows-prereqs.ps1"
+        }
+      ]
+    },
+    {
+      "id": "d-project-pins",
+      "requirementIds": [
+        "PIN"
+      ],
+      "descriptionMarkdown": "`project::Project::discover(start_dir)` runs `cargo locate-project --workspace --message-format plain` and `cargo metadata --format-version 1` from the selected app directory (or the current directory), resolving a relative app path against the current directory. `project::Pins::resolve(project)` applies the precedence in PIN-2: project (`Cargo.lock`, `rust-toolchain.toml`, `[workspace.metadata.rayx]`), then the gpux-checkout profile (a workspace containing `gpux-testkit`), then built-in defaults equal to the pins RayX and Gpux use (`nightly-2026-06-23`, JDK 21). Each pin carries its source for doctor.",
+      "invariantsMarkdown": "- One `Pins` value flows to setup, doctor and the app pipeline; no module re-reads pins on its own.\n- Built-in defaults live in one table in `project::pins`.",
+      "rationaleMarkdown": "RayX xtask could hard-code versions and find its repository at compile time because it was built from the repository it served. One installed `rayx` serves projects pinned to different gpux and RayX versions (RayX builds Android against SDK 34 while gpux pins 36), so the project must own its pins. The gpux-checkout profile keeps gpux working before Gpux declares `[workspace.metadata.rayx]`, which is a follow-up.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/fs_util.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/workspace_paths.rs"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": "tooling/testkit/src/android.rs"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".github/workflows/lane-b.yml"
+        }
+      ],
+      "supersedesMemoryDecisions": [
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/tooling/validation/2026-07-24-tooling-validation-manifest-relative-xtask-paths.md"
+        }
+      ]
+    },
+    {
+      "id": "d-setup-plan",
+      "requirementIds": [
+        "SETUP",
+        "DOCTOR",
+        "VAL"
+      ],
+      "descriptionMarkdown": "`setup::plan(host, pins, project, sets) -> Plan` expands the selected requirement sets into ordered `Step { id, set, title, probe, install: Vec<CommandSpec>, privilege, fix_hint }`. The install knowledge for each OS family lives in code tables under `setup::{linux, windows, macos}` plus cross-platform `setup::{rust, web, test_tools, android, ios}`. `setup::execute(plan, runner, mode)` probes each step, skips satisfied ones, runs the rest, and re-probes. `doctor` evaluates the same plan for every applicable set in probe-only mode and renders text or JSON (`serde_json`).\n\nWorkstation pieces are ordinary steps of their sets: Xcode through `xcodes`/`mas`, the Simulator runtime through `xcodebuild -downloadPlatform iOS`, Android Studio through winget/cask/snap, emulator, system image and a default AVD, emulator acceleration, and the `gpu` set's per-vendor driver steps. GPU detection uses OS facilities (DXGI through the `windows` crate, `lspci`/`vulkaninfo`, `system_profiler`) rather than linking a GPU library into the CLI.",
+      "invariantsMarkdown": "- One step table feeds `setup`, `setup --check` and `doctor`; there is no second requirement list.\n- A probe never installs anything.\n- Steps with `privilege: Root` are batched (one `sudo apt-get install` for all missing packages).",
+      "rationaleMarkdown": "The original problem was four drifting copies of the same requirement lists (LINUX-WSL.md, the gpux skill, CI and the Windows script). Planning from one table, and printing that plan for agents, removes the copies and lets the user run the `sudo` commands themselves. The step contents come from today's sources: LINUX-WSL.md sections 2–3, the gpux skill's Windows reference and `install-windows-prereqs.ps1` (Windows ARM64 needs), gpux CI's package lists, and RayX xtask's `setup-android`/`setup-wasm`.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor.rs"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": "LINUX-WSL.md"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".claude/skills/gpux/references/windows-prerequisites.md"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".claude/skills/gpux/references/macos-linux-wasm-prerequisites.md"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".github/workflows/ci.yml"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/android.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/node_tools.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/tooling/validation/2026-07-19-tooling-validation-shared-playwright-worktree-bootstrap.md"
+        }
+      ]
+    },
+    {
+      "id": "d-wsl",
+      "requirementIds": [
+        "WSL"
+      ],
+      "descriptionMarkdown": "`setup::wsl` runs on Windows only and drives `wsl.exe`: `wsl --version` for WSL 2, `wsl -l -q` for the distribution, `wsl --install -d Ubuntu-24.04` when missing, and `wsl -d Ubuntu-24.04 -- id -un` to detect a missing default user. The Linux binary is the release asset `rayx-cli-<arch>-unknown-linux-musl` of the running version, downloaded inside the distribution with `curl` into `~/.local/bin`; `RAYX_WSL_BINARY` copies a local build instead through `wslpath`. The inner run is `wsl -d Ubuntu-24.04 -- ~/.local/bin/rayx setup <same flags>` with inherited stdio. `--clone` copies only the current checkout (translating `D:\\...` to `/mnt/d/...` and keeping its branch) and lets Cargo fetch every dependency inside WSL.\n\n`rayx wsl status` and `rayx wsl compact` share a `WslHost` view built from the `Lxss` registry key (distribution id, name, `BasePath` of `ext4.vhdx`) and `wsl.exe` output. Compaction runs: optional build-output deletion (confirmed), `sudo fstrim -av` inside the distribution, a confirmed `wsl --shutdown`, then one `Admin` child that runs `Optimize-VHD -Mode Full` when the Hyper-V PowerShell module exists or a generated `diskpart` script otherwise, and finally reports the `ext4.vhdx` size before and after.",
+      "rationaleMarkdown": "Dependencies such as gpux are moving to crates.io and GitHub, so Cargo resolves them in WSL like anywhere else. A CLI that followed `path` entries to clone sibling checkouts would build a second, competing dependency mechanism and break once the paths are gone; the owner ruled it out on 2026-10-07.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": "LINUX-WSL.md"
+        }
+      ],
+      "invariantsMarkdown": "- Never enable WSL sparse disks.\n- Never delete anything outside the listed build-output directories, and never without confirmation unless `--yes` was given.\n- Never follow a manifest's `path` dependencies to clone, copy or download another repository."
+    },
+    {
+      "id": "d-release",
+      "requirementIds": [
+        "REL"
+      ],
+      "descriptionMarkdown": "cargo-dist (`dist init`) owns the release workflow (`.github/workflows/release.yml`), the six target triples, archives, checksums and the shell/PowerShell installers. `rayx self update` uses the `axoupdater` crate, which reads the install receipt the dist installers write; without a receipt (cargo install, development build) it prints how to update instead.",
+      "invariantsMarkdown": "- The generated release workflow is regenerated with `dist generate`, never hand-edited.",
+      "rationaleMarkdown": "dist and axoupdater are the maintained pair for exactly this (installers that edit PATH, receipts, safe in-place replacement on Windows), so the CLI writes no installer scripts or download code of its own.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "dist-workspace.toml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs"
+        }
+      ]
+    },
+    {
+      "id": "d-app-move",
+      "requirementIds": [
+        "APP"
+      ],
+      "descriptionMarkdown": "The xtask app modules move into `src/app/` first as they are (fresh history, provenance in the commit message), then their couplings are replaced:\n\n- `fs_util::repo_root()` and every caller take an explicit `ProjectContext { workspace_root, metadata, pins, host }` built by `project::Project::discover`;\n- `workspace_paths::gpux_root()` becomes a `cargo metadata` lookup of the `gpux-fonts` package; `root_patch_path` reads the selected workspace's root manifest;\n- generated entry manifests take the `rayx`/`rayx_devkit` dependency from the app's own resolved dependency (`cargo metadata` `dependencies[].source`/`path`/`req`) and the pinned `wasm-bindgen`;\n- `+nightly` becomes `+<web-toolchain>`;\n- desktop triples come from `HostFacts`; every path (`target`, `artifacts`, `artifacts-temp`) is joined to the workspace root;\n- the WASM test path resolves the Playwright package, specs and projects as APP-6 describes, creating the app-local package from the embedded template when none exists, and the `RayXTestSuite` slug check goes; `test` on native targets runs the app package's `cargo test`;\n- before building, the app command asks `setup` for the target's sets in probe mode and installs missing unprivileged items automatically (APP-7), prompting or stopping for privileged ones;\n- the release re-exec in `main.rs` is dropped.\n\nThe existing `[package.metadata.rayx]` keys and the `rayx.assets.toml` schema are kept unchanged and become the documented app-project contract in `docs/app-project.md`.",
+      "invariantsMarkdown": "- Artifact locations and generated-file layouts stay byte-compatible with xtask for RayX apps (APP-4).\n- Android ABI collection, size-optimized release mode, Gradle invocation and generated mobile entry crates behave as the RayX decisions below describe; this move changes where the code lives and how it finds the project, not those behaviors.\n- No app name, slug or RayX repository path is special anywhere in the pipeline.",
+      "rationaleMarkdown": "Moving first and decoupling second keeps the diff reviewable and lets the moved tests prove nothing broke before behavior changes. The generated entry crates' fixed `crates/rayx` path dependency is the main blocker for other projects; copying the app's own resolved dependency is the only spelling that is correct for path, git and registry sources alike.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/mod.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/app.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/wasm.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/desktop.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/android.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/ios.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/assets.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/package_assets.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/runtime/workspace/2026-07-06-runtime-workspace-generated-wasm-feature-parity.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/platform/packaging-targets/2026-06-29-platform-packaging-targets-android-multi-abi-builds.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/platform/packaging-targets/2026-06-29-platform-packaging-targets-android-size-optimized-release.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/examples/test-suite/2026-07-24-examples-test-suite-exclusive-runtime-validation.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-07-01-tooling-devkit-diagnostics-android-adb-bridge.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/platform/packaging-targets/2026-07-01-platform-packaging-targets-generated-mobile-entry-crates.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/platform/packaging-targets/2026-06-29-platform-packaging-targets-lab-platform-layout.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/runtime/services/2026-07-01-runtime-services-rayx-assets-toml-authoring.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/runtime/services/2026-07-11-runtime-services-package-asset-bundles.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/platform/packaging-targets/2026-06-28-platform-packaging-targets-story-app-target-wrappers.md"
+        }
+      ]
+    },
+    {
+      "id": "d-fmt",
+      "requirementIds": [
+        "APP"
+      ],
+      "descriptionMarkdown": "`fmt` moves from xtask unchanged in behavior (one `cargo fmt -p <member>` per workspace member from `cargo metadata --no-deps`), runs on the discovered workspace, and accepts `--check` in any position.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/fmt.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/fmt.rs"
+        }
+      ]
+    },
+    {
+      "id": "d-rayx-migration",
+      "requirementIds": [
+        "MIG"
+      ],
+      "descriptionMarkdown": "RayX keeps a slim root `xtask/` for repository chores only (`code-themes`, `component-index`, `theme`). Everything an app project needs runs through `rayx`. RayX CI installs a pinned `rayx`; docs, READMEs, agent instructions, the RayX skill and the two `tools-node` scripts call `rayx`. The RayX decisions superseded here are recorded at epic-end promotion.",
+      "rationaleMarkdown": "The chores operate on RayX's own source (`crates/rayx_theme`, the component sources, the code-theme converter crate) and depend on RayX-internal crates, so they cannot live in a public, project-agnostic CLI. New projects never need them.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/main.rs"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/Cargo.toml"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".github/workflows/pr-test.yml"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "docs/src/xtask.md"
+        }
+      ],
+      "supersedesMemoryDecisions": [
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/runtime/workspace/2026-06-28-runtime-workspace-root-xtask-orchestration.md"
+        }
+      ]
+    },
+    {
+      "id": "d-playwright-template",
+      "requirementIds": [
+        "APP"
+      ],
+      "descriptionMarkdown": "The Playwright package template lives in `src/app/templates/playwright/` and is embedded with `include_str!` from inside the package (no file outside the crate). It is rendered with the project's Playwright pin and written once into `<app>/tests/e2e/`; later runs never overwrite user edits. The WebGPU launch flags come from one table in the template, matching what was verified on 2026-10-06 (Playwright 1.59.1, Chromium 147).",
+      "rationaleMarkdown": "A Playwright package must be an ancestor of the spec files for `@playwright/test` to resolve, so a package kept in a per-user cache cannot run specs that live in the app. Writing the package into the app once makes `test wasm` work with no configuration and leaves the app owning its tests, which is also what `rayx new` will generate later.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/templates/playwright/playwright.config.ts"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "tools-node/playwright.config.ts"
+        }
+      ]
+    },
+    {
+      "id": "d-toolchain-pins",
+      "requirementIds": [
+        "PINX"
+      ],
+      "descriptionMarkdown": "The nightly and JDK pins are literal values in each repository that needs them — RayX.CLI's defaults table, RayX's root `[workspace.metadata.rayx]` (read by `rayx`) and Gradle builds, Gpux's testkit default and CI — and the RayX skill reference `wasm-toolchain-update.md` is the single checklist that moves them together. Gpux keeps its own pin rather than reading RayX's metadata, so gpux stays verifiable on its own.",
+      "rationaleMarkdown": "A shared pin file across three repositories would make Gpux depend on RayX or the CLI, against the 2026-10-07 rule that gpux must verify itself from its own repository. Literal pins plus one checklist and a grep keep each repository self-contained while preventing drift.",
+      "sourceRefs": [
+        {
+          "repositoryId": "gpux",
+          "path": "tooling/testkit/src/web.rs"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".github/workflows/lane-b.yml"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".github/workflows/lane-e.yml"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".claude/skills/rayx/SKILL.md"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "gpux",
+          "path": ".agentx/memory/decisions/platform/web/2026-06-24-platform-web-multithreaded-wasm.md"
+        }
+      ]
+    }
+  ],
+  "memoryDecisionsConsidered": [
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/examples/lab/2026-07-06-examples-lab-sidebar-taxonomy.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/examples/lab/2026-07-31-examples-lab-general-positioning-tutorials.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/runtime/gpux-foundation/2026-06-24-runtime-gpux-foundation-gpux-base.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-06-24-tooling-agentx-memory-initial-taxonomy.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-06-24-tooling-agentx-memory-rust-seed.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-06-28-tooling-agentx-memory-rayx-skill-do-dont-examples.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-07-21-tooling-agentx-memory-portable-paths.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-07-24-tooling-agentx-memory-experiment-evidence-isolation.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-08-16-tooling-agentx-memory-metadata-only-control-plane.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-09-06-tooling-agentx-memory-task-scoped-instructions.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-10-05-tooling-agentx-memory-dtcg-memory-transplant.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-10-05-tooling-agentx-memory-gpux-memory-transplant.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-10-05-tooling-agentx-memory-reactive-memory-transplant.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-06-25-tooling-devkit-diagnostics-rendered-frame-inspection.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-06-26-tooling-devkit-diagnostics-inspection-metadata.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-06-26-tooling-devkit-diagnostics-occurrence-semantics.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-06-27-tooling-devkit-diagnostics-devkit-mcp-sidecar.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/platform/web/2026-06-29-platform-web-wasm-svg-asset-loading.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/platform/web/2026-07-01-platform-web-html-island-url-opt-in.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/platform/web/2026-07-02-platform-web-html-island-canonical-roots.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/platform/web/2026-07-03-platform-web-html-element-dom-overlay.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/platform/web/2026-07-03-platform-web-html-element-fit-styles-wheel.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/platform/web/2026-08-31-platform-web-explicit-wasm-constructors.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/repository/agentx-memory/2026-10-05-repository-agentx-memory-taxonomy-transplant.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/repository/packaging/2026-10-05-repository-packaging-crates-io-packaging.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/repository/packaging/2026-10-05-repository-packaging-drop-z-crates.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/repository/packaging/2026-10-05-repository-packaging-gpux-wgpu-fork.md"
+    },
+    {
+      "repositoryId": "gpux",
+      "path": ".agentx/memory/decisions/repository/upstream-sync/2026-08-07-repository-upstream-sync-self-contained-upstream-provenance.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/platform/snapshots-media-query/2026-06-24-platform-snapshots-media-query-platform-driven-scalability.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/platform/snapshots-media-query/2026-07-18-platform-snapshots-media-query-canvas-authoritative-wasm.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/platform/snapshots-media-query/2026-07-19-platform-snapshots-media-query-publication-boundary-latency.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/runtime/workspace/2026-10-05-runtime-workspace-sibling-repositories.md"
+    }
+  ]
+}

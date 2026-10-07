@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 6,
+  "epicId": "rayx-cli-foundation",
+  "scopeMarkdown": "Build **`rayx`**, the public RayX command-line tool, in the new repository `RayX.CLI` (local `D:\\Work\\projects\\RayX\\RayX.CLI`, GitHub `rayx-ui/RayX.CLI`, public, Apache-2.0). One prebuilt binary sets up a machine for gpux and RayX work end to end and builds, runs, packages and tests **any app that uses RayX**, so projects need no xtask of their own.\n\n## In scope\n\n- **Repository and distribution:** a Rust package `rayx-cli` (binary `rayx`) built from crates.io dependencies only; CI on Windows, macOS and Ubuntu; cargo-dist releases for Windows x64/ARM64, Linux x64/ARM64 (static musl) and macOS ARM64/x64 with the generated `curl | sh` and `irm | iex` installers; `rayx self update`.\n- **Machine setup:** `rayx setup [--web] [--test] [--android] [--ios] [--gpu] [--all] [--check] [--yes]` installs everything gpux and RayX development needs on Windows x64, Windows ARM64, Ubuntu/Debian (including inside WSL) and macOS — including the Xcode Command Line Tools, Xcode and its iOS Simulator runtime, Android Studio with an emulator and AVD, and GPU drivers. It absorbs RayX xtask's `setup-wasm` and `setup-android`.\n- **`rayx doctor`:** a report of every requirement on this host with the exact fix, including the GPU adapters and whether this is an interactive desktop session.\n- **WSL from Windows:** `rayx setup --wsl` (WSL 2, Ubuntu-24.04, the Linux `rayx` inside, optional `--clone` of the current checkout, then the same setup inside), `rayx wsl status`, and `rayx wsl compact`, which removes build output on request, trims the file system and compacts the virtual disk so the space returns to Windows.\n- **App pipeline for any RayX app:** `rayx app [<dir>] build|run|pack|publish|deploy|test <target>` and `rayx app [<dir>] assets`, moved from RayX xtask with the same grammar and made project-agnostic. `test wasm` works for any app with no configuration (the CLI supplies a Playwright package when the app has none), and `test` also runs an app's native tests. App commands check the target's prerequisites first and install what is missing.\n- **`rayx fmt`**, moved from RayX xtask.\n- **One toolchain pin everywhere:** the threaded-WASM nightly is `nightly-2026-06-23` and the JDK is 21 in RayX.CLI, RayX and Gpux; a new RayX skill reference tells agents how to move all of them to a newer nightly.\n- **RayX migration:** RayX's CI and documentation use `rayx`; RayX xtask keeps only repository chores (`code-themes`, `component-index`, `theme`).\n\n## Out of scope (follow-ups)\n\n- `rayx new` project scaffolding. This epic keeps the app-project contract (`[package.metadata.rayx]`, `[workspace.metadata.rayx]`, the Playwright package template) documented so `new` can generate it later.\n- Linux distributions other than Ubuntu/Debian (`setup` reports them as unsupported; `doctor` still reports).\n- Rewriting Gpux's setup documentation around `rayx` (`LINUX-WSL.md` sections 2–4, the gpux skill's prerequisite references, `install-windows-prereqs.ps1`). This epic changes Gpux only for the nightly and JDK pins.\n- Code signing and notarization of release binaries.\n\n## Assumptions and owner decisions (2026-10-07)\n\n- Rust, not .NET; the repository is public so release downloads need no authentication.\n- The CLI is RayX's, serves any app that uses RayX, and must also set up a plain gpux checkout.\n- Fresh history: no `git filter-repo` of RayX's xtask; the commit that moves code names the RayX commit it came from.\n- The threaded-WASM nightly is `nightly-2026-06-23` and the JDK is 21 everywhere (CLI defaults, RayX, Gpux).\n- WSL disk compaction and installing Xcode, Android Studio and GPU drivers belong in this epic.\n- Everything a check needs (pinned nightly, `wasm-bindgen`, Playwright, Android SDK, cargo-dist, a GPU driver and a desktop session) is checked and installed before the check runs.\n- RayX and Gpux stay private, so the CLI's own CI proves behavior with fixture projects on public crates; the real-app proof runs from the local RayX checkout.",
+  "constraintsMarkdown": "- Dependencies come from crates.io only. No path or git dependency on RayX, Gpux or any private repository: the public repository must build on its own.\n- Nothing is bound to where the binary was compiled: no `env!(\"CARGO_MANIFEST_DIR\")` or other build-time path decides which project the CLI works on.\n- The CLI never stores or prints passwords or tokens and never runs itself elevated. A step that needs administrator rights runs as a separate child process through the operating system's own UAC prompt; root steps run through `sudo` in the user's console. Credential prompts of third-party tools (an Apple ID in `xcodes`, `sudo`) reach the user directly and are never read by `rayx`.\n- Licenses and agreements (Xcode, Android SDK, winget packages) are accepted only when the user passed `--yes`; otherwise the tool's own prompt reaches the user.\n- Every install step is idempotent: it checks first and installs only what is missing or at the wrong version.\n- Version pins belong to the project (its `Cargo.lock`, `rust-toolchain.toml` and `[workspace.metadata.rayx]`). The CLI's built-in defaults apply only where a project declares nothing, are reported as defaults, and equal the pins RayX and Gpux use (`nightly-2026-06-23`, JDK 21).\n- Commits use Conventional Commits with meaningful scopes and no Claude co-author lines; a change in RayX or Gpux that another repository relies on is a paired commit.\n- `rayx` never discovers, clones or downloads a project's dependencies itself (for example gpux through `path` entries pointing at sibling checkouts). Cargo resolves dependencies from crates.io or git; `rayx` only reads what `cargo metadata` reports.",
+  "requirements": [
+    {
+      "id": "REPO",
+      "title": "Public repository, package and CI",
+      "descriptionMarkdown": "`RayX.CLI` is a self-contained public Rust repository producing the `rayx` binary.",
+      "criteria": [
+        {
+          "id": "REPO-1",
+          "descriptionMarkdown": "The repository root is a Cargo package `rayx-cli` with a library target `rayx_cli` and a binary target `rayx` (a thin `main.rs` over the library), edition and toolchain matching the RayX siblings (`rust-toolchain.toml` 1.95.0 with clippy and rustfmt), `LICENSE-APACHE`, a README with the install one-liners and the command overview, and a `.gitignore` covering `target/` and `artifacts-temp/`.\n\n- `cargo build` works from a clean clone with only crates.io dependencies (no `path`/`git` dependencies, no `[patch]`).\n- Integration tests live in `tests/<feature>.rs`, one file per feature group, selectable with `cargo test --test <group>`.\n\nVerified by `cargo metadata` inspection in a test and by the focused build.",
+          "verification": "automated"
+        },
+        {
+          "id": "REPO-2",
+          "descriptionMarkdown": "GitHub Actions CI runs on every push and pull request on `windows-latest`, `macos-latest` and `ubuntu-24.04`: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings` and `cargo test`. The repository exists on GitHub as public `rayx-ui/RayX.CLI` with `main` pushed.\n\nVerified by review of the workflow and the first green run.",
+          "verification": "manual"
+        },
+        {
+          "id": "REPO-3",
+          "descriptionMarkdown": "`rayx --help` lists `setup`, `doctor`, `wsl`, `self update`, `app` and `fmt` with one line each; `rayx --version` prints the package version; an unknown command or flag exits with code 2 and a usage message naming the problem.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "HOST",
+      "title": "Host facts, command execution and PATH",
+      "descriptionMarkdown": "Every command decides from facts about the host, and every external program runs through one runner that can print instead of execute.",
+      "criteria": [
+        {
+          "id": "HOST-1",
+          "descriptionMarkdown": "Host detection reports OS, the **native** CPU architecture, WSL, and Linux distribution:\n\n- On Windows the architecture comes from `IsWow64Process2`, so an x64 `rayx` emulated on ARM64 still reports `arm64`; on macOS `sysctl.proc_translated` detects Rosetta.\n- WSL is detected from `WSL_DISTRO_NAME` or `/proc/sys/kernel/osrelease`; the distribution and version come from `/etc/os-release`.\n- Detection is a pure function over injectable probes, tested with fixtures for Windows x64, Windows ARM64 under x64 emulation, macOS ARM64 under Rosetta, Ubuntu 24.04, Ubuntu under WSL, Debian 12 and an unsupported Fedora.",
+          "verification": "automated"
+        },
+        {
+          "id": "HOST-2",
+          "descriptionMarkdown": "All external programs run through one command runner with three modes: execute, print-only (`--check` and dry runs print the exact command line, including `sudo` or the elevation marker where needed), and a recording fake for tests. Each command carries a privilege level:\n\n- `Root` on Linux and macOS runs through `sudo` when not root and directly when root (containers); the CLI never reads or forwards a password.\n- `Admin` on Windows runs that one command as a separate elevated child process through `ShellExecuteEx` with `runas`, so the user sees the system UAC prompt; its exit code and output file come back to `rayx`, which itself never runs elevated. Installers that raise their own UAC prompt run unelevated.\n- Declining a UAC or `sudo` prompt stops the step with a clear message, not a crash.",
+          "verification": "automated"
+        },
+        {
+          "id": "HOST-3",
+          "descriptionMarkdown": "User PATH changes are idempotent and persistent:\n\n- Windows: prepend to `HKCU\\Environment\\Path` (preserving `REG_EXPAND_SZ`), then broadcast `WM_SETTINGCHANGE`.\n- Linux and macOS: one marked block in the login profile of the user's shell (`~/.profile`, `~/.bashrc` for bash, `~/.zprofile` for zsh).\n- An entry already present is not added twice, and the command reports that a new shell is needed.\n\nThe profile editing is tested against temporary files; the registry path is tested through an injectable store.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "PIN",
+      "title": "Project discovery and version pins",
+      "descriptionMarkdown": "The CLI finds the project from the paths it is given and reads that project's pins.",
+      "criteria": [
+        {
+          "id": "PIN-1",
+          "descriptionMarkdown": "Project discovery starts at the given app directory (or the current directory) and uses `cargo locate-project --workspace` / `cargo metadata` to find the workspace root and packages. Running the same command from another directory with a relative or absolute app path selects the same app. No compile-time path is used anywhere (a test greps the source for `CARGO_MANIFEST_DIR` outside tests).",
+          "verification": "automated"
+        },
+        {
+          "id": "PIN-2",
+          "descriptionMarkdown": "Pins resolve with this precedence, and each is reported with its source (`project`, `gpux-checkout` or `default`):\n\n1. the project: the `wasm-bindgen` version from its `Cargo.lock`; the stable toolchain from `rust-toolchain.toml`; and `[workspace.metadata.rayx]` keys `web-toolchain`, `node`, `jdk`, `playwright`, `android-ndk`, `android-platform`, `android-build-tools`, `android-ndk-api`, `android-system-image`, `xcode`;\n2. for a gpux checkout (a workspace containing the package `gpux-testkit`) that declares nothing: gpux's pins — platform `android-36`, build-tools `36.0.0`, NDK `28.0.12674087`;\n3. otherwise the built-in defaults: nightly `nightly-2026-06-23`, Node 22, JDK 21, Playwright `1.59.1`, NDK `28.0.12674087`, platform `android-34`, cargo-ndk API 31, no build-tools pin, the newest stable Xcode.\n\nThe nightly and JDK defaults are the same in all three layers. Outside any project only the defaults apply. Tested with fixture workspaces with and without metadata and lockfiles, and with a gpux-checkout fixture.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "SETUP",
+      "title": "Machine setup",
+      "descriptionMarkdown": "`rayx setup` installs what gpux and RayX development needs on this host.",
+      "criteria": [
+        {
+          "id": "SETUP-1",
+          "descriptionMarkdown": "Setup is planned before it runs: requirement sets (base, web, test, android, ios, gpu) expand into ordered steps, each with a probe, an install command, and whether it needs root/administrator. `--check` prints the plan with each step's status and exits 1 when anything is missing, 0 otherwise; a normal run executes only missing steps; `--yes` makes every installer non-interactive; `--all` selects every set that applies to the host. Running setup twice in a row executes nothing the second time. Plans are tested per host fixture with a fake probe and runner.",
+          "verification": "automated"
+        },
+        {
+          "id": "SETUP-2",
+          "descriptionMarkdown": "**Base set on Ubuntu/Debian (also inside WSL):** apt packages for building gpux and RayX natively — `build-essential pkg-config git curl jq cmake clang llvm lld libclang-dev libssl-dev libzstd-dev libsqlite3-dev libglib2.0-dev libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libfontconfig1-dev libfreetype-dev libasound2-dev libvulkan1 mesa-vulkan-drivers xdg-utils` — then rustup (non-interactive, default host), the project's pinned toolchain when run inside a project, and `~/.cargo/bin` on PATH. A distribution other than Ubuntu/Debian fails setup with an actionable message naming the supported ones.",
+          "verification": "automated"
+        },
+        {
+          "id": "SETUP-3",
+          "descriptionMarkdown": "**Base set on Windows x64 and ARM64** through winget:\n\n- Visual Studio 2022 Build Tools with the `Microsoft.VisualStudio.Workload.VCTools` workload and a Windows SDK, plus `Microsoft.VisualStudio.Component.VC.Tools.ARM64` on ARM64;\n- the newest Windows SDK `fxc.exe` directory on the user PATH (the `arm64` bin directory on ARM64 hosts, `x64` otherwise);\n- LLVM/Clang (`LLVM.LLVM`) with `C:\\Program Files\\LLVM\\bin` on PATH — required on ARM64, where `ring` needs Clang for its assembly;\n- VC++ redistributables: `Microsoft.VCRedist.2015+.arm64` and `.x64` on ARM64, `.x64` on x64;\n- rustup with the native host triple (`aarch64-pc-windows-msvc` on ARM64, never the emulated x64 one), the project's toolchain, and `%USERPROFILE%\\.cargo\\bin` on PATH.\n\nMissing winget fails with the App Installer instruction.",
+          "verification": "automated"
+        },
+        {
+          "id": "SETUP-4",
+          "descriptionMarkdown": "**Base set on macOS:** the Xcode Command Line Tools installed without the GUI dialog — the CLI marks the on-demand install (`/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress`), finds the newest \"Command Line Tools\" label with `softwareupdate --list`, installs it with `sudo softwareupdate --install <label>`, and removes the marker; when no label is offered it falls back to `xcode-select --install` and waits for it. Then Homebrew when missing (the official installer script, run in the user's console so its `sudo` prompt reaches them), rustup and the project's toolchain.",
+          "verification": "automated"
+        },
+        {
+          "id": "SETUP-5",
+          "descriptionMarkdown": "**`--web`:** the pinned nightly with `rust-src` and the `wasm32-unknown-unknown` target, the `wasm32-unknown-unknown` target on the stable toolchain, `wasm-bindgen-cli` at the pinned version (`cargo install --locked`, replaced when another version is installed), and Clang/LLVM (needed by cc-built dependencies of threaded WASM).",
+          "verification": "automated"
+        },
+        {
+          "id": "SETUP-6",
+          "descriptionMarkdown": "**`--test`:** Node.js at the pinned major or newer (NodeSource on Ubuntu, `OpenJS.NodeJS.LTS` through winget, Homebrew `node@<major>` on macOS) and pnpm through `corepack enable --install-directory <user bin>`; on Linux also `xvfb` and `xdotool` and the Playwright Chromium system libraries. Inside a project with a Playwright package (`tools-node/` by default, or `[workspace.metadata.rayx] tools-node`), it runs `pnpm install --frozen-lockfile --prefer-offline` and `pnpm exec playwright install chromium` (as RayX's `setup-wasm` does), reusing Playwright's per-user browser cache as RayX's `setup-wasm` does today. Under WSL, the user bin directory must precede `/mnt/c` entries so a Windows `pnpm` is never picked; `doctor` flags the wrong order.",
+          "verification": "automated"
+        },
+        {
+          "id": "SETUP-7",
+          "descriptionMarkdown": "**`--android`:** everything RayX xtask's `setup-android` ensures today, plus a complete Android workstation:\n\n- the JDK at the pinned major, 21 by default (Microsoft OpenJDK through winget or Homebrew, `openjdk-<major>-jdk` on Ubuntu), with `JAVA_HOME` set for the user;\n- **Android Studio** on desktop hosts: `Google.AndroidStudio` through winget, `android-studio` cask on macOS, `sudo snap install android-studio --classic` on Ubuntu desktops; inside WSL it is skipped and reported as provided by the Windows host;\n- the Android SDK, found the way xtask finds it (`ANDROID_HOME`, `ANDROID_SDK_ROOT`, then the platform default locations, which Android Studio also uses); when none exists, the command-line tools are downloaded from Google into the default location and `ANDROID_HOME` is set for the user;\n- `sdkmanager` packages `platform-tools`, `platforms;<platform>`, `ndk;<ndk>` (unless an NDK is already found through `ANDROID_NDK_HOME`, `ANDROID_NDK_ROOT`, `NDK_HOME` or `<sdk>/ndk/*`, as xtask does), `build-tools;<build-tools>` when pinned, `emulator`, and a system image for the host CPU (`x86_64` or `arm64-v8a`) at the pinned platform;\n- a default AVD `rayx-<platform>-<abi>` created with `avdmanager` when no AVD exists, so `rayx app ... run android` can start one autonomously;\n- emulator acceleration: `/dev/kvm` access on Linux (adding the user to the `kvm` group through `sudo`), the Windows Hypervisor Platform feature on Windows (enabled through an elevated `dism` with a reboot notice), nothing extra on macOS;\n- `cargo-ndk` (`cargo install cargo-ndk --locked`) and the Rust targets `aarch64-linux-android` and `x86_64-linux-android`.\n\nSDK licenses are shown to the user by `sdkmanager --licenses`; only `--yes` accepts them non-interactively.",
+          "verification": "automated"
+        },
+        {
+          "id": "SETUP-8",
+          "descriptionMarkdown": "**`--ios` (macOS only; elsewhere reported as not applicable):**\n\n- **Xcode** at the pinned version (newest stable by default) through `xcodes` (installed from Homebrew); `xcodes` asks for the Apple ID in the user's console and `rayx` never sees it. When the Mac App Store is signed in and no version is pinned, `mas install 497799835` is used instead.\n- `sudo xcode-select --switch <Xcode.app>`, the Xcode license (`sudo xcodebuild -license accept` only with `--yes`, otherwise the interactive `sudo xcodebuild -license`), and `xcodebuild -runFirstLaunch`.\n- The iOS Simulator runtime through `xcodebuild -downloadPlatform iOS` when `xcrun simctl list runtimes` shows none.\n- XcodeGen through Homebrew and the Rust targets `aarch64-apple-ios` and `aarch64-apple-ios-sim`.",
+          "verification": "automated"
+        },
+        {
+          "id": "SETUP-9",
+          "descriptionMarkdown": "**`--gpu`:** the GPU driver for every adapter, so native windows and browser WebGPU run on hardware:\n\n- Detection without a GPU library: DXGI adapter enumeration on Windows (vendor id, name, driver version and date; an adapter served only by the Microsoft Basic Render Driver counts as missing a driver), `lspci` plus `vulkaninfo --summary` (`vulkan-tools`) on Linux, `system_profiler SPDisplaysDataType -json` on macOS.\n- Windows: the vendor's official driver package through winget for NVIDIA, AMD and Intel (package IDs verified with `winget show` during implementation); where a vendor has no winget package (for example Qualcomm Adreno on ARM64), the driver comes from Windows Update: the CLI starts a driver scan and opens the Windows Update optional-updates page, then re-probes.\n- Ubuntu on hardware: `sudo ubuntu-drivers install` for NVIDIA; Mesa (`mesa-vulkan-drivers`, already in the base set) for AMD and Intel; `vulkan-tools` for the probe.\n- WSL: the driver belongs to Windows; inside WSL `--gpu` reports the Windows host's adapters and, when run through `rayx setup --wsl`, the Windows side installs them first. Lavapipe stays the Vulkan fallback.\n- macOS: drivers ship with macOS; the step reports the Metal device and installs nothing.\n\nPlans are tested with fixture adapter lists (NVIDIA, AMD, Intel, Adreno ARM64, Basic Render Driver only, WSL, macOS).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "DOCTOR",
+      "title": "Doctor",
+      "descriptionMarkdown": "One report of the host's state for gpux and RayX work.",
+      "criteria": [
+        {
+          "id": "DOCTOR-1",
+          "descriptionMarkdown": "`rayx doctor` prints, for every requirement set that applies to the host, each requirement's status (present with version, missing, wrong version) and the exact command that fixes it, plus environment findings:\n\n- the GPU adapters with vendor, driver version and whether a hardware adapter is usable (`hardwareAdapter`);\n- whether this is an interactive desktop session that can open headed browsers and windows (`interactiveDesktop`: a console session on Windows, `DISPLAY`/`WAYLAND_DISPLAY` on Linux, a GUI login on macOS);\n- WSL PATH order (`pnpm`, `wasm-bindgen`, `cargo` resolving to `/mnt/c`), `VK_DRIVER_FILES` and lavapipe under WSL, and the WSL disk size when run on Windows;\n- the pins in use with their source.\n\n`--json` prints the same as one JSON document with `requirementCount`, `hardwareAdapter` and `interactiveDesktop`. Doctor exits 0 whenever it could inspect the host; `setup --check` is the command that fails on missing requirements.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "WSL",
+      "title": "WSL from Windows",
+      "descriptionMarkdown": "A Windows user sets up a Linux environment with one command.",
+      "criteria": [
+        {
+          "id": "WSL-1",
+          "descriptionMarkdown": "`rayx setup --wsl [set flags]` on Windows:\n\n- requires WSL 2 (`wsl --version`), and installs `Ubuntu-24.04` with `wsl --install -d Ubuntu-24.04` when absent;\n- when the distribution has no default user yet, stops and tells the user to open Ubuntu once and create the user, then re-run;\n- installs the Linux `rayx` of the same version inside the distribution (the matching static musl release asset; `RAYX_WSL_BINARY=<path>` overrides it for development builds), into `~/.local/bin`;\n- runs `rayx setup` with the same flags inside the distribution in the same console, so `sudo` prompts reach the user.\n\nOn other hosts `--wsl` fails with a message. Planning is tested with a fake runner; the end-to-end run is verified manually on Windows.",
+          "verification": "manual"
+        },
+        {
+          "id": "WSL-2",
+          "descriptionMarkdown": "`rayx setup --wsl --clone [<linux-dir>]` additionally clones the **current Windows checkout only** into `<linux-dir>` (default `~/<checkout name>`) with `git -c safe.directory='*' clone /mnt/<drive>/...`, checking out the same branch; an existing clone is fetched, not replaced. It never reads the manifest's `path` dependencies and never clones or downloads other repositories: the project's dependencies (gpux included) are resolved by Cargo inside WSL from crates.io or git. The `/mnt/<drive>` translation and the clone/fetch decision are tested with fixtures.",
+          "verification": "automated"
+        },
+        {
+          "id": "WSL-3",
+          "descriptionMarkdown": "`rayx wsl status` on Windows lists the WSL distributions with their default user, the location of each `ext4.vhdx` (from `HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Lxss\\{id}\\BasePath`), its size on the Windows disk, the used and free space inside the distribution (`df`), and the size of build output (`target/`, `artifacts/`, `artifacts-temp/`) under the directories `--clone` created. `--json` prints the same. Tested with a fake registry, fake `wsl` output and fixture sizes.",
+          "verification": "automated"
+        },
+        {
+          "id": "WSL-4",
+          "descriptionMarkdown": "`rayx wsl compact [--distro <name>] [--clean] [--yes]` on Windows gives unused WSL disk space back to Windows:\n\n1. with `--clean`, lists the build-output directories under the cloned checkouts with their sizes and deletes them after confirmation (or at once with `--yes`);\n2. runs `sudo fstrim -av` inside the distribution in the user's console;\n3. warns that `wsl --shutdown` stops every distribution, including VS Code remote sessions, and continues after confirmation (or at once with `--yes`);\n4. runs `wsl --shutdown`, then compacts the virtual disk in one elevated child process: `Optimize-VHD -Path <vhdx> -Mode Full` when the Hyper-V module is available, otherwise a `diskpart` script (`select vdisk`, `attach vdisk readonly`, `compact vdisk`, `detach vdisk`);\n5. reports the disk size before and after.\n\nIt never enables sparse disks (`wsl --manage --set-sparse`), which WSL 2.6 disabled because they can corrupt the distribution. Inside WSL the command prints the Windows command to run instead. The step plan is tested with fakes; the real compaction is verified manually on this machine, with the before/after sizes recorded.",
+          "verification": "manual"
+        }
+      ]
+    },
+    {
+      "id": "REL",
+      "title": "Releases and self update",
+      "descriptionMarkdown": "Users install and update a prebuilt `rayx` without Rust.",
+      "criteria": [
+        {
+          "id": "REL-1",
+          "descriptionMarkdown": "cargo-dist configuration and its generated release workflow build, on a `v*` tag, archives with SHA-256 checksums for `x86_64-pc-windows-msvc`, `aarch64-pc-windows-msvc`, `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, `aarch64-apple-darwin` and `x86_64-apple-darwin`, plus the shell and PowerShell installers, published as a GitHub Release of `rayx-ui/RayX.CLI`. The README documents `curl --proto '=https' --tlsv1.2 -LsSf .../rayx-cli-installer.sh | sh` and `powershell -ExecutionPolicy Bypass -c \"irm .../rayx-cli-installer.ps1 | iex\"`. `dist plan` succeeds locally; the first tagged release is verified manually.",
+          "verification": "manual"
+        },
+        {
+          "id": "REL-2",
+          "descriptionMarkdown": "`rayx self update` replaces the installed binary with the latest release (safe for the running executable on Windows), verifying the checksum; `--check` only reports the installed and latest versions. A `rayx` not installed by the release installers (for example `cargo install` or a development build) is told how to update instead of being overwritten. The version comparison and install-source detection are tested; the download is verified manually against a real release.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "APP",
+      "title": "App pipeline",
+      "descriptionMarkdown": "RayX xtask's app commands move into `rayx` and work on any project.",
+      "criteria": [
+        {
+          "id": "APP-1",
+          "descriptionMarkdown": "`rayx app [<dir>] <action> <target> [flags]` accepts exactly RayX xtask's grammar today:\n\n- actions `build`, `run`, `pack`, `publish` (staging only, as now), `deploy` (Android) and `test` (WASM), plus `rayx app [<dir>] assets generate|validate|list`;\n- targets `host`, `windows`, `linux`, `macos`, `mobile`, `ios`, `android`, `wasm` (alias `web`);\n- release by default, `--debug`/`--development`, `--release` rejected; `--features`, `--all-features`, `--no-default-features` and `--` pass-through;\n- every Android flag (`--android-device`, `--android-connect`, `--android-paired`, `--android-wireless`, `--android-apk`, the DevKit flags, the native and Gradle size flags, `--size-optimized`, `--no-launch`), the iOS `--simulator`/`--device`, and the WASM `--port`, `--headed`, `--webgpu` and `--playwright-test`;\n- the `rayx_diagnostics` policy: only diagnostic-harness apps may use it, and never for pack, publish or deploy.\n\n`<dir>` defaults to the current directory. The xtask tests of these modules move with the code and pass; the ones that read RayX's `apps/lab`, `apps/examples_mobile` or `crates/` are rewritten against fixture apps in this repository, and staging output goes to temporary directories instead of a repository's `artifacts-temp`.",
+          "verification": "automated"
+        },
+        {
+          "id": "APP-2",
+          "descriptionMarkdown": "The pipeline is project-agnostic:\n\n- the app directory resolves against the current directory, and the workspace root and packages come from `cargo metadata` of the selected app (PIN-1); `artifacts/`, `artifacts-temp/` and `target/` are under that workspace root for every target, including desktop `pack`;\n- the generated Android, iOS and WASM entry crates depend on `rayx` (and `rayx_devkit` when the `devkit` feature is selected) with the **same source the app itself uses** as `cargo metadata` reports it (path made absolute, git with its revision, or registry version), never a fixed `crates/rayx` path;\n- `[patch]` entries are copied from the selected workspace's root manifest when the app needs them, as xtask does for `indxdb`/`rexie`;\n- the gpux font assets come from the `gpux-fonts` package's manifest directory as `cargo metadata` resolves it, not from a sibling checkout path;\n- the threaded build uses the pinned nightly and the project's locked `wasm-bindgen` (PIN-2) in generated manifests, and fails with `rayx setup --web` as the fix when the `wasm-bindgen` CLI on PATH has another version;\n- desktop target triples follow the native host architecture (`aarch64-pc-windows-msvc` on Windows ARM64);\n- no re-exec through `cargo run`: `rayx` is already a release binary.\n\nTested with fixture workspaces outside the RayX layout, including a registry-style `rayx` and `gpux-fonts` source.",
+          "verification": "automated"
+        },
+        {
+          "id": "APP-3",
+          "descriptionMarkdown": "The threaded WASM path works on a project with only public crates: a fixture app (wasm-bindgen with atomics, no RayX or gpux dependency) builds with `rayx app <fixture> build wasm`, passes the shared-memory verification, and `rayx app <fixture> run wasm --port <p>` serves it with `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`, answered by an HTTP request in the test.",
+          "verification": "automated"
+        },
+        {
+          "id": "APP-4",
+          "descriptionMarkdown": "On the real RayX checkout, with `rayx` built from this repository and RayX as the current directory, these succeed and write the same artifact layout as xtask (`artifacts/apps/<slug>/wasm/<profile>/` with `index.html`, the wasm-bindgen output and `assets/`; the APK under `artifacts/apps/<slug>/android/`):\n\n- `rayx app apps/lab build wasm`;\n- `rayx app apps/test_suite build wasm --no-default-features --features rayx_diagnostics`;\n- `rayx app apps/lab build host`;\n- `rayx app apps/examples_mobile build android` with JDK 21;\n- the focused headed WebGPU spec `rayx app apps/test_suite test wasm --headed --webgpu --no-default-features --features rayx_diagnostics --playwright-test test_suite/rayx-collapsible-sizes.spec.ts`, after `rayx doctor` reports a hardware adapter and an interactive desktop.",
+          "verification": "automated"
+        },
+        {
+          "id": "APP-6",
+          "descriptionMarkdown": "`rayx app <dir> test <target>` works for **any app that uses RayX**, with no configuration:\n\n- **`test wasm`** finds the Playwright package in this order: `[workspace.metadata.rayx] tools-node`; the workspace's `tools-node/`; the app's `tests/e2e/`. When none exists, the CLI creates `<app>/tests/e2e/` from its embedded template (see APP-8) and tells the user to commit it.\n- Specs: `--playwright-test` selects files; otherwise `[package.metadata.rayx] playwright_specs`; otherwise, in a shared workspace package, the app's own subdirectory (the app slug in snake case, which keeps `test_suite/` for RayX's Test Suite) or, in an app-local package, every spec in it.\n- Projects: `[package.metadata.rayx] playwright_projects`, otherwise every project in the config (which keeps `chromium` and `chromium-dpr2` for RayX).\n- The `RayXTestSuite` slug check and every other app-name special case are removed. The CLI builds the app, serves it with cross-origin isolation, and passes the URL to Playwright as `RAYX_APP_URL`; `--webgpu` sets `RAYX_WEBGPU_REQUIRED=1`.\n- **`test host|windows|linux|macos`** runs the app package's own tests (`cargo test -p <app package>`) with the selected features and profile.\n- `test android` and `test ios` fail with a clear \"not supported yet\" message.\n\nTested with fixture apps: a RayX-layout workspace package, an app-local package, an app with no Playwright package (template created), metadata overrides, and a native `test host` run.",
+          "verification": "automated"
+        },
+        {
+          "id": "APP-5",
+          "descriptionMarkdown": "`rayx fmt [--check]` formats the selected workspace one member at a time (`cargo fmt -p <member>`), as RayX xtask's `fmt` does to stay under the Windows command-line limit, and lists the members that fail. `--check` may appear anywhere in the arguments. Tested on a two-member fixture workspace.",
+          "verification": "automated"
+        },
+        {
+          "id": "APP-8",
+          "descriptionMarkdown": "The embedded Playwright template is a complete, working package for any RayX app: `package.json` pinning `@playwright/test` to the Playwright pin (`1.59.1` by default) with `packageManager` set for pnpm; `playwright.config.ts` reading `RAYX_APP_URL`, with Chromium projects at DPR 1 and 2, headed and headless launch options carrying the verified per-OS WebGPU flags (Linux without a GPU: `--enable-unsafe-webgpu --enable-features=Vulkan --use-angle=swiftshader --use-vulkan=swiftshader`; Windows headless shell: `--use-angle=d3d11 --disable-dawn-features=use_dxc`; headed `channel: 'chromium'` on a real GPU with no extra flags); a fixture that waits for the app's canvas and, when `RAYX_WEBGPU_REQUIRED=1`, fails unless the app logged that it initialized with `BrowserWebGpu`; an example smoke spec; and `.gitignore` entries for `node_modules`, `test-results` and `playwright-report`. A fixture app's generated package runs its smoke spec green through `rayx app <fixture> test wasm` on this machine.",
+          "verification": "automated"
+        },
+        {
+          "id": "APP-7",
+          "descriptionMarkdown": "App commands check the target's prerequisites before they build: `wasm` needs the web set (and the test set for `test wasm`), `android` the Android set, `ios` the iOS set, native targets the base set. Missing items that need no privileges (rustup toolchains, components and targets, `wasm-bindgen-cli`, `cargo-ndk`, project `pnpm` dependencies, the Playwright browser, SDK packages) are installed automatically with a one-line notice. Items that need `sudo`, administrator rights or a license prompt the user in an interactive terminal and otherwise stop with the exact `rayx setup --<set>` command. `--no-install` turns the automatic step off. Tested with fixture hosts and the fake runner.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "PINX",
+      "title": "One toolchain pin across RayX.CLI, RayX and Gpux",
+      "descriptionMarkdown": "The threaded-WASM nightly and the JDK are the same everywhere, and agents know how to move them together.",
+      "criteria": [
+        {
+          "id": "PINX-1",
+          "verification": "automated",
+          "descriptionMarkdown": "The threaded-WASM toolchain is `nightly-2026-06-23` in every place that names one:\n\n- RayX.CLI's default (PIN-2);\n- RayX: `[workspace.metadata.rayx] web-toolchain = \"nightly-2026-06-23\"` in the root `Cargo.toml`, xtask's WASM build until sprint 7 removes it, CI installing that toolchain with `rust-src` and the wasm32 target, `README.md` and the RayX skill's `diagnostics.md`;\n- Gpux: gpux-testkit's default toolchain (`GPUX_WEB_TOOLCHAIN` still overrides it) and its test, `docs/testing.md`, `docs/installation-and-usage.md`, `LINUX-WSL.md`, and the gpux skill references `installation-and-usage.md` and `multithreaded-wasm-apps.md`; `lane-b.yml` already pins it.\n\nA `git grep -P` in RayX and in Gpux (outside `.agentx/`) finds no unpinned `+nightly`, `toolchain install nightly`, `--toolchain nightly` or `\"nightly\"` default; `cargo test -p gpux-testkit --test web` passes."
+        },
+        {
+          "id": "PINX-2",
+          "verification": "automated",
+          "descriptionMarkdown": "The JDK is 21 everywhere: RayX.CLI's default (PIN-2); RayX's `apps/lab`, `apps/test_suite` and `apps/examples_mobile` Gradle builds (`sourceCompatibility`/`targetCompatibility` `VERSION_21`, and the Kotlin JVM target where set); Gpux's `lane-e.yml` (`java-version: 21`), gpux-testkit's Android prerequisite message and the gpux docs that name a JDK. A `git grep` in both repositories finds no `VERSION_17`, `java-version: 17` or `JDK 17`; the Android builds in APP-4 and `cargo run -p gpux-testkit -- android build --abi x86_64` succeed on JDK 21."
+        },
+        {
+          "id": "PINX-3",
+          "verification": "manual",
+          "descriptionMarkdown": "A new RayX skill reference `.claude/skills/rayx/references/wasm-toolchain-update.md`, linked from the skill's `SKILL.md`, tells an agent how to move the threaded-WASM nightly:\n\n- how to find a newer nightly worth taking (the current pin's date, `rustup toolchain install nightly-<date>`, what to read in the Rust release notes for `build-std`, atomics and `wasm32-unknown-unknown` changes);\n- how to prove it: the threaded builds of Lab and the Test Suite through `rayx`, gpux's `gpux-testkit web build --verify`, and one focused headed WebGPU spec;\n- **every place to update together**, with the `git grep` that finds them: RayX.CLI's default in `project::pins` (and its tests), RayX's root `[workspace.metadata.rayx] web-toolchain` and CI, Gpux's testkit default, `lane-b.yml` `GPUX_WEB_TOOLCHAIN` and the docs from PINX-1;\n- that the three repositories change in paired commits.\n\nThe gpux skill's `multithreaded-wasm-apps.md` points to it in one line. Verified by review."
+        }
+      ]
+    },
+    {
+      "id": "VAL",
+      "title": "Validation environment",
+      "descriptionMarkdown": "Every tool a check needs is checked and installed before the check runs.",
+      "criteria": [
+        {
+          "id": "VAL-1",
+          "verification": "automated",
+          "descriptionMarkdown": "Before the checks that need them, this machine is provisioned with the `rayx` built from this repository: `rayx setup --web --test --android --gpu` installs whatever is missing (the owner answers any UAC or license prompt), and `cargo-dist` is installed at the version the release workflow pins (`cargo install cargo-dist --locked --version <pin>`). `rayx setup --check --web --test --android --gpu` then exits 0, `dist --version` prints the pinned version, and `rayx doctor --json` reports `\"hardwareAdapter\": true` and `\"interactiveDesktop\": true`. A failure here is fixed in the CLI or the machine before the dependent checks run, never by skipping them."
+        }
+      ]
+    },
+    {
+      "id": "MIG",
+      "title": "RayX moves to rayx",
+      "descriptionMarkdown": "RayX stops carrying the app pipeline.",
+      "criteria": [
+        {
+          "id": "MIG-1",
+          "descriptionMarkdown": "RayX xtask keeps only `code-themes`, `component-index` and `theme`. The `app`, `setup-android`, `setup-wasm` and `fmt` commands, their modules (`app`, `args`, `assets`, `package_assets`, `desktop`, `wasm`, `android`, `ios`, `node_tools`, `process`, `fmt`, `workspace_paths`, and whatever of `fs_util` the chores no longer use), their tests and the release re-exec in `main.rs` are removed, along with dependencies only they used. `cargo check -p xtask --all-targets` and `cargo test -p xtask` pass.",
+          "verification": "automated"
+        },
+        {
+          "id": "MIG-2",
+          "descriptionMarkdown": "RayX moves every caller to `rayx`:\n\n- CI (`.github/workflows/pr-test.yml`) installs `rayx` at a pinned version (the release installer once a release exists, before that `cargo install --locked --git https://github.com/rayx-ui/RayX.CLI --rev <commit>`) and calls `rayx app ...` and `rayx setup --test` where it called xtask or ran the `setup-wasm` steps by hand;\n- `docs/src/xtask.md` and `docs/src/xtask/*.md` become the `rayx` guide, and the other pages that show xtask commands (theming, text selection, text system, actions/input maps) use `rayx`;\n- `README.md`, `AGENTS.md`, `CLAUDE.md`, the app READMEs (`apps/lab`, `apps/examples_mobile`, `apps/test_suite`) and the RayX skill name `rayx` commands;\n- the `tools-node` scripts that run `cargo run --release -p xtask` (`test_suite/android-pointer-gesture-probe.mjs`, `test_suite/rayx-components-base-completion-targets.mjs`) run `rayx`.\n\nA `git grep` for `xtask -- app`, `-p xtask -- app`, `setup-wasm` and `setup-android` outside `.agentx/` returns nothing. RayX memory under `.agentx/` is updated during decision promotion at epic end, not by this criterion.",
+          "verification": "manual"
+        }
+      ]
+    }
+  ]
+}

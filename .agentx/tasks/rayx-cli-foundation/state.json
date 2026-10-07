@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 6,
+  "epicId": "rayx-cli-foundation",
+  "revision": 3,
+  "planRevision": 4,
+  "specHashes": {
+    "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
+    "design": "bf10b0221d4688d0f4522567f1167fa4fba5b66f804e60a391a88f2dc8e9cbff",
+    "plan": "7f6b79a5f1cae39cd3e72983869e58076697e83feb28c841bed8538c69b30aae"
+  },
+  "tasks": {
+    "t01-package-scaffold": {
+      "status": "pending"
+    },
+    "t02-cli-surface": {
+      "status": "pending"
+    },
+    "t03-host-facts": {
+      "status": "pending"
+    },
+    "t04-command-runner": {
+      "status": "pending"
+    },
+    "t05-path-env": {
+      "status": "pending"
+    },
+    "t06-ci-and-github": {
+      "status": "pending"
+    },
+    "t07-project-pins": {
+      "status": "pending"
+    },
+    "t08-setup-engine": {
+      "status": "pending"
+    },
+    "t09-setup-linux": {
+      "status": "pending"
+    },
+    "t10-setup-windows": {
+      "status": "pending"
+    },
+    "t11-setup-macos": {
+      "status": "pending"
+    },
+    "t12-setup-web": {
+      "status": "pending"
+    },
+    "t13-setup-test-tools": {
+      "status": "pending"
+    },
+    "t14-setup-android": {
+      "status": "pending"
+    },
+    "t15-setup-ios": {
+      "status": "pending"
+    },
+    "t16-doctor": {
+      "status": "pending"
+    },
+    "t17-move-app-pipeline": {
+      "status": "pending"
+    },
+    "t18-app-project-agnostic": {
+      "status": "pending"
+    },
+    "t19-app-wasm-tests": {
+      "status": "pending"
+    },
+    "t20-app-wasm-fixture": {
+      "status": "pending"
+    },
+    "t21-fmt": {
+      "status": "pending"
+    },
+    "t22-real-rayx-proof": {
+      "status": "pending"
+    },
+    "t23-wsl": {
+      "status": "pending"
+    },
+    "t24-release": {
+      "status": "pending"
+    },
+    "t25-self-update": {
+      "status": "pending"
+    },
+    "t26-docs": {
+      "status": "pending"
+    },
+    "t27-slim-xtask": {
+      "status": "pending"
+    },
+    "t28-rayx-callers": {
+      "status": "pending"
+    },
+    "t29-nightly-pin": {
+      "status": "pending"
+    },
+    "t30-jdk-pin": {
+      "status": "pending"
+    },
+    "t31-toolchain-skill-reference": {
+      "status": "pending"
+    },
+    "t32-setup-gpu": {
+      "status": "pending"
+    },
+    "t33-validation-environment": {
+      "status": "pending"
+    },
+    "t34-app-prereqs": {
+      "status": "pending"
+    },
+    "t35-playwright-template": {
+      "status": "pending"
+    },
+    "t36-wsl-disk": {
+      "status": "pending"
+    }
+  },
+  "validationBatches": {},
+  "checkResults": {},
+  "reviews": {},
+  "checkpoints": {},
+  "findings": [],
+  "handoffMarkdown": "",
+  "protectedPaths": {
+    "rayx-cli": {},
+    "rayx": {
+      "rayx:crates/**": "25f7600c4aaec01a245d7a7420f62f572efe3e9162389b6ed3678b32fd27ff23",
+      "rayx:vendor/**": "c50d45cf5d317a7e5c468a7be88ee3e3e77abea20325d23dd7c10e9af138d9be",
+      "rayx:apps/*/src/**": "6991998da9a7a8f44f50003fd74294d8b6b09e0a898b0fd057c50fc7e48301f3"
+    },
+    "gpux": {
+      "gpux:crates/**": "42bc511ce07dfc7eb20f195b9a26c7b66ef1a46439c2f414f509d64f2e7b6444",
+      "gpux:vendor/**": "2fde7871db68af5a07e61281b2877fb308235a9df0b048f31f9cd3da0466c599"
+    }
+  }
+}

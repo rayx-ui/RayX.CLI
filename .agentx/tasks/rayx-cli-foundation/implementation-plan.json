@@ -1,0 +1,2507 @@
+{
+  "schemaVersion": 6,
+  "epicId": "rayx-cli-foundation",
+  "revision": 4,
+  "title": "RayX CLI: machine setup, doctor, WSL, self update and the app pipeline for any RayX app",
+  "validationMode": "sprint",
+  "repositories": [
+    {
+      "id": "rayx-cli",
+      "path": ".",
+      "role": "execution"
+    },
+    {
+      "id": "rayx",
+      "path": "../RayX",
+      "role": "execution"
+    },
+    {
+      "id": "gpux",
+      "path": "../Gpux",
+      "role": "execution"
+    }
+  ],
+  "boundaries": {
+    "repositoryIds": [
+      "rayx-cli",
+      "rayx",
+      "gpux"
+    ],
+    "forbiddenPaths": [
+      "rayx:crates/**",
+      "rayx:vendor/**",
+      "rayx:apps/*/src/**",
+      "gpux:crates/**",
+      "gpux:vendor/**"
+    ]
+  },
+  "checks": [
+    {
+      "id": "check-package-layout",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REPO-1"
+      ],
+      "descriptionMarkdown": "New group `tests/package_layout.rs`: `cargo metadata` shows the `rayx_cli` lib and `rayx` bin targets and no `path`/`git` dependencies or `[patch]`; `rust-toolchain.toml` pins 1.95.0.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "package_layout"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 2
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/package_layout.rs"
+      ]
+    },
+    {
+      "id": "check-cli-surface",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REPO-3"
+      ],
+      "descriptionMarkdown": "New group `tests/cli_surface.rs`: `--help` lists the six commands, `--version` prints the package version, unknown commands and flags exit 2 with a usage message.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "cli_surface"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 3
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/cli_surface.rs"
+      ]
+    },
+    {
+      "id": "check-host-facts",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "HOST-1"
+      ],
+      "descriptionMarkdown": "New group `tests/host_facts.rs`: one fixture per host in HOST-1 (Windows x64, Windows ARM64 under x64 emulation, macOS ARM64 under Rosetta, Ubuntu 24.04, Ubuntu under WSL, Debian 12, Fedora unsupported).",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "host_facts"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 7
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/host_facts.rs"
+      ]
+    },
+    {
+      "id": "check-command-runner",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "HOST-2"
+      ],
+      "descriptionMarkdown": "New group `tests/command_runner.rs`: print mode writes exact command lines with `sudo` for root steps when not root and without it when root, marks admin steps, has no side effects; the recording fake captures specs; interactive specs inherit stdio; a declined elevation is reported as a stopped step.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "command_runner"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/command_runner.rs"
+      ]
+    },
+    {
+      "id": "check-path-env",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "HOST-3"
+      ],
+      "descriptionMarkdown": "New group `tests/path_env.rs`: idempotent prepend in an in-memory Windows store preserving `REG_EXPAND_SZ`, a single marked block per shell profile in temporary files, no duplicate entries, and the new-shell notice.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "path_env"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/path_env.rs"
+      ]
+    },
+    {
+      "id": "check-fmt",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [],
+      "descriptionMarkdown": "Formatting of the package.",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "src/**",
+        "tests/**"
+      ]
+    },
+    {
+      "id": "check-clippy",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [],
+      "descriptionMarkdown": "Clippy on the package, all targets, warnings denied.",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/**"
+      ]
+    },
+    {
+      "id": "check-rayx-nightly-pinned",
+      "repositoryId": "rayx",
+      "kind": "static",
+      "criterionIds": [
+        "PINX-1"
+      ],
+      "descriptionMarkdown": "RayX names no unpinned nightly outside `.agentx/`. (`git grep` exits 1 when nothing matches.)",
+      "argv": [
+        "git",
+        "grep",
+        "-n",
+        "-P",
+        "\\+nightly(?!-\\d)|toolchain install nightly(?!-\\d)|--toolchain nightly(?!-\\d)|\\\"nightly\\\"",
+        "--",
+        ".",
+        ":(exclude).agentx"
+      ],
+      "expected": {
+        "exitCode": 1
+      }
+    },
+    {
+      "id": "check-gpux-nightly-pinned",
+      "repositoryId": "gpux",
+      "kind": "static",
+      "criterionIds": [
+        "PINX-1"
+      ],
+      "descriptionMarkdown": "Gpux names no unpinned nightly outside `.agentx/` and the vendored wgpu. (`git grep` exits 1 when nothing matches.)",
+      "argv": [
+        "git",
+        "grep",
+        "-n",
+        "-P",
+        "\\+nightly(?!-\\d)|toolchain install nightly(?!-\\d)|--toolchain nightly(?!-\\d)|\\\"nightly\\\"",
+        "--",
+        ".",
+        ":(exclude).agentx",
+        ":(exclude)vendor"
+      ],
+      "expected": {
+        "exitCode": 1
+      }
+    },
+    {
+      "id": "check-gpux-testkit-web",
+      "repositoryId": "gpux",
+      "kind": "test",
+      "criterionIds": [
+        "PINX-1"
+      ],
+      "descriptionMarkdown": "gpux-testkit's web tests, updated for the pinned default toolchain.",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "gpux-testkit",
+        "--test",
+        "web"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "tooling/testkit/**",
+        "Cargo.toml",
+        "Cargo.lock"
+      ]
+    },
+    {
+      "id": "check-rayx-jdk21",
+      "repositoryId": "rayx",
+      "kind": "static",
+      "criterionIds": [
+        "PINX-2"
+      ],
+      "descriptionMarkdown": "RayX names no Java 17 outside `.agentx/`. (`git grep` exits 1 when nothing matches.)",
+      "argv": [
+        "git",
+        "grep",
+        "-n",
+        "-P",
+        "VERSION_17|java-version: 17|JDK 17",
+        "--",
+        ".",
+        ":(exclude).agentx"
+      ],
+      "expected": {
+        "exitCode": 1
+      }
+    },
+    {
+      "id": "check-gpux-jdk21",
+      "repositoryId": "gpux",
+      "kind": "static",
+      "criterionIds": [
+        "PINX-2"
+      ],
+      "descriptionMarkdown": "Gpux names no Java 17 outside `.agentx/` and the vendored wgpu. (`git grep` exits 1 when nothing matches.)",
+      "argv": [
+        "git",
+        "grep",
+        "-n",
+        "-P",
+        "VERSION_17|java-version: 17|JDK 17",
+        "--",
+        ".",
+        ":(exclude).agentx",
+        ":(exclude)vendor"
+      ],
+      "expected": {
+        "exitCode": 1
+      }
+    },
+    {
+      "id": "check-rayx-skill-link",
+      "repositoryId": "rayx",
+      "kind": "static",
+      "criterionIds": [
+        "PINX-3"
+      ],
+      "descriptionMarkdown": "The RayX skill links the new toolchain-update reference.",
+      "argv": [
+        "git",
+        "grep",
+        "-n",
+        "wasm-toolchain-update.md",
+        "--",
+        ".claude/skills/rayx/SKILL.md"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "check-project-pins",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PIN-1",
+        "PIN-2"
+      ],
+      "descriptionMarkdown": "New group `tests/project_pins.rs`: discovery from a nested app directory and from another current directory with relative and absolute paths; a source scan finds no `CARGO_MANIFEST_DIR` outside tests; pins from `Cargo.lock`, `rust-toolchain.toml` and `[workspace.metadata.rayx]`; the gpux-checkout profile; defaults (`nightly-2026-06-23`, JDK 21, Playwright 1.59.1) outside a project; each pin's reported source.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "project_pins"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/project_pins.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-setup-engine",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETUP-1"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_engine.rs`: `--check` status and exit codes, execute runs only missing steps, a second run executes nothing, `--yes` reaches installer arguments, `--all` selects the sets applicable to each host fixture, root steps are batched.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_engine"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/setup_engine.rs"
+      ]
+    },
+    {
+      "id": "check-setup-linux",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETUP-2"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_linux.rs`: the Ubuntu/Debian base plan (one batched apt install with the SETUP-2 package list, rustup, project toolchain, PATH), the same plan inside WSL, and the unsupported-distribution error.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_linux"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/setup_linux.rs"
+      ]
+    },
+    {
+      "id": "check-setup-windows",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETUP-3"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_windows.rs`: x64 and ARM64 plans (Build Tools components incl. the ARM64 component, fxc directory choice from a fake Windows Kits tree, LLVM, VC++ redistributables per architecture, native rustup host) and the missing-winget error.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_windows"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/setup_windows.rs"
+      ]
+    },
+    {
+      "id": "check-setup-macos",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETUP-4"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_macos.rs`: Command Line Tools through `softwareupdate` with the on-demand marker, the `xcode-select --install` fallback, Homebrew installation when missing, rustup and toolchain steps.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_macos"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/setup_macos.rs"
+      ]
+    },
+    {
+      "id": "check-setup-web",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETUP-5"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_web.rs`: pinned nightly with `rust-src` and the wasm32 target, stable wasm32 target, `wasm-bindgen-cli` at the locked version and its replacement when another version is installed, Clang/LLVM per OS.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_web"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/setup_web.rs"
+      ]
+    },
+    {
+      "id": "check-setup-test-tools",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETUP-6"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_test_tools.rs`: Node and pnpm per OS, Linux xvfb/xdotool/Playwright system libraries, the project Playwright steps from the default and the metadata location, and the WSL PATH-order finding.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_test_tools"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/setup_test_tools.rs"
+      ]
+    },
+    {
+      "id": "check-setup-android",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETUP-7"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_android.rs`: JDK 21 and `JAVA_HOME` per OS, Android Studio per host (skipped under WSL), SDK discovery and the command-line-tools download, `sdkmanager` packages from pins (existing NDK honoured), emulator and host-arch system image, default AVD creation, acceleration (kvm group, Windows Hypervisor Platform), cargo-ndk and Rust targets, license handling with and without `--yes`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_android"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 9
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/setup_android.rs"
+      ]
+    },
+    {
+      "id": "check-setup-ios",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETUP-8"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_ios.rs`: Xcode through `xcodes` with a pinned and an unpinned version, the `mas` path, `xcode-select --switch`, license handling with and without `--yes`, `-runFirstLaunch`, Simulator runtime download when missing, XcodeGen and iOS targets; not applicable on other hosts.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_ios"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/setup_ios.rs"
+      ]
+    },
+    {
+      "id": "check-setup-gpu",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETUP-9"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_gpu.rs`: plans for fixture adapter lists — NVIDIA, AMD and Intel on Windows (winget driver packages), Adreno on Windows ARM64 (Windows Update path), Basic Render Driver only, Ubuntu NVIDIA (`ubuntu-drivers`) and Mesa, WSL (host-owned), macOS (report only).",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_gpu"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 7
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/setup_gpu.rs"
+      ]
+    },
+    {
+      "id": "check-doctor",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "DOCTOR-1"
+      ],
+      "descriptionMarkdown": "New group `tests/doctor.rs`: text and JSON reports from fixture hosts with present, missing and wrong-version requirements; GPU adapters and `hardwareAdapter`; `interactiveDesktop` per OS; WSL findings; pins with sources; exit code 0.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "doctor"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/doctor.rs"
+      ]
+    },
+    {
+      "id": "check-doctor-runtime",
+      "repositoryId": "rayx-cli",
+      "kind": "runtime",
+      "criterionIds": [
+        "DOCTOR-1"
+      ],
+      "descriptionMarkdown": "`rayx doctor --json` on this machine inspects the real host and exits 0. The JSON carries `requirementCount`.",
+      "argv": [
+        "cargo",
+        "run",
+        "--quiet",
+        "--",
+        "doctor",
+        "--json"
+      ],
+      "reuse": false,
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 10,
+        "testCountPattern": "\"requirementCount\":\\s*(\\d+)"
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**"
+      ]
+    },
+    {
+      "id": "check-validation-env",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "VAL-1"
+      ],
+      "descriptionMarkdown": "After provisioning, every set the checks need is complete on this machine.",
+      "argv": [
+        "cargo",
+        "run",
+        "--release",
+        "--",
+        "setup",
+        "--check",
+        "--web",
+        "--test",
+        "--android",
+        "--gpu"
+      ],
+      "reuse": false,
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "check-validation-desktop",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "VAL-1"
+      ],
+      "descriptionMarkdown": "This machine has a usable hardware adapter and an interactive desktop for the headed WebGPU spec.",
+      "argv": [
+        "cargo",
+        "run",
+        "--release",
+        "--",
+        "doctor",
+        "--json"
+      ],
+      "reuse": false,
+      "expected": {
+        "exitCode": 0,
+        "stdoutPattern": "(?s)\"hardwareAdapter\":\\s*true.*\"interactiveDesktop\":\\s*true"
+      }
+    },
+    {
+      "id": "check-validation-dist",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "VAL-1"
+      ],
+      "descriptionMarkdown": "cargo-dist is installed at the pinned version.",
+      "argv": [
+        "dist",
+        "--version"
+      ],
+      "reuse": false,
+      "expected": {
+        "exitCode": 0,
+        "stdoutPattern": "0\\.32\\.0"
+      }
+    },
+    {
+      "id": "check-app-unit",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "APP-1"
+      ],
+      "descriptionMarkdown": "The xtask app-pipeline tests moved into `src/app/` (about 100), including the ones rewritten against fixture apps; selected with the `app::` filter on the library target.",
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "app::"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 90
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-app-project",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "APP-2"
+      ],
+      "descriptionMarkdown": "New group `tests/app_project.rs`: fixture workspaces outside the RayX layout; app path relative to the current directory; artifacts under the workspace root including desktop pack; generated entry manifests copying path, git and registry `rayx` sources; root `[patch]` copying; `gpux-fonts` lookup; pinned nightly and wasm-bindgen with the version-mismatch error; ARM64 desktop triple.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_project"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_project.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-app-prereqs",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "APP-7"
+      ],
+      "descriptionMarkdown": "New group `tests/app_prereqs.rs`: per target, the sets probed before building; unprivileged items installed automatically with a notice; privileged items prompting in an interactive terminal and stopping with the `rayx setup --<set>` command otherwise; `--no-install`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_prereqs"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_prereqs.rs"
+      ]
+    },
+    {
+      "id": "check-app-wasm-tests",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "APP-6"
+      ],
+      "descriptionMarkdown": "New group `tests/app_test_command.rs`: Playwright package resolution (workspace metadata, workspace `tools-node`, app-local `tests/e2e`, template creation when absent), spec and project selection (flags, metadata, defaults including RayX's Test Suite layout), `RAYX_APP_URL`/`RAYX_WEBGPU_REQUIRED`, native `test host` running `cargo test` of the app package, and the unsupported-target message.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_test_command"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_test_command.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-app-playwright-template",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "APP-8"
+      ],
+      "descriptionMarkdown": "New group `tests/app_playwright_template.rs`: renders the template with a Playwright pin and checks its files and flags; then runs `rayx app <fixture> test wasm` on a fixture app without a Playwright package, which creates the package and passes its smoke spec. Needs Node, pnpm and Chromium (VAL-1).",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_playwright_template"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 2
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_playwright_template.rs",
+        "tests/fixtures/**"
+      ],
+      "reuse": false,
+      "timeoutSeconds": 2400
+    },
+    {
+      "id": "check-app-wasm-fixture",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "APP-3"
+      ],
+      "descriptionMarkdown": "New group `tests/app_wasm_fixture.rs`: builds the public-crates threaded fixture with `rayx app <fixture> build wasm`, verifies shared memory, serves it and asserts the COOP/COEP headers over HTTP. Needs the pinned nightly and wasm-bindgen (VAL-1).",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_wasm_fixture"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 2
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_wasm_fixture.rs",
+        "tests/fixtures/**"
+      ],
+      "reuse": false,
+      "timeoutSeconds": 1800
+    },
+    {
+      "id": "check-fmt-command",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "APP-5"
+      ],
+      "descriptionMarkdown": "New group `tests/fmt_command.rs`: per-member formatting and failure listing on a two-member fixture workspace, `--check` in any position.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "fmt_command"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 2
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/fmt_command.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-rayx-lab-wasm",
+      "repositoryId": "rayx",
+      "kind": "build",
+      "criterionIds": [
+        "APP-4"
+      ],
+      "descriptionMarkdown": "Real RayX proof: Lab's threaded WASM build through `rayx` from the RayX checkout.",
+      "argv": [
+        "cargo",
+        "run",
+        "--release",
+        "--manifest-path",
+        "../RayX.CLI/Cargo.toml",
+        "--",
+        "app",
+        "apps/lab",
+        "build",
+        "wasm"
+      ],
+      "cwd": ".",
+      "timeoutSeconds": 5400,
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "rayx-cli:Cargo.toml",
+        "rayx-cli:Cargo.lock",
+        "rayx-cli:src/**",
+        "Cargo.toml",
+        "Cargo.lock",
+        "apps/**"
+      ]
+    },
+    {
+      "id": "check-rayx-test-suite-wasm",
+      "repositoryId": "rayx",
+      "kind": "build",
+      "criterionIds": [
+        "APP-4"
+      ],
+      "descriptionMarkdown": "Real RayX proof: the Test Suite's diagnostic WASM build through `rayx`.",
+      "argv": [
+        "cargo",
+        "run",
+        "--release",
+        "--manifest-path",
+        "../RayX.CLI/Cargo.toml",
+        "--",
+        "app",
+        "apps/test_suite",
+        "build",
+        "wasm",
+        "--no-default-features",
+        "--features",
+        "rayx_diagnostics"
+      ],
+      "cwd": ".",
+      "timeoutSeconds": 5400,
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "rayx-cli:Cargo.toml",
+        "rayx-cli:Cargo.lock",
+        "rayx-cli:src/**",
+        "Cargo.toml",
+        "Cargo.lock",
+        "apps/**"
+      ]
+    },
+    {
+      "id": "check-rayx-lab-host",
+      "repositoryId": "rayx",
+      "kind": "build",
+      "criterionIds": [
+        "APP-4"
+      ],
+      "descriptionMarkdown": "Real RayX proof: Lab's native host build through `rayx`.",
+      "argv": [
+        "cargo",
+        "run",
+        "--release",
+        "--manifest-path",
+        "../RayX.CLI/Cargo.toml",
+        "--",
+        "app",
+        "apps/lab",
+        "build",
+        "host"
+      ],
+      "cwd": ".",
+      "timeoutSeconds": 5400,
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "rayx-cli:Cargo.toml",
+        "rayx-cli:Cargo.lock",
+        "rayx-cli:src/**",
+        "Cargo.toml",
+        "Cargo.lock",
+        "apps/**"
+      ]
+    },
+    {
+      "id": "check-rayx-mobile-android",
+      "repositoryId": "rayx",
+      "kind": "build",
+      "criterionIds": [
+        "APP-4",
+        "PINX-2"
+      ],
+      "descriptionMarkdown": "Real RayX proof: the mobile examples' Android build through `rayx` on JDK 21.",
+      "argv": [
+        "cargo",
+        "run",
+        "--release",
+        "--manifest-path",
+        "../RayX.CLI/Cargo.toml",
+        "--",
+        "app",
+        "apps/examples_mobile",
+        "build",
+        "android"
+      ],
+      "cwd": ".",
+      "timeoutSeconds": 5400,
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "rayx-cli:Cargo.toml",
+        "rayx-cli:Cargo.lock",
+        "rayx-cli:src/**",
+        "Cargo.toml",
+        "Cargo.lock",
+        "apps/**"
+      ]
+    },
+    {
+      "id": "check-rayx-test-suite-spec",
+      "repositoryId": "rayx",
+      "kind": "runtime",
+      "criterionIds": [
+        "APP-4"
+      ],
+      "descriptionMarkdown": "Real RayX proof: one focused headed WebGPU Test Suite spec through `rayx app ... test wasm`.",
+      "argv": [
+        "cargo",
+        "run",
+        "--release",
+        "--manifest-path",
+        "../RayX.CLI/Cargo.toml",
+        "--",
+        "app",
+        "apps/test_suite",
+        "test",
+        "wasm",
+        "--headed",
+        "--webgpu",
+        "--no-default-features",
+        "--features",
+        "rayx_diagnostics",
+        "--playwright-test",
+        "test_suite/rayx-collapsible-sizes.spec.ts"
+      ],
+      "cwd": ".",
+      "timeoutSeconds": 5400,
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 1,
+        "testCountPattern": "(\\d+) passed"
+      },
+      "inputs": [
+        "rayx-cli:Cargo.toml",
+        "rayx-cli:Cargo.lock",
+        "rayx-cli:src/**",
+        "Cargo.toml",
+        "Cargo.lock",
+        "apps/**",
+        "tools-node/**"
+      ]
+    },
+    {
+      "id": "check-gpux-android-build",
+      "repositoryId": "gpux",
+      "kind": "build",
+      "criterionIds": [
+        "PINX-2"
+      ],
+      "descriptionMarkdown": "gpux's Gradle-free Android host builds on JDK 21.",
+      "argv": [
+        "cargo",
+        "run",
+        "-p",
+        "gpux-testkit",
+        "--",
+        "android",
+        "build",
+        "--abi",
+        "x86_64"
+      ],
+      "timeoutSeconds": 3600,
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "tooling/**",
+        "crates/**",
+        "Cargo.toml",
+        "Cargo.lock"
+      ]
+    },
+    {
+      "id": "check-wsl-plan",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "WSL-1",
+        "WSL-2"
+      ],
+      "descriptionMarkdown": "New group `tests/wsl_plan.rs`: WSL version gate, distribution install, missing-user stop, binary handoff (release asset and `RAYX_WSL_BINARY`), the inner setup command with the same flags, non-Windows refusal, `--clone` of the current checkout only (`/mnt/<drive>` translation, branch, fetch instead of re-clone), and a fixture whose manifest has `path` dependencies outside the workspace proving none of them is cloned.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "wsl_plan"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/wsl_plan.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-wsl-disk",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "WSL-3",
+        "WSL-4"
+      ],
+      "descriptionMarkdown": "New group `tests/wsl_disk.rs`: `status` from a fake `Lxss` registry, `wsl` output and sizes; the `compact` step plan — build-output listing and confirmed deletion, `fstrim`, the confirmed shutdown, `Optimize-VHD` versus the generated `diskpart` script in one admin child, before/after report, `--yes`, no sparse-disk command, the inside-WSL message.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "wsl_disk"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 7
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/wsl_disk.rs"
+      ]
+    },
+    {
+      "id": "check-dist-plan",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "REL-1"
+      ],
+      "descriptionMarkdown": "`dist plan` accepts the configuration and lists the six targets and both installers.",
+      "argv": [
+        "dist",
+        "plan"
+      ],
+      "reuse": false,
+      "expected": {
+        "exitCode": 0,
+        "stdoutPattern": "aarch64-pc-windows-msvc"
+      },
+      "inputs": [
+        "Cargo.toml",
+        "dist-workspace.toml",
+        ".github/workflows/release.yml"
+      ]
+    },
+    {
+      "id": "check-self-update",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REL-2"
+      ],
+      "descriptionMarkdown": "New group `tests/self_update.rs`: version comparison, `--check` output, install-source detection with and without a dist receipt, and the instruction for non-installer builds.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "self_update"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/self_update.rs"
+      ]
+    },
+    {
+      "id": "check-xtask-check",
+      "repositoryId": "rayx",
+      "kind": "static",
+      "criterionIds": [
+        "MIG-1"
+      ],
+      "descriptionMarkdown": "The slim RayX xtask compiles with all targets.",
+      "argv": [
+        "cargo",
+        "check",
+        "-p",
+        "xtask",
+        "--all-targets"
+      ],
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "xtask/**",
+        "Cargo.toml",
+        "Cargo.lock"
+      ]
+    },
+    {
+      "id": "check-xtask-test",
+      "repositoryId": "rayx",
+      "kind": "test",
+      "criterionIds": [
+        "MIG-1"
+      ],
+      "descriptionMarkdown": "The remaining chore tests (code-themes, component-index, theme) pass.",
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "xtask"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 10
+      },
+      "inputs": [
+        "xtask/**",
+        "Cargo.toml",
+        "Cargo.lock"
+      ]
+    },
+    {
+      "id": "check-no-xtask-callers",
+      "repositoryId": "rayx",
+      "kind": "static",
+      "criterionIds": [
+        "MIG-2"
+      ],
+      "descriptionMarkdown": "No tracked file outside `.agentx/` still calls the removed xtask commands (`git grep` exits 1 when nothing matches.)",
+      "argv": [
+        "git",
+        "grep",
+        "-n",
+        "-E",
+        "xtask -- app|setup-wasm|setup-android",
+        "--",
+        ".",
+        ":(exclude).agentx"
+      ],
+      "expected": {
+        "exitCode": 1
+      }
+    },
+    {
+      "id": "final-test",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [],
+      "descriptionMarkdown": "Every test of the `rayx-cli` package. The whole package is new in this epic, so its full suite is the touched code (HARD RULE whole-codebase condition). Runs on the machine provisioned by VAL-1.",
+      "argv": [
+        "cargo",
+        "test"
+      ],
+      "reuse": false,
+      "timeoutSeconds": 3600,
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 180
+      }
+    },
+    {
+      "id": "final-xtask-clippy",
+      "repositoryId": "rayx",
+      "kind": "static",
+      "criterionIds": [],
+      "descriptionMarkdown": "Clippy on the slim RayX xtask, warnings denied.",
+      "argv": [
+        "cargo",
+        "clippy",
+        "-p",
+        "xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "final-gpux-testkit-clippy",
+      "repositoryId": "gpux",
+      "kind": "static",
+      "criterionIds": [],
+      "descriptionMarkdown": "Clippy on gpux-testkit, the only Gpux crate this epic touches, warnings denied.",
+      "argv": [
+        "cargo",
+        "clippy",
+        "-p",
+        "gpux-testkit",
+        "--all-targets",
+        "--no-deps",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    }
+  ],
+  "finalCheckIds": [
+    "final-test",
+    "final-xtask-clippy",
+    "final-gpux-testkit-clippy"
+  ],
+  "sprints": [
+    {
+      "id": "s1-foundation",
+      "title": "Repository, CLI surface and host layer",
+      "dependsOn": [],
+      "checkIds": [
+        "check-fmt",
+        "check-clippy"
+      ],
+      "memoryScopes": [
+        "host",
+        "repository",
+        "distribution"
+      ],
+      "tasks": [
+        {
+          "id": "t01-package-scaffold",
+          "title": "Package scaffold",
+          "descriptionMarkdown": "Create the `rayx-cli` package at the repository root: `Cargo.toml` (edition 2024, Apache-2.0, repository `https://github.com/rayx-ui/RayX.CLI`, lib `rayx_cli`, bin `rayx`), `src/lib.rs` with `pub fn run() -> ExitCode`, a thin `src/main.rs`, `rust-toolchain.toml` (1.95.0 with clippy and rustfmt), `LICENSE-APACHE`, a README skeleton, and extend `.gitignore`. Write `tests/package_layout.rs`.",
+          "criterionIds": [
+            "REPO-1"
+          ],
+          "designIds": [
+            "d-single-package"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-package-layout"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "Cargo.toml"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/lib.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/main.rs"
+            }
+          ]
+        },
+        {
+          "id": "t02-cli-surface",
+          "title": "Top-level commands",
+          "descriptionMarkdown": "`src/cli.rs` with clap derive: `setup` (set flags including `--gpu`, `--check`, `--yes`, `--all`, `--wsl`, `--clone`), `doctor [--json]`, `wsl status|compact`, `self update [--check]`, `fmt`, and `app` capturing raw trailing arguments. Commands not yet implemented return a clear \"not implemented in this build\" error until their sprint lands. Write `tests/cli_surface.rs` (drive the binary with `assert_cmd`).",
+          "criterionIds": [
+            "REPO-3"
+          ],
+          "designIds": [
+            "d-cli-surface"
+          ],
+          "dependsOn": [
+            "t01-package-scaffold"
+          ],
+          "checkIds": [
+            "check-cli-surface"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/cli.rs"
+            }
+          ]
+        },
+        {
+          "id": "t03-host-facts",
+          "title": "Host facts",
+          "descriptionMarkdown": "`src/host/mod.rs`: `HostFacts`, the `Probe` trait, the real probe (`IsWow64Process2` via `windows-sys`, `sysctl.proc_translated` via `libc`, `/etc/os-release`, `/proc/sys/kernel/osrelease`, `WSL_DISTRO_NAME`) and fixture probes. Write `tests/host_facts.rs`.",
+          "criterionIds": [
+            "HOST-1"
+          ],
+          "designIds": [
+            "d-host"
+          ],
+          "dependsOn": [
+            "t01-package-scaffold"
+          ],
+          "checkIds": [
+            "check-host-facts"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/host/mod.rs"
+            }
+          ]
+        },
+        {
+          "id": "t04-command-runner",
+          "title": "Command runner",
+          "descriptionMarkdown": "`src/host/runner.rs`: `CommandSpec`, privilege levels, `Execute`/`Print`/`Record` modes, root detection on Unix (`geteuid`), `sudo` prefixing, per-command elevation on Windows (`ShellExecuteExW` `runas` child with output captured through a temporary file, declined prompt handled), inherited stdio for interactive specs. Write `tests/command_runner.rs`.",
+          "criterionIds": [
+            "HOST-2"
+          ],
+          "designIds": [
+            "d-host"
+          ],
+          "dependsOn": [
+            "t03-host-facts"
+          ],
+          "checkIds": [
+            "check-command-runner"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/host/runner.rs"
+            }
+          ]
+        },
+        {
+          "id": "t05-path-env",
+          "title": "User PATH editing",
+          "descriptionMarkdown": "`src/host/path_env.rs`: `PathStore` with the registry implementation (`REG_EXPAND_SZ`, `WM_SETTINGCHANGE`) and an in-memory one; Unix profile block editing for bash, zsh and sh login profiles. Write `tests/path_env.rs`.",
+          "criterionIds": [
+            "HOST-3"
+          ],
+          "designIds": [
+            "d-host"
+          ],
+          "dependsOn": [
+            "t03-host-facts"
+          ],
+          "checkIds": [
+            "check-path-env"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/host/path_env.rs"
+            }
+          ]
+        },
+        {
+          "id": "t06-ci-and-github",
+          "title": "CI workflow and public repository",
+          "descriptionMarkdown": "Add `.github/workflows/ci.yml` (fmt, clippy `-D warnings`, test on windows-latest, macos-latest, ubuntu-24.04; Rust cache). Create the public GitHub repository `rayx-ui/RayX.CLI` (`gh repo create rayx-ui/RayX.CLI --public --source . --remote origin`), push `main`, and confirm the first CI run is green. The owner approved creating it public on 2026-10-07.",
+          "criterionIds": [
+            "REPO-2"
+          ],
+          "designIds": [
+            "d-single-package"
+          ],
+          "dependsOn": [
+            "t01-package-scaffold",
+            "t02-cli-surface"
+          ],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": ".github/workflows/ci.yml"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s1b-toolchain-pins",
+      "title": "One nightly and JDK pin across RayX and Gpux; toolchain-update skill reference",
+      "dependsOn": [],
+      "memoryScopes": [
+        "project",
+        "gpux:repository/validation",
+        "rayx:tooling/validation",
+        "rayx:platform/packaging-targets"
+      ],
+      "tasks": [
+        {
+          "id": "t29-nightly-pin",
+          "title": "Pin nightly-2026-06-23 everywhere",
+          "descriptionMarkdown": "RayX: add `[workspace.metadata.rayx] web-toolchain = \"nightly-2026-06-23\"` to the root `Cargo.toml`; make xtask's WASM build use that pin until sprint 7 removes it; install that toolchain (with `rust-src` and the wasm32 target) in `pr-test.yml`; fix `README.md` and the RayX skill's `diagnostics.md`. Gpux: change gpux-testkit's default toolchain to `nightly-2026-06-23` (keep `GPUX_WEB_TOOLCHAIN` as the override) and its test, and the docs and skill references PINX-1 lists. Gpux's active epic `gpux-cross-platform-test-lanes` also edits `tooling/testkit`: make the change on top of its current branch state and keep the commit separate. Paired commits in RayX and Gpux.",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "designIds": [
+            "d-toolchain-pins"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-rayx-nightly-pinned",
+            "check-gpux-nightly-pinned",
+            "check-gpux-testkit-web"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/wasm.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": ".github/workflows/pr-test.yml"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "README.md"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": ".claude/skills/rayx/references/diagnostics.md"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": "tooling/testkit/src/web.rs"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": "tooling/testkit/tests/web.rs"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": "docs/testing.md"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": "docs/installation-and-usage.md"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": "LINUX-WSL.md"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": ".claude/skills/gpux/references/multithreaded-wasm-apps.md"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": ".claude/skills/gpux/references/installation-and-usage.md"
+            }
+          ]
+        },
+        {
+          "id": "t30-jdk-pin",
+          "title": "Pin JDK 21 everywhere",
+          "descriptionMarkdown": "RayX: set Java 21 in the Gradle builds of `apps/lab`, `apps/test_suite` and `apps/examples_mobile` (`sourceCompatibility`/`targetCompatibility`, and the Kotlin JVM target where set); confirm the Android Gradle Plugin version supports it. Gpux: `java-version: 21` in `lane-e.yml`, the JDK in gpux-testkit's Android prerequisite message, and any doc naming JDK 17. The Android build proof runs in sprint 5 once the machine is provisioned.",
+          "criterionIds": [
+            "PINX-2"
+          ],
+          "designIds": [
+            "d-toolchain-pins"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-rayx-jdk21",
+            "check-gpux-jdk21"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx",
+              "path": "apps/lab/platform/android/gradle/app/build.gradle.kts"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "apps/test_suite/platform/android/gradle/app/build.gradle.kts"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "apps/examples_mobile/platform/android/gradle/app/build.gradle.kts"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": ".github/workflows/lane-e.yml"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": "tooling/testkit/src/android.rs"
+            }
+          ]
+        },
+        {
+          "id": "t31-toolchain-skill-reference",
+          "title": "RayX skill reference for toolchain updates",
+          "descriptionMarkdown": "Write `.claude/skills/rayx/references/wasm-toolchain-update.md` per PINX-3 and link it from the RayX skill's `SKILL.md`; add the one-line pointer in the gpux skill's `multithreaded-wasm-apps.md`.",
+          "criterionIds": [
+            "PINX-3"
+          ],
+          "designIds": [
+            "d-toolchain-pins"
+          ],
+          "dependsOn": [
+            "t29-nightly-pin"
+          ],
+          "checkIds": [
+            "check-rayx-skill-link"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx",
+              "path": ".claude/skills/rayx/SKILL.md"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": ".claude/skills/gpux/references/multithreaded-wasm-apps.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2-pins-and-base-setup",
+      "title": "Project pins, setup engine and base sets per OS",
+      "dependsOn": [
+        "s1-foundation"
+      ],
+      "checkIds": [
+        "check-fmt",
+        "check-clippy"
+      ],
+      "memoryScopes": [
+        "project",
+        "setup",
+        "host"
+      ],
+      "tasks": [
+        {
+          "id": "t07-project-pins",
+          "title": "Project discovery and pins",
+          "descriptionMarkdown": "`src/project/mod.rs` (`Project::discover`) and `src/project/pins.rs` (precedence, gpux-checkout profile, defaults table with `nightly-2026-06-23`, JDK 21 and Playwright 1.59.1, pin sources). Add fixture workspaces under `tests/fixtures/` (with and without metadata/lockfile, a gpux-checkout fixture with a `gpux-testkit` member). Write `tests/project_pins.rs`.",
+          "criterionIds": [
+            "PIN-1",
+            "PIN-2"
+          ],
+          "designIds": [
+            "d-project-pins"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-project-pins"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/project/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/project/pins.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/fs_util.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/workspace_paths.rs"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": "tooling/testkit/src/android.rs"
+            }
+          ]
+        },
+        {
+          "id": "t08-setup-engine",
+          "title": "Setup planning and execution",
+          "descriptionMarkdown": "`src/setup/mod.rs`: requirement sets (base, web, test, android, ios, gpu), `Step`, `plan`, `execute` (probe, skip, run, re-probe), root-step batching, `--check`/`--yes`/`--all` handling and exit codes, wired to `rayx setup`. Write `tests/setup_engine.rs`.",
+          "criterionIds": [
+            "SETUP-1"
+          ],
+          "designIds": [
+            "d-setup-plan"
+          ],
+          "dependsOn": [
+            "t07-project-pins"
+          ],
+          "checkIds": [
+            "check-setup-engine"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/mod.rs"
+            }
+          ]
+        },
+        {
+          "id": "t09-setup-linux",
+          "title": "Ubuntu/Debian base set",
+          "descriptionMarkdown": "`src/setup/linux.rs` and `src/setup/rust.rs`: the SETUP-2 apt list (from LINUX-WSL.md section 2 and gpux CI), rustup non-interactive install, project toolchain, cargo bin on PATH, unsupported-distribution error. Write `tests/setup_linux.rs`.",
+          "criterionIds": [
+            "SETUP-2"
+          ],
+          "designIds": [
+            "d-setup-plan"
+          ],
+          "dependsOn": [
+            "t08-setup-engine"
+          ],
+          "checkIds": [
+            "check-setup-linux"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/linux.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/rust.rs"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": "LINUX-WSL.md"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": ".github/workflows/ci.yml"
+            }
+          ]
+        },
+        {
+          "id": "t10-setup-windows",
+          "title": "Windows x64 and ARM64 base set",
+          "descriptionMarkdown": "`src/setup/windows.rs`: winget steps for Build Tools (VCTools workload, Windows SDK, ARM64 component on ARM64), fxc discovery under `Windows Kits\\10\\bin` (newest version, host-arch directory, fallback as the PowerShell script does), LLVM with PATH, VC++ redistributables per architecture, native rustup host via `rustup-init.exe` for the native triple. Write `tests/setup_windows.rs`.",
+          "criterionIds": [
+            "SETUP-3"
+          ],
+          "designIds": [
+            "d-setup-plan"
+          ],
+          "dependsOn": [
+            "t08-setup-engine"
+          ],
+          "checkIds": [
+            "check-setup-windows"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/windows.rs"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": ".claude/skills/gpux/scripts/install-windows-prereqs.ps1"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": ".claude/skills/gpux/references/windows-prerequisites.md"
+            }
+          ]
+        },
+        {
+          "id": "t11-setup-macos",
+          "title": "macOS base set",
+          "descriptionMarkdown": "`src/setup/macos.rs`: Command Line Tools through `softwareupdate` with the on-demand marker and the `xcode-select --install` fallback, Homebrew installation, rustup and toolchain. Write `tests/setup_macos.rs`.",
+          "criterionIds": [
+            "SETUP-4"
+          ],
+          "designIds": [
+            "d-setup-plan"
+          ],
+          "dependsOn": [
+            "t08-setup-engine"
+          ],
+          "checkIds": [
+            "check-setup-macos"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/macos.rs"
+            },
+            {
+              "repositoryId": "gpux",
+              "path": ".claude/skills/gpux/references/macos-linux-wasm-prerequisites.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3-optional-sets-and-doctor",
+      "title": "Web, test, Android, iOS and GPU sets; doctor",
+      "dependsOn": [
+        "s2-pins-and-base-setup"
+      ],
+      "checkIds": [
+        "check-fmt",
+        "check-clippy"
+      ],
+      "memoryScopes": [
+        "setup",
+        "project"
+      ],
+      "tasks": [
+        {
+          "id": "t12-setup-web",
+          "title": "Web set",
+          "descriptionMarkdown": "`src/setup/web.rs` per SETUP-5. Write `tests/setup_web.rs`.",
+          "criterionIds": [
+            "SETUP-5"
+          ],
+          "designIds": [
+            "d-setup-plan",
+            "d-project-pins"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-setup-web"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/web.rs"
+            }
+          ]
+        },
+        {
+          "id": "t13-setup-test-tools",
+          "title": "Test set (replaces setup-wasm)",
+          "descriptionMarkdown": "`src/setup/test_tools.rs` per SETUP-6, porting RayX xtask's `node_tools` steps for the project's Playwright package and keeping Playwright's per-user browser cache. Write `tests/setup_test_tools.rs`.",
+          "criterionIds": [
+            "SETUP-6"
+          ],
+          "designIds": [
+            "d-setup-plan"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-setup-test-tools"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/test_tools.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/node_tools.rs"
+            }
+          ]
+        },
+        {
+          "id": "t14-setup-android",
+          "title": "Android workstation set (replaces setup-android)",
+          "descriptionMarkdown": "`src/setup/android.rs` per SETUP-7: port the discovery and install steps of RayX xtask's `setup_android_machine`, and add JDK 21 with `JAVA_HOME`, Android Studio, command-line tools, build-tools pin, emulator, system image, default AVD, acceleration and Rust targets. Verify winget/cask/snap package names while implementing. Write `tests/setup_android.rs`.",
+          "criterionIds": [
+            "SETUP-7"
+          ],
+          "designIds": [
+            "d-setup-plan",
+            "d-project-pins"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-setup-android"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/android.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/android.rs"
+            }
+          ]
+        },
+        {
+          "id": "t15-setup-ios",
+          "title": "Xcode and iOS set",
+          "descriptionMarkdown": "`src/setup/ios.rs` per SETUP-8: Xcode through `xcodes`/`mas`, selection, license, first launch, Simulator runtime, XcodeGen, iOS targets. Write `tests/setup_ios.rs`.",
+          "criterionIds": [
+            "SETUP-8"
+          ],
+          "designIds": [
+            "d-setup-plan"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-setup-ios"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/ios.rs"
+            }
+          ]
+        },
+        {
+          "id": "t32-setup-gpu",
+          "title": "GPU driver set",
+          "descriptionMarkdown": "`src/setup/gpu.rs` per SETUP-9: adapter detection per OS (DXGI through the `windows` crate, `lspci`/`vulkaninfo`, `system_profiler`) and the per-vendor driver steps; verify every winget driver package ID with `winget show` and record the result in a code comment. Write `tests/setup_gpu.rs`.",
+          "criterionIds": [
+            "SETUP-9"
+          ],
+          "designIds": [
+            "d-setup-plan"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-setup-gpu"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/gpu.rs"
+            }
+          ]
+        },
+        {
+          "id": "t16-doctor",
+          "title": "Doctor",
+          "descriptionMarkdown": "`src/doctor.rs`: evaluate every applicable set in probe-only mode, GPU adapters and `hardwareAdapter`, `interactiveDesktop`, WSL findings, pins with sources, text and `--json` output with `requirementCount`, exit 0. Write `tests/doctor.rs`.",
+          "criterionIds": [
+            "DOCTOR-1"
+          ],
+          "designIds": [
+            "d-setup-plan"
+          ],
+          "dependsOn": [
+            "t12-setup-web",
+            "t13-setup-test-tools",
+            "t14-setup-android",
+            "t15-setup-ios",
+            "t32-setup-gpu"
+          ],
+          "checkIds": [
+            "check-doctor",
+            "check-doctor-runtime"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/doctor.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4-app-pipeline",
+      "title": "App pipeline for any RayX app, proven on a provisioned machine",
+      "dependsOn": [
+        "s1b-toolchain-pins",
+        "s3-optional-sets-and-doctor"
+      ],
+      "checkIds": [
+        "check-fmt",
+        "check-clippy"
+      ],
+      "memoryScopes": [
+        "app-pipeline",
+        "project",
+        "setup",
+        "rayx:platform/packaging-targets",
+        "rayx:tooling/validation"
+      ],
+      "tasks": [
+        {
+          "id": "t33-validation-environment",
+          "title": "Provision this machine for the checks",
+          "descriptionMarkdown": "Build `rayx` from this repository and run `rayx setup --web --test --android --gpu` on this machine (the owner answers UAC and license prompts); install cargo-dist 0.32.0 (`cargo install cargo-dist --locked --version 0.32.0`, or a newer release then amended into the checks and the release task). Fix any setup defect found here in the CLI and rerun. Confirm the desktop session and hardware adapter through `rayx doctor --json`.",
+          "criterionIds": [
+            "VAL-1"
+          ],
+          "designIds": [
+            "d-setup-plan"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-validation-env",
+            "check-validation-desktop",
+            "check-validation-dist"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/doctor.rs"
+            }
+          ]
+        },
+        {
+          "id": "t17-move-app-pipeline",
+          "title": "Move the app modules",
+          "descriptionMarkdown": "Copy RayX xtask's `app`, `args`, `assets`, `package_assets`, `command` (app part), `desktop`, `wasm`, `android`, `ios`, `node_tools`, `process` and `fs_util` into `src/app/`, wire `rayx app` to the moved parser, and port their tests. Rewrite the 24 tests that read RayX's `apps/lab`, `apps/examples_mobile` or `crates/` against fixture apps under `tests/fixtures/`, and send staging output to temporary directories. Commit the copy before behavior changes, naming the source RayX commit.",
+          "criterionIds": [
+            "APP-1"
+          ],
+          "designIds": [
+            "d-app-move",
+            "d-cli-surface"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-app-unit"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/mod.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/app.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/command.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/assets.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/wasm.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/android.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/ios.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/desktop.rs"
+            }
+          ]
+        },
+        {
+          "id": "t18-app-project-agnostic",
+          "title": "Remove the RayX-layout couplings",
+          "descriptionMarkdown": "Replace `repo_root()` with `ProjectContext`; resolve the app path against the current directory; join `target`/`artifacts`/`artifacts-temp` to the workspace root everywhere (fixes desktop `pack`); copy the app's resolved `rayx`/`rayx_devkit` dependency into generated entry manifests; read `[patch]` from the selected root manifest; find `gpux-fonts` through `cargo metadata`; use pinned nightly and locked wasm-bindgen with the version check; host-native desktop triples; drop the release re-exec. Write `tests/app_project.rs`.",
+          "criterionIds": [
+            "APP-2"
+          ],
+          "designIds": [
+            "d-app-move",
+            "d-project-pins"
+          ],
+          "dependsOn": [
+            "t17-move-app-pipeline"
+          ],
+          "checkIds": [
+            "check-app-project"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/app.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/wasm.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/desktop.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/workspace_paths.rs"
+            }
+          ]
+        },
+        {
+          "id": "t34-app-prereqs",
+          "title": "Prerequisites before every app command",
+          "descriptionMarkdown": "Ask `setup` for the target's sets in probe mode before building; install unprivileged items automatically, prompt or stop for privileged ones, honour `--no-install`. Write `tests/app_prereqs.rs`.",
+          "criterionIds": [
+            "APP-7"
+          ],
+          "designIds": [
+            "d-app-move",
+            "d-setup-plan"
+          ],
+          "dependsOn": [
+            "t18-app-project-agnostic"
+          ],
+          "checkIds": [
+            "check-app-prereqs"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/mod.rs"
+            }
+          ]
+        },
+        {
+          "id": "t19-app-wasm-tests",
+          "title": "Test commands for any RayX app",
+          "descriptionMarkdown": "Implement APP-6: Playwright package resolution and template creation, spec and project selection, `RAYX_APP_URL` and `RAYX_WEBGPU_REQUIRED`, removal of every app-name special case, native `test host|windows|linux|macos` through `cargo test` of the app package, and the unsupported-target message. Write `tests/app_test_command.rs`.",
+          "criterionIds": [
+            "APP-6"
+          ],
+          "designIds": [
+            "d-app-move",
+            "d-playwright-template"
+          ],
+          "dependsOn": [
+            "t18-app-project-agnostic"
+          ],
+          "checkIds": [
+            "check-app-wasm-tests"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/wasm.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "tools-node/playwright.config.ts"
+            }
+          ]
+        },
+        {
+          "id": "t35-playwright-template",
+          "title": "Embedded Playwright package template",
+          "descriptionMarkdown": "Add `src/app/templates/playwright/` (package.json, playwright.config.ts with the per-OS WebGPU flag table, the canvas/backend fixture, a smoke spec, .gitignore) per APP-8, rendered with the Playwright pin and written once. Add a fixture app without a Playwright package and write `tests/app_playwright_template.rs`.",
+          "criterionIds": [
+            "APP-8"
+          ],
+          "designIds": [
+            "d-playwright-template"
+          ],
+          "dependsOn": [
+            "t19-app-wasm-tests",
+            "t33-validation-environment"
+          ],
+          "checkIds": [
+            "check-app-playwright-template"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/templates/playwright/playwright.config.ts"
+            }
+          ]
+        },
+        {
+          "id": "t20-app-wasm-fixture",
+          "title": "Public threaded-WASM fixture",
+          "descriptionMarkdown": "Add `tests/fixtures/threaded_wasm_app/` (wasm-bindgen with atomics, no RayX/gpux dependency, its own `[workspace]`) and `tests/app_wasm_fixture.rs` building, verifying and serving it with an HTTP header assertion.",
+          "criterionIds": [
+            "APP-3"
+          ],
+          "designIds": [
+            "d-app-move"
+          ],
+          "dependsOn": [
+            "t18-app-project-agnostic",
+            "t33-validation-environment"
+          ],
+          "checkIds": [
+            "check-app-wasm-fixture"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/fixtures/threaded_wasm_app/Cargo.toml"
+            }
+          ]
+        },
+        {
+          "id": "t21-fmt",
+          "title": "rayx fmt",
+          "descriptionMarkdown": "Move xtask's `fmt` to `src/fmt.rs` on the discovered workspace with `--check` anywhere. Write `tests/fmt_command.rs` with a two-member fixture.",
+          "criterionIds": [
+            "APP-5"
+          ],
+          "designIds": [
+            "d-fmt"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-fmt-command"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/fmt.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/fmt.rs"
+            }
+          ]
+        },
+        {
+          "id": "t22-real-rayx-proof",
+          "title": "Prove on the real RayX checkout and gpux",
+          "descriptionMarkdown": "Run the APP-4 builds (WASM, host, Android on JDK 21) and the focused headed WebGPU Test Suite spec from the RayX checkout with `rayx` built from this repository, plus gpux-testkit's Android build on JDK 21. Compare the artifact layout with what xtask produced; fix differences in the CLI, not in RayX.",
+          "criterionIds": [
+            "APP-4"
+          ],
+          "designIds": [
+            "d-app-move"
+          ],
+          "dependsOn": [
+            "t33-validation-environment",
+            "t34-app-prereqs",
+            "t19-app-wasm-tests"
+          ],
+          "checkIds": [
+            "check-rayx-lab-wasm",
+            "check-rayx-test-suite-wasm",
+            "check-rayx-lab-host",
+            "check-rayx-mobile-android",
+            "check-rayx-test-suite-spec",
+            "check-gpux-android-build"
+          ],
+          "supportingCriterionIds": [
+            "PINX-2"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx",
+              "path": "apps/lab/Cargo.toml"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "apps/test_suite/Cargo.toml"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "apps/examples_mobile/Cargo.toml"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s5-wsl-release-update",
+      "title": "WSL setup, disk status and compaction; releases and self update",
+      "dependsOn": [
+        "s4-app-pipeline"
+      ],
+      "checkIds": [
+        "check-fmt",
+        "check-clippy"
+      ],
+      "memoryScopes": [
+        "setup",
+        "distribution",
+        "host"
+      ],
+      "tasks": [
+        {
+          "id": "t23-wsl",
+          "title": "setup --wsl and --clone of the current checkout",
+          "descriptionMarkdown": "`src/setup/wsl.rs` per WSL-1 and WSL-2, with `RAYX_WSL_BINARY` for development builds. Write `tests/wsl_plan.rs`. Verify the end-to-end run manually on this Windows machine with a Linux build of `rayx` and record the outcome in the task handoff.",
+          "criterionIds": [
+            "WSL-1",
+            "WSL-2"
+          ],
+          "designIds": [
+            "d-wsl"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-wsl-plan"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/wsl.rs"
+            }
+          ]
+        },
+        {
+          "id": "t36-wsl-disk",
+          "title": "wsl status and wsl compact",
+          "descriptionMarkdown": "`src/wsl.rs` per WSL-3 and WSL-4 (registry view, sizes, build-output listing and confirmed deletion, `fstrim`, confirmed shutdown, `Optimize-VHD` or `diskpart` in one admin child, before/after report). Write `tests/wsl_disk.rs`. Run a real compaction on this machine with the owner's approval and record the before and after sizes in the task handoff.",
+          "criterionIds": [
+            "WSL-3",
+            "WSL-4"
+          ],
+          "designIds": [
+            "d-wsl"
+          ],
+          "dependsOn": [
+            "t23-wsl"
+          ],
+          "checkIds": [
+            "check-wsl-disk"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/wsl.rs"
+            }
+          ]
+        },
+        {
+          "id": "t24-release",
+          "title": "cargo-dist releases",
+          "descriptionMarkdown": "`dist init` with cargo-dist 0.32.0 (the VAL-1 version), the six targets and shell/PowerShell installers, generated `.github/workflows/release.yml`, `dist plan` passing. Tagging the first release is the owner's call; it is verified manually when cut.",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "designIds": [
+            "d-release"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-dist-plan"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "dist-workspace.toml"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": ".github/workflows/release.yml"
+            }
+          ]
+        },
+        {
+          "id": "t25-self-update",
+          "title": "self update",
+          "descriptionMarkdown": "`src/update.rs` with `axoupdater`: update, `--check`, receipt detection and the non-installer message. Write `tests/self_update.rs`.",
+          "criterionIds": [
+            "REL-2"
+          ],
+          "designIds": [
+            "d-release"
+          ],
+          "dependsOn": [
+            "t24-release"
+          ],
+          "checkIds": [
+            "check-self-update"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/update.rs"
+            }
+          ]
+        },
+        {
+          "id": "t26-docs",
+          "title": "README and app-project contract",
+          "descriptionMarkdown": "README: install one-liners, every command (including `wsl status`/`wsl compact` and the GPU, Xcode and Android Studio installs), the pins and their sources. `docs/app-project.md`: the `[package.metadata.rayx]` keys, `[workspace.metadata.rayx]` pins, `rayx.assets.toml`, the Playwright package template, and the app-owned `platform/android` and `platform/ios` files the pipeline expects, so `rayx new` can generate them later.",
+          "criterionIds": [],
+          "designIds": [
+            "d-app-move",
+            "d-project-pins",
+            "d-release",
+            "d-playwright-template"
+          ],
+          "dependsOn": [
+            "t36-wsl-disk",
+            "t25-self-update"
+          ],
+          "checkIds": [],
+          "supportingCriterionIds": [
+            "REL-1"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "README.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/app-project.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s6-rayx-migration",
+      "title": "RayX switches to rayx and slims xtask",
+      "dependsOn": [
+        "s5-wsl-release-update"
+      ],
+      "memoryScopes": [
+        "app-pipeline",
+        "repository",
+        "rayx:tooling",
+        "rayx:tooling/validation",
+        "rayx:platform/packaging-targets"
+      ],
+      "tasks": [
+        {
+          "id": "t27-slim-xtask",
+          "title": "Slim RayX xtask",
+          "descriptionMarkdown": "Remove the app pipeline, `setup-android`, `setup-wasm`, `fmt` and the release re-exec from RayX's `xtask/`, keep `code-themes`, `component-index` and `theme`, trim `xtask/Cargo.toml`. Paired commit with the CLI commit it relies on.",
+          "criterionIds": [
+            "MIG-1"
+          ],
+          "designIds": [
+            "d-rayx-migration"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-xtask-check",
+            "check-xtask-test"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/main.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/src/command.rs"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "xtask/Cargo.toml"
+            }
+          ]
+        },
+        {
+          "id": "t28-rayx-callers",
+          "title": "RayX callers use rayx",
+          "descriptionMarkdown": "Update RayX CI (installing the pinned `rayx` and calling `rayx setup --test` and `rayx app ...`), docs, READMEs, `AGENTS.md`, `CLAUDE.md`, the RayX skill (including `wasm-toolchain-update.md`'s proof commands) and the two `tools-node` scripts per MIG-2.",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "designIds": [
+            "d-rayx-migration"
+          ],
+          "dependsOn": [
+            "t27-slim-xtask"
+          ],
+          "checkIds": [
+            "check-no-xtask-callers"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx",
+              "path": ".github/workflows/pr-test.yml"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "docs/src/xtask.md"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "AGENTS.md"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "CLAUDE.md"
+            },
+            {
+              "repositoryId": "rayx",
+              "path": "README.md"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
