@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 48,
+  "revision": 49,
   "planRevision": 6,
   "specHashes": {
     "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
@@ -1066,6 +1066,16 @@
       },
       "reviewHash": "0591710a8d202d8a3bbad2757c983eff9bed6a841068d0f1988a9e3757bd862f",
       "recordedAt": "2026-10-07T21:40:22Z"
+    },
+    "s2-pins-and-base-setup": {
+      "snapshotId": "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90",
+      "commits": {
+        "rayx-cli": "efaaa9158bfc4baef435e3ab08761ee73f825dac",
+        "rayx": "f8a1f36e889b5a5fb396ea942da1bec679e7f7ee",
+        "gpux": "9dd50e0d1a7c44239f474500ccafc6aaf22463d8"
+      },
+      "reviewHash": "ede91c0a01f7a12711fcf77d3730fd813ec235f39ede7ba796bf13d1ad128af6",
+      "recordedAt": "2026-10-07T22:15:48Z"
     }
   },
   "findings": [

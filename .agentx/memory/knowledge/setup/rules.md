@@ -4,7 +4,7 @@ agentx:
   scope: knowledge/setup
   status: current
   created: 2026-10-07T23:30:00+02:00
-  updated: 2026-10-08T00:45:00+02:00
+  updated: 2026-10-08T01:30:00+02:00
   topics:
     - setup
     - doctor
@@ -20,5 +20,7 @@ agentx:
 - Probe before installing and re-probe after; a second `rayx setup` run executes nothing.
 - Batch root steps (one `sudo apt-get install` for every missing package) and let agents use `--check`, which prints the exact commands for the owner to run.
 - Accept SDK licenses and installer agreements only when the user passed `--yes`; otherwise the tool's own prompt reaches the user.
+- Never let a step's probe or install builder mutate the machine in `--check`: probes run read-only queries (`Runner::query`), PATH edits and file writes skip dry runs, and the only multi-command install logic that needs earlier output is an `Action::Custom`.
+- Require the native architecture's toolchain on Windows (`aarch64-pc-windows-msvc` on ARM64): an emulated x64 toolchain never satisfies a probe.
 - Support Ubuntu/Debian only among Linux distributions for now; others fail `setup` with an actionable message while `doctor` still reports.
 - Never discover, clone, copy or download a project's dependencies (gpux included) by following its manifest's `path` entries; Cargo resolves dependencies from crates.io or git. `setup --wsl --clone` copies only the current checkout (owner, 2026-10-07).
