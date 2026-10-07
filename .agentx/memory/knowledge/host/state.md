@@ -4,7 +4,7 @@ agentx:
   scope: knowledge/host
   status: current
   created: 2026-10-07T23:30:00+02:00
-  updated: 2026-10-08T01:30:00+02:00
+  updated: 2026-10-08T05:00:00+02:00
   topics:
     - host-facts
     - command-runner
@@ -26,6 +26,7 @@ Implemented in `src/host/` (epic `rayx-cli-foundation`, design decision `d-host`
 - `mod.rs`/`probe.rs`: `detect(&dyn Probe) -> HostFacts { os, arch, emulated, wsl, distro }` is pure; `SystemProbe` asks the machine (`IsWow64Process2`, `sysctl.proc_translated`, `/etc/os-release`, `WSL_DISTRO_NAME`, `/proc/sys/kernel/osrelease`) and `FixtureProbe` scripts any host for tests. `Distro::is_supported` accepts Ubuntu, Debian and `ID_LIKE` derivatives.
 - `runner.rs`: `Runner::{execute, print, print_to, record}` over `CommandSpec { program, args, env, cwd, privilege, interactive }`. `Print` writes the exact command line (`sudo` for non-root `Root` steps, `[admin]` marker) and `Record` captures specs with scripted `respond` answers; `is_dry_run()` tells callers to skip non-command side effects. A non-root `Root` step first runs an interactive `sudo -v` (a failure is `RunError::Declined`, the command does not run) and then `sudo [env K=V] program args`. `Admin` goes through the `Elevator` trait; `WindowsElevator` runs `cmd.exe` behind a `ShellExecuteExW` `runas` prompt with output redirected to a temp file and refuses `"`, `%` and line breaks in arguments. `with_sudo_program` and `with_elevator` are the test seams.
 - `Runner::query` runs read-only commands for real even in `Print` mode (probes and discovery use it; a query cannot be privileged or interactive); `Record` mode takes a `responder` (state-aware answers) and an `observer` (side effects of recorded commands) for tests.
+- `CommandSpec.stdin` pipes text to a program (license and AVD prompts, only with `--yes` for licenses). `UserPath::{variable, set_variable}` read and write persistent user variables (registry values on Windows, `export NAME="value"` lines in the rayx profile block elsewhere).
 - `path_env.rs`: `PathStore` (`RegistryPathStore` on Windows, `MemoryPathStore` for tests) with `prepend_to_windows_path` (case/slash/`%VAR%`-insensitive duplicate check, value type preserved, `WM_SETTINGCHANGE` best effort), marked `# >>> rayx >>>` profile blocks for zsh/bash/sh through `add_to_profile`, and `UserPath` over both. `PathChange::notice()` carries the new-shell message.
 
 The real UAC prompt cannot run in tests; the Unix `fake_sudo` tests in `tests/command_runner.rs` run on Linux and macOS only.
