@@ -268,6 +268,9 @@ pub struct Step {
     /// When set, the step cannot be met until the machine restarts: after its install ran, a probe
     /// that still fails is reported with this notice instead of as a failure.
     pub reboot_notice: Option<String>,
+    /// The install asks the user a question (a license) even though it needs no privileges, so an
+    /// app command does not run it on its own.
+    pub prompts: bool,
 }
 
 impl Step {
@@ -284,6 +287,7 @@ impl Step {
             probe: Box::new(move |cx| linux::probe_packages(cx, &probe_packages)),
             install: Install::Apt(packages),
             reboot_notice: None,
+            prompts: false,
         }
     }
 
@@ -305,12 +309,19 @@ impl Step {
             probe: Box::new(probe),
             install: Install::Actions(Box::new(actions)),
             reboot_notice: None,
+            prompts: false,
         }
     }
 
     /// The step needs a restart before its probe passes.
     pub fn with_reboot_notice(mut self, notice: impl Into<String>) -> Self {
         self.reboot_notice = Some(notice.into());
+        self
+    }
+
+    /// The install asks the user a question.
+    pub fn with_prompt(mut self) -> Self {
+        self.prompts = true;
         self
     }
 
@@ -717,19 +728,22 @@ fn write_file(path: &Path, contents: &str) -> io::Result<()> {
 pub fn environment(host: HostFacts, yes: bool) -> (PlanEnv, Option<Project>) {
     let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let project = Project::discover(&mut Runner::print(), &cwd, None).ok();
-    let env = PlanEnv {
+    (environment_for(host, project.as_ref(), yes), project)
+}
+
+/// The plan environment of a known project (or none).
+pub fn environment_for(host: HostFacts, project: Option<&Project>, yes: bool) -> PlanEnv {
+    PlanEnv {
         host,
-        pins: Pins::resolve(project.as_ref()),
-        project_root: project.as_ref().map(|p| p.workspace_root.clone()),
+        pins: Pins::resolve(project),
+        project_root: project.map(|p| p.workspace_root.clone()),
         tools_node: project
-            .as_ref()
             .and_then(|p| p.rayx_metadata.as_ref())
             .and_then(|metadata| metadata.get("tools-node"))
             .and_then(|value| value.as_str())
             .map(str::to_string),
         yes,
-    };
-    (env, project)
+    }
 }
 
 /// Runs `rayx setup` against the real machine and returns the process exit code.

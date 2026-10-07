@@ -585,6 +585,7 @@ fn sdk_packages_step() -> Step {
             Ok(vec![Action::Run(env(licenses)), Action::Run(env(install))])
         },
     )
+    .with_prompt()
 }
 
 // ---------------------------------------------------------------------------------------------
