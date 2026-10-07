@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 3,
+  "revision": 18,
   "planRevision": 4,
   "specHashes": {
     "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
@@ -10,22 +10,40 @@
   },
   "tasks": {
     "t01-package-scaffold": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t02-cli-surface": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t03-host-facts": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t04-command-runner": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t05-path-env": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t06-ci-and-github": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t07-project-pins": {
       "status": "pending"
@@ -118,11 +136,396 @@
       "status": "pending"
     }
   },
-  "validationBatches": {},
-  "checkResults": {},
-  "reviews": {},
+  "validationBatches": {
+    "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f": {
+      "snapshot": {
+        "specHash": "af5f638a5bcf249a782a8ce2d6a9230b1dc2cf5aaa0a69870060f3bf9e65acfb",
+        "repositories": {
+          "rayx-cli": "42e24747be621598db7248f511b6bf63fc93b1a6d1086504a4ae678945d90650",
+          "rayx": "abf208622d05d2c8855817512f4b3c459c0877ad7d26e29657e38ba99538540a",
+          "gpux": "030db47dd9d65c55a2b50abed9e8e9e4f562d15e09d675f369b26251dec6c74f"
+        }
+      },
+      "recordedAt": "2026-10-07T21:22:32Z"
+    }
+  },
+  "checkResults": {
+    "s1-foundation/check-package-layout/final": {
+      "checkId": "check-package-layout",
+      "boundaryId": "s1-foundation",
+      "phase": "final",
+      "batchId": "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f",
+      "definitionHash": "df6e3f2af7721f3e42996a1052a7bc0ee05185e72a87da63aa6bcef9e892fa2f",
+      "basisHash": "cced1d4c2db4af7a5f08b02a7b09f57e4f001da312348e7c0bd56b0ac6b1ff6e",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 0.736,
+      "recordedAt": "2026-10-07T21:22:26Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1-foundation-final-ad036e25989e.log",
+      "logSha256": "f44e2dde64180b3deb74aa63f963f10acb5455bc9224414c61d67efd9b96440e",
+      "inputsHash": "58ddd5d6c8266367d653f671307793d539512c26e04865ca647ed9b861c54422"
+    },
+    "s1-foundation/check-cli-surface/final": {
+      "checkId": "check-cli-surface",
+      "boundaryId": "s1-foundation",
+      "phase": "final",
+      "batchId": "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f",
+      "definitionHash": "4e883e8cbf638038aa718c9d8cad384a35a4ab1c15e53a3714a8952718f5ec25",
+      "basisHash": "8fa7b93859a2db65ed74cb5977976ee1b073e8f1c7b38b917aa27c05fd2e0a74",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 1.3138,
+      "recordedAt": "2026-10-07T21:22:27Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1-foundation-final-0fb83dce08be.log",
+      "logSha256": "15089417d129d791b2c5f8a601d35b51cc1ec493748802e59cf535c14dee3f88",
+      "inputsHash": "482706c8a0b0eaa1814e77a7fef218832e2c68fa4f163f7c1abbe1dee0d68c16"
+    },
+    "s1-foundation/check-host-facts/final": {
+      "checkId": "check-host-facts",
+      "boundaryId": "s1-foundation",
+      "phase": "final",
+      "batchId": "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f",
+      "definitionHash": "4ab6fc72df8db378c7a8fb6c2e9a5f5560e3dc58c954661e7f38ce8b11ec83ed",
+      "basisHash": "e28d0b9da1a2940baf9d3d4d990e55975153e4fa38c06d9e2db259dd384712d7",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 14,
+      "durationSeconds": 0.6527,
+      "recordedAt": "2026-10-07T21:22:28Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1-foundation-final-71e33b7f566f.log",
+      "logSha256": "5a6634bb61a7f519633187fa7e5710b1c95cf8ba2c6b033064081944f21492ff",
+      "inputsHash": "c4b7dd0d9726b9cea612c57115426afd905c1dc1be7a10eda83154c77610b47c"
+    },
+    "s1-foundation/check-command-runner/final": {
+      "checkId": "check-command-runner",
+      "boundaryId": "s1-foundation",
+      "phase": "final",
+      "batchId": "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f",
+      "definitionHash": "7023fab823b3ad124bb7a78f100bf319400bc84dfa6466e4a90b786a6e3753d2",
+      "basisHash": "db721bb6867cd01e68e1bd672d5316baf8671ba1bc4f0b16be2fc79cac6d5f32",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 14,
+      "durationSeconds": 0.2319,
+      "recordedAt": "2026-10-07T21:22:28Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1-foundation-final-bab8defde35e.log",
+      "logSha256": "88d42c742c171aaa76de1d5d5107118e0704af8b63dfa98e2daa353e70280588",
+      "inputsHash": "0837a385aa11a0f5bc0954de73ad07f26afbf5b1c1c1ec5f4ccd00caa1f2c52f"
+    },
+    "s1-foundation/check-path-env/final": {
+      "checkId": "check-path-env",
+      "boundaryId": "s1-foundation",
+      "phase": "final",
+      "batchId": "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f",
+      "definitionHash": "f83e5f85f0dba40dc724ce03bb2e4df013c554ba4f11ad0a7b4f8db94811d7c0",
+      "basisHash": "f5c3cf9be91db00573404b922beb0d8802f650c301955b91c67e1977e983c212",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 16,
+      "durationSeconds": 0.1722,
+      "recordedAt": "2026-10-07T21:22:28Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1-foundation-final-1e5e9cd483dd.log",
+      "logSha256": "7b674ab6d09d82bbf3fd452a23674b272d91aea85ecce99704fb76c75787b6aa",
+      "inputsHash": "95949395c1ccdab2e436fc197953da25bc21148742a69743ff699cb9898ffaad"
+    },
+    "s1-foundation/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "s1-foundation",
+      "phase": "final",
+      "batchId": "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f",
+      "definitionHash": "32cee98ae43a6fe58272ad1411f4d72cab9a903874325bf1be89098d23713486",
+      "basisHash": "eb8375687a0d40dca74394a459c9eb309b7e782ccc22295c0e76b933f103fba3",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.168,
+      "recordedAt": "2026-10-07T21:22:28Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1-foundation-final-7448ee9324c4.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "7b1e11007d6f82f3b2a298e9300904b07298be28d9cb366b87ed19049770c8da"
+    },
+    "s1-foundation/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "s1-foundation",
+      "phase": "final",
+      "batchId": "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f",
+      "definitionHash": "67c592bba17b7b720efc70b7b5b11322e3bc7fcd8490722aede92373d72ba844",
+      "basisHash": "b608e715cbc5039010ab3bf84bfa0092939b40bf41823a5beb2e4336123411e1",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.7717,
+      "recordedAt": "2026-10-07T21:22:29Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1-foundation-final-e99b98c2fdf3.log",
+      "logSha256": "d4e20e629c500b4ff9df926cc29cd0f7690702af48d770ae49c90f687dfe0a30",
+      "inputsHash": "53f1385f4011e2611bb457c719b6fe69a1dc1e04b98e5a016c14ad538041b067"
+    }
+  },
+  "reviews": {
+    "s1-foundation": {
+      "reviewerId": "reviewer-s1-a0e59ff4",
+      "snapshotId": "9786405c80ff8f38be2e5333b502e9d8741b1c8ef51c684499df474a8632eb1f",
+      "criterionIds": [
+        "REPO-1",
+        "REPO-3",
+        "HOST-1",
+        "HOST-2",
+        "HOST-3",
+        "REPO-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.toml",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-1"
+          ],
+          "sha256": "d7802200e92e41ebd4d3a96a8eab0b068dfe14c92c70f80ad394affdfd9cba33"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "rust-toolchain.toml",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-1"
+          ],
+          "sha256": "9e87a5aa3fa20f8853df37a25635f051850fca560b71ab9e2be4aa09857808fb"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/lib.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-1",
+            "REPO-3"
+          ],
+          "sha256": "c8985b83d416fe3c0dc931eb530093df989a1d77aaf5a14f817ab6157c9eda12"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/main.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-1"
+          ],
+          "sha256": "e67dbaf78d43530de95e04d417f4861ece80d087dcaeb98d842cd80e9064c246"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-1"
+          ],
+          "sha256": "f1fe4dc0bf60747f03ffc40c34066902252f982b26ed990b7247734be21ab3e0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".gitignore",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-1"
+          ],
+          "sha256": "d6a2fc9b4ee536e8da82d1a66ad0de3fceaff49eb1d068659b0b2c82e0bc6761"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "LICENSE-APACHE",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-1"
+          ],
+          "sha256": "66e6042a95aeaa0cbbf6fc93c5db1a3852c67262536a70f461de9415551f296d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/package_layout.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REPO-1"
+          ],
+          "sha256": "572c174799b7357391a498ad26a0750ac558bf4b06cbb932aca0e85f363755c4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/ci.yml",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-2"
+          ],
+          "sha256": "5a818e6b23ebf35554f033a87d52e9014e612d108f07131034f7760bf69392b5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-3"
+          ],
+          "sha256": "d85686787669ad4e647e3c189ad37d510cde196803b5f0980b389d5b04561abc"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/cli_surface.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REPO-3"
+          ],
+          "sha256": "25263f197f0626c3ec5ada661925481f0642e11e22dedc865c01aeccfefcaedd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "HOST-1"
+          ],
+          "sha256": "1036a56c79a8d0ce19308074c6b539a1fed9828443aba1e6e320b89493daa2c7"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/probe.rs",
+          "kind": "source",
+          "criterionIds": [
+            "HOST-1"
+          ],
+          "sha256": "6f72cda2472596ededac4aa4acd9e1fd260a3e882f66c99b49f58bf85d9a1ecf"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/host_facts.rs",
+          "kind": "test",
+          "criterionIds": [
+            "HOST-1"
+          ],
+          "sha256": "cb688bfb9ba345f5508dee6f5424cffbc6e977cbd16e8e6be20a745fc5a0d90f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/runner.rs",
+          "kind": "source",
+          "criterionIds": [
+            "HOST-2"
+          ],
+          "sha256": "fc08fbb69515a17a187d7f916756dedb1addb3b22125c65cdba8328572b3cbc4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/command_runner.rs",
+          "kind": "test",
+          "criterionIds": [
+            "HOST-2"
+          ],
+          "sha256": "55528a954a81804c04981ec92bf9673c6bce5539da6a61bc7cda9efeb2bd61b4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/path_env.rs",
+          "kind": "source",
+          "criterionIds": [
+            "HOST-3"
+          ],
+          "sha256": "416d94766f583264b52a7419179d847bec196b704e37d30bc7b6618dab3c5fd6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/path_env.rs",
+          "kind": "test",
+          "criterionIds": [
+            "HOST-3"
+          ],
+          "sha256": "aeb344d5cfcbbbdee6adb312161c26b9e3527c3d8fa28207cf26d62dd71d6ae2"
+        }
+      ],
+      "summaryMarkdown": "All three findings are repaired and verified in source and tests. Non-root Root steps now authenticate with an interactive `sudo -v` first; a refused prompt returns Declined without running the command, a failing wrapped command stays an ordinary failure, and the fake-sudo tests prove the argv, env, cwd, decline and Print-never-calls-sudo paths (Unix-only, run under WSL by the coordinator and compiled out on Windows). The WM_SETTINGCHANGE broadcast is best-effort with a failing-broadcast test. quote_windows follows CommandLineToArgvW rules and is covered by a rendering test. REPO-1, REPO-3, HOST-1, HOST-2, HOST-3 are proven by their own groups; REPO-2's workflow matches the criterion and its first green run awaits the first push.",
+      "findingIds": [
+        "F-HOST2-SUDO-DECLINE",
+        "F-HOST3-BROADCAST-ERR",
+        "F-HOST2-WIN-TRAILING-BACKSLASH"
+      ],
+      "recordedAt": "2026-10-07T21:23:13Z"
+    }
+  },
   "checkpoints": {},
-  "findings": [],
+  "findings": [
+    {
+      "id": "F-HOST2-SUDO-DECLINE",
+      "criterionIds": [
+        "HOST-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected (HOST-2):** a `Root` step on Linux/macOS runs through `sudo` when not root, and declining the `sudo` prompt stops the step with a clear message, not a crash; the check description requires this to be proven by `tests/command_runner.rs`.\n\n**Observed:** `src/host/runner.rs:374-382` maps a declined `sudo` to `RunError::Declined` only when the sudo process has no exit code (killed by a signal). Real declines do not take that path: a failed or empty password, Ctrl+D or `sudo: a password is required` all make `sudo` exit with code 1, which is returned as an ordinary `Outcome` (and `run_checked` reports `` `sudo ...` exited with code 1`` with no mention of a declined prompt for interactive specs). Ctrl+C sends SIGINT to the whole foreground process group, so `rayx` itself dies before it can map anything. The Declined branch is therefore effectively unreachable. In addition, `sudo_wrapped` (`runner.rs:439-455`: `env K=V` forwarding, cwd, inherited stdin) and the `Privilege::Root` execute branch have no test at all: `tests/command_runner.rs` covers sudo only as a printed string (Print mode) and the already-root direct path, and the declined case only through the scripted `Elevator` (the Windows/UAC half). The `sudo` half of the last HOST-2 bullet is thus neither correctly implemented nor proven.\n\n**Repair:** (1) Before running a `Root` step as non-root, authenticate with an interactive, console-inheriting `sudo -v` (still no password handling by `rayx`); a non-zero exit from `sudo -v` is a refused/declined prompt and returns `RunError::Declined` with the existing clear message, while a non-zero exit of the wrapped command stays a normal failure. Keep the signal case as Declined too. (2) Add `#[cfg(unix)]` tests in `tests/command_runner.rs` that put a fake `sudo` shell script in a temporary directory on `PATH` (or unit-test `sudo_wrapped`) to prove the argv (`sudo env K=V program args`), cwd propagation, that a failing fake `sudo -v` yields `Declined` with the 'did not run' message and does not run the command, and that an approving one runs the command. Print mode must stay side-effect free.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/runner.rs",
+          "symbol": "Runner::execute_spec"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/command_runner.rs",
+          "symbol": "fake_sudo"
+        }
+      ],
+      "boundaryId": "s1-foundation"
+    },
+    {
+      "id": "F-HOST3-BROADCAST-ERR",
+      "criterionIds": [
+        "HOST-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** the persisted PATH edit is the outcome; `WM_SETTINGCHANGE` is a best-effort notification, and `rayx` tells the user to open a new shell.\n\n**Observed:** `prepend_to_windows_path` (`src/host/path_env.rs:190-191`) returns `Err` when `broadcast_change` fails, and `RegistryPathStore::broadcast_change` (`path_env.rs:494-496`) returns an error whenever `SendMessageTimeoutW` returns 0, which also happens on a timeout caused by one slow top-level window (with `GetLastError` possibly 0). The registry value has then already been written, so the caller reports a failed step for a change that took effect, and a retry says `AlreadyPresent` without broadcasting.\n\n**Repair:** make the broadcast non-fatal (ignore or return it separately, for example as a warning field on the result), keeping the `Added` result and the new-shell notice; add a `MemoryPathStore` test with a failing broadcast showing `Added` is still returned.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/path_env.rs",
+          "symbol": "prepend_to_windows_path"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/path_env.rs",
+          "symbol": "a_failed_broadcast_does_not_fail_a_persisted_edit"
+        }
+      ],
+      "boundaryId": "s1-foundation"
+    },
+    {
+      "id": "F-HOST2-WIN-TRAILING-BACKSLASH",
+      "criterionIds": [
+        "HOST-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** the command line `WindowsElevator` builds runs the argument it was given.\n\n**Observed:** `quote_windows` (`src/host/runner.rs:565-575`) wraps an argument containing spaces in quotes without doubling backslashes that precede the closing quote, so a directory argument such as `C:\\Program Files\\Tool\\` becomes `\"C:\\Program Files\\Tool\\\"`, which the target program's command-line parser reads as an escaped quote. The elevator already rejects `\"`, `%` and line breaks for this class of problem but not this one; `render` (Print) has the same text, so `--check` would show a line that does not match what really runs.\n\n**Repair:** double the run of backslashes that precedes a closing (or embedded) quote in `quote_windows`, or have the elevator refuse an argument ending in a backslash that needs quoting; add a case to the Windows elevator guard test or a pure `command_line` rendering test.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/runner.rs",
+          "symbol": "quote_windows"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/command_runner.rs",
+          "symbol": "windows_quoting_follows_the_command_line_parsing_rules"
+        }
+      ],
+      "boundaryId": "s1-foundation"
+    }
+  ],
   "handoffMarkdown": "",
   "protectedPaths": {
     "rayx-cli": {},
