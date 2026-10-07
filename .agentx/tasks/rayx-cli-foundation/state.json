@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 35,
+  "revision": 48,
   "planRevision": 6,
   "specHashes": {
     "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
@@ -46,19 +46,34 @@
       ]
     },
     "t07-project-pins": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t08-setup-engine": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t09-setup-linux": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t10-setup-windows": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t11-setup-macos": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t12-setup-web": {
       "status": "pending"
@@ -167,6 +182,17 @@
         }
       },
       "recordedAt": "2026-10-07T21:40:18Z"
+    },
+    "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90": {
+      "snapshot": {
+        "specHash": "faffa76704b0537650d072763de5577f16213e8237856d37276b3dd66c5722e9",
+        "repositories": {
+          "rayx-cli": "a6acceb96554cef9de237beb909b2f07b6651055fc9a9d2981572daaa85e367e",
+          "rayx": "c163196a9dfb131fe084bd13aafa0006af155a3dce0e259b22c89529a4d266b4",
+          "gpux": "3398ecb8dca8c23047da86f58951329618b9da68493c277d932ccdec1a3a4bb6"
+        }
+      },
+      "recordedAt": "2026-10-07T22:12:57Z"
     }
   },
   "checkResults": {
@@ -385,6 +411,125 @@
       "messageMarkdown": "Expectation matched",
       "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1b-toolchain-pins-final-079d3df189f6.log",
       "logSha256": "5f715a047ade0120a5dd6a598dacf74285c277b89cd080a9968931aa04dd1115"
+    },
+    "s2-pins-and-base-setup/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "s2-pins-and-base-setup",
+      "phase": "final",
+      "batchId": "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90",
+      "definitionHash": "32cee98ae43a6fe58272ad1411f4d72cab9a903874325bf1be89098d23713486",
+      "basisHash": "618d1d7fb03b71a30383b39b5c6e462cbf674703d63970eb2476569f9d0ad043",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2277,
+      "recordedAt": "2026-10-07T22:12:51Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s2-pins-and-base-setup-final-e41dc0dee08f.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "1d93994e83357dfc4f936a1a1cf9b8e18ccbf22525ba66be40e7fb3b72ef8650"
+    },
+    "s2-pins-and-base-setup/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "s2-pins-and-base-setup",
+      "phase": "final",
+      "batchId": "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90",
+      "definitionHash": "67c592bba17b7b720efc70b7b5b11322e3bc7fcd8490722aede92373d72ba844",
+      "basisHash": "d4dda6cd698c43c622ae06c2f645299bed72d625bfb27a3db7f30517aaca153d",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2697,
+      "recordedAt": "2026-10-07T22:12:51Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s2-pins-and-base-setup-final-da8b04b4e148.log",
+      "logSha256": "fecede7c2157efe2f16c8c8b9dce94b0fb4dd384dca8207046c8bf7636eb0ffe",
+      "inputsHash": "c4ccf8ba90bd7bb238565b5f6b4f54c63d4e14b3b904497ba69d7125f5c61a1a"
+    },
+    "s2-pins-and-base-setup/check-project-pins/final": {
+      "checkId": "check-project-pins",
+      "boundaryId": "s2-pins-and-base-setup",
+      "phase": "final",
+      "batchId": "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90",
+      "definitionHash": "d3b97bbe8a473079100f8af7ec0c3d12deb14de80f72a43193cbd31c95c51d8d",
+      "basisHash": "4edf52415306c4b201471e393c06d9909fd4f871546dcdc95c381c202cd0fdea",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 13,
+      "durationSeconds": 1.267,
+      "recordedAt": "2026-10-07T22:12:53Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s2-pins-and-base-setup-final-25f447ff3f44.log",
+      "logSha256": "939d92fdddd6b595699e15228d8d51c5e484a4b7376fe7cefc4102bc7b0c9e48",
+      "inputsHash": "94cacc84ee93fbc523dc587d0782ddcaa1fd75fb257e267ecacd896c674b7294"
+    },
+    "s2-pins-and-base-setup/check-setup-engine/final": {
+      "checkId": "check-setup-engine",
+      "boundaryId": "s2-pins-and-base-setup",
+      "phase": "final",
+      "batchId": "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90",
+      "definitionHash": "391a6855d850186650762789368444157e6dc7254f089801475398b73bfc08f7",
+      "basisHash": "5574a54e95795c4fb67d94ff9627068177af196868b40c85538e073af7bd4ef7",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 0.2025,
+      "recordedAt": "2026-10-07T22:12:53Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s2-pins-and-base-setup-final-2e7e0408654d.log",
+      "logSha256": "55149bdb3c6a92c433cd6e9915bec216a703717df99d29b3c826ec2176646d5a",
+      "inputsHash": "ea8c4a4b181c5dd7e1de66236a2ac16eed709dc3b22e6a6e4e71f130434334d4"
+    },
+    "s2-pins-and-base-setup/check-setup-linux/final": {
+      "checkId": "check-setup-linux",
+      "boundaryId": "s2-pins-and-base-setup",
+      "phase": "final",
+      "batchId": "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90",
+      "definitionHash": "af6eeb9ed0d4483eaea5f2d498d0eeb92d3b610860e921374af443e8d69a09a9",
+      "basisHash": "018e988ac64139d50a103af297e6d6d546420c1acaf0f3f2343f3d085a0744d8",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 0.1623,
+      "recordedAt": "2026-10-07T22:12:53Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s2-pins-and-base-setup-final-a3d9d01d16ff.log",
+      "logSha256": "48e97489c29dcabe306553fea81845854ae3e2ba4a1003853b0c69dd7785a1a6",
+      "inputsHash": "d85e42e18a333b102cf0c7eb0fcb6acd8acc83fac35068066d1f48c15cc1cb3d"
+    },
+    "s2-pins-and-base-setup/check-setup-windows/final": {
+      "checkId": "check-setup-windows",
+      "boundaryId": "s2-pins-and-base-setup",
+      "phase": "final",
+      "batchId": "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90",
+      "definitionHash": "19b4c11cb9c2d1cb59ad38ae144cf540977429e3d32153c97c0dab70d5171ee3",
+      "basisHash": "95c0a0665fb24dd332367a56e5ab4048b0aad0d98b1c69662a491e27018f7e75",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 10,
+      "durationSeconds": 0.1657,
+      "recordedAt": "2026-10-07T22:12:53Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s2-pins-and-base-setup-final-4ccf794ef03d.log",
+      "logSha256": "dec192e62b0f20b1b635b2f1dd975e8d89bd4ab5fd7fd3b0203ad21c239586e5",
+      "inputsHash": "00b5264853df75183f71c84b12c731193db6c8434cd576ffdd904745026e3d81"
+    },
+    "s2-pins-and-base-setup/check-setup-macos/final": {
+      "checkId": "check-setup-macos",
+      "boundaryId": "s2-pins-and-base-setup",
+      "phase": "final",
+      "batchId": "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90",
+      "definitionHash": "284e6a9e63d0ace703c3a3a934e9a7c52bf72677b2c167a3c8b459846a0c129d",
+      "basisHash": "985b38e22023ddee02bcc0a09531ec1e57a1e3a98950c252072fa9bdbed177d2",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 10,
+      "durationSeconds": 0.1659,
+      "recordedAt": "2026-10-07T22:12:53Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s2-pins-and-base-setup-final-673dc4a7b8b6.log",
+      "logSha256": "6c300cbc76d70309a8c6773d4e077c696afd804700aaed7397a48f018be37791",
+      "inputsHash": "9f3c08223ec987af19d3c0eb404b476f07b19b6d7f1e91f6c310bdb94578bec7"
     }
   },
   "reviews": {
@@ -762,6 +907,143 @@
         "s1b-stale-toolchain-doc-comment"
       ],
       "recordedAt": "2026-10-07T21:39:40Z"
+    },
+    "s2-pins-and-base-setup": {
+      "reviewerId": "reviewer-s2-3d602153",
+      "snapshotId": "29ba60484f7af78144af7783f49eb83826d7b719088e277259bf4dcf9122ab90",
+      "criterionIds": [
+        "PIN-1",
+        "PIN-2",
+        "SETUP-1",
+        "SETUP-2",
+        "SETUP-3",
+        "SETUP-4"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "1b01d00c4613db470dc7d57d0b0741ca421b199e6bde9636c583cfe9a7cedc19"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-2"
+          ],
+          "sha256": "9fb6754229206ec97a0bf695618ad6ffb8c7db7016be7ff3b78918128fd29445"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1",
+            "PIN-2"
+          ],
+          "sha256": "78e392b675287f1081457a53e9232c58d5a6fac24a0a60bbab1ce5ee91221e7e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-1"
+          ],
+          "sha256": "bb724cba42e762ef0c9310f3e6d6e64641d0194341e764aeb3d0b63000de57f6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_engine.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETUP-1"
+          ],
+          "sha256": "5a1d516cf786c49e59fc905d9d79636c269d90854103b374a5283ca94cba8b99"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/linux.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-2"
+          ],
+          "sha256": "0ce3db75661274349da5f4e795eff45d4b1538bb6c5e4499e80ddaaa620abb8e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/rust.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-2",
+            "SETUP-3",
+            "SETUP-4"
+          ],
+          "sha256": "08a9d24bc8418ffca473a9b8d5b2bab5dc5522966ce2249e5dd7d5bf8614d316"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_linux.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETUP-2"
+          ],
+          "sha256": "415003d46e80d4efccd51ba553d2052b08b6531b927c041c7b27f8cb35cde661"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/windows.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-3"
+          ],
+          "sha256": "10aa20e736207bcf4dcd56a9530c571143a4f156236c6840ec3231ab294487d1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_windows.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETUP-3"
+          ],
+          "sha256": "c3e143c219ff192bad5cf46141f730670477748506edffd1ac4d6d42e796da2b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/macos.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-4"
+          ],
+          "sha256": "e2b2967a3ca09f660a6d3abd1b5d2339a10e412d99eb2c8779a64fa6d5c200a7"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_macos.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETUP-4"
+          ],
+          "sha256": "7308b0f628afa393710f847abc210f03ba11a3e11ceff622caf95ec8159b0c7a"
+        }
+      ],
+      "summaryMarkdown": "All seven findings are repaired in source and covered by new tests in each task's own group. Discovery no longer lets rustup install anything and still resolves project pins from manifests when cargo or the pinned toolchain is missing; the Windows toolchain probe is native-triple aware; dpkg, marker lifecycle, PowerShell quoting and Homebrew sudo gaps are closed. PIN-1..2 and SETUP-1..4 pass against current source and tests.",
+      "findingIds": [
+        "F-S2-1-discover-autoinstalls-toolchain",
+        "F-S2-2-pins-lost-when-cargo-or-toolchain-missing",
+        "F-S2-3-windows-arm64-keeps-x64-toolchain",
+        "F-S2-4-dpkg-status-check",
+        "F-S2-5-macos-marker-lifecycle-untested",
+        "F-S2-6-powershell-single-quote-path",
+        "F-S2-7-homebrew-noninteractive-needs-sudo"
+      ],
+      "recordedAt": "2026-10-07T22:14:24Z"
     }
   },
   "checkpoints": {
@@ -774,6 +1056,16 @@
       },
       "reviewHash": "0ce5c387fbdb8173e5fb0c96ec6c7f6d463e0a1137524b0730b17e2d8577f09d",
       "recordedAt": "2026-10-07T21:23:41Z"
+    },
+    "s1b-toolchain-pins": {
+      "snapshotId": "f701f5571372b093103bc708e578fc2c546cdacdfa606b636173b60d561b0047",
+      "commits": {
+        "rayx-cli": "18a062a67a4fb2d4adfaa0db78ebfdbd648a2338",
+        "rayx": "9fdbb807a21ad2e8e66da846ce3438032f22c028",
+        "gpux": "fe6a2e25c3cce36f31d65c50e07e93c8ed232c57"
+      },
+      "reviewHash": "0591710a8d202d8a3bbad2757c983eff9bed6a841068d0f1988a9e3757bd862f",
+      "recordedAt": "2026-10-07T21:40:22Z"
     }
   },
   "findings": [
@@ -892,6 +1184,159 @@
         {
           "repositoryId": "gpux",
           "path": "tooling/testkit/src/web.rs"
+        }
+      ]
+    },
+    {
+      "id": "F-S2-1-discover-autoinstalls-toolchain",
+      "boundaryId": "s2-pins-and-base-setup",
+      "criterionIds": [
+        "PIN-1",
+        "SETUP-1"
+      ],
+      "descriptionMarkdown": "Resolved: both discovery cargo calls (and the Windows `rustup show` probe) set `RUSTUP_AUTO_INSTALL=0`; `discovery_asks_rustup_not_to_install_anything` asserts it.",
+      "severity": "major",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs",
+          "symbol": "discovery_asks_rustup_not_to_install_anything"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs",
+          "symbol": "Project::discover_with_cargo"
+        }
+      ]
+    },
+    {
+      "id": "F-S2-2-pins-lost-when-cargo-or-toolchain-missing",
+      "boundaryId": "s2-pins-and-base-setup",
+      "criterionIds": [
+        "PIN-2",
+        "SETUP-2",
+        "SETUP-1"
+      ],
+      "descriptionMarkdown": "Resolved: discovery falls back to `Project::discover_from_files` (nearest enclosing workspace, members, package and workspace `metadata.rayx`); pins then resolve from files. Covered by the missing-toolchain fixture, the scripted-cargo-failure tests on pinned-app and gpux-checkout, and the no-manifest negative test.",
+      "severity": "major",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs",
+          "symbol": "a_missing_pinned_toolchain_does_not_install_and_the_pins_still_resolve_from_files"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs",
+          "symbol": "without_a_working_cargo_the_manifests_still_identify_the_project"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs",
+          "symbol": "a_directory_with_no_manifest_anywhere_is_still_not_a_project"
+        }
+      ]
+    },
+    {
+      "id": "F-S2-3-windows-arm64-keeps-x64-toolchain",
+      "boundaryId": "s2-pins-and-base-setup",
+      "criterionIds": [
+        "SETUP-3"
+      ],
+      "descriptionMarkdown": "Resolved: on Windows the toolchain probe requires the native triple suffix, an unpinned run requires a `(default)` entry, and the unpinned install is `rustup toolchain install stable` then `rustup default stable`.",
+      "severity": "major",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_windows.rs",
+          "symbol": "a_rustup_with_the_emulated_host_on_arm64_is_switched_to_the_native_one"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_windows.rs",
+          "symbol": "the_native_toolchain_satisfies_the_toolchain_step_on_each_architecture"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_linux.rs",
+          "symbol": "outside_a_project_the_stable_toolchain_is_installed_and_made_the_default"
+        }
+      ]
+    },
+    {
+      "id": "F-S2-4-dpkg-status-check",
+      "boundaryId": "s2-pins-and-base-setup",
+      "criterionIds": [
+        "SETUP-2"
+      ],
+      "descriptionMarkdown": "Resolved: `probe_packages` requires the second `Status-Abbrev` character `i`.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_linux.rs",
+          "symbol": "only_dpkg_status_i_counts_as_installed"
+        }
+      ]
+    },
+    {
+      "id": "F-S2-5-macos-marker-lifecycle-untested",
+      "boundaryId": "s2-pins-and-base-setup",
+      "criterionIds": [
+        "SETUP-4"
+      ],
+      "descriptionMarkdown": "Resolved: `Cx::with_clt_marker` injects a real marker path; tests assert the marker exists at `softwareupdate --list` and `--install` time and is removed after success and after a failed install.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_macos.rs",
+          "symbol": "marker"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/macos.rs",
+          "symbol": "install_clt"
+        }
+      ]
+    },
+    {
+      "id": "F-S2-6-powershell-single-quote-path",
+      "boundaryId": "s2-pins-and-base-setup",
+      "criterionIds": [
+        "SETUP-3"
+      ],
+      "descriptionMarkdown": "Resolved: apostrophes in the rustup-init path are doubled for PowerShell.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_windows.rs",
+          "symbol": "an_apostrophe_in_the_temp_path_is_escaped_in_the_powershell_download"
+        }
+      ]
+    },
+    {
+      "id": "F-S2-7-homebrew-noninteractive-needs-sudo",
+      "boundaryId": "s2-pins-and-base-setup",
+      "criterionIds": [
+        "SETUP-4",
+        "SETUP-1"
+      ],
+      "descriptionMarkdown": "Resolved: with `--yes` the Homebrew step runs an interactive `sudo -v` before the NONINTERACTIVE installer; no sudo without `--yes`.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_macos.rs",
+          "symbol": "homebrew_under_yes_asks_for_sudo_credentials_before_the_noninteractive_installer"
         }
       ]
     }
