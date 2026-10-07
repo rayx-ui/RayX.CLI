@@ -303,7 +303,7 @@ mod fake_sudo {
     use std::os::unix::fs::PermissionsExt;
     use std::path::{Path, PathBuf};
 
-    use rayx_cli::host::{CommandSpec, Os, RunError, Runner};
+    use rayx_cli::host::{CommandSpec, Os, Outcome, RunError, Runner};
 
     /// Writes an executable `sudo` stand-in that logs its arguments, answers `-v` with
     /// `auth_exit`, and otherwise runs the command it was given, like the real one does.
@@ -322,11 +322,23 @@ mod fake_sudo {
         (script, log)
     }
 
-    fn runner(script: &Path) -> Runner {
-        Runner::execute()
-            .with_os(Os::Linux)
-            .with_root(false)
-            .with_sudo_program(script.display().to_string())
+    /// Runs `spec` through the fake `sudo`. A script freshly written by one test can still be
+    /// open for writing in a child forked by another test thread, which makes `exec` fail with
+    /// ETXTBSY (os error 26) for a moment; that race belongs to the harness, so retry it.
+    fn run(script: &Path, spec: &CommandSpec) -> Result<Outcome, RunError> {
+        for _ in 0..50 {
+            let mut runner = Runner::execute()
+                .with_os(Os::Linux)
+                .with_root(false)
+                .with_sudo_program(script.display().to_string());
+            match runner.run(spec) {
+                Err(RunError::Io { source, .. }) if source.raw_os_error() == Some(26) => {
+                    std::thread::sleep(std::time::Duration::from_millis(20));
+                }
+                other => return other,
+            }
+        }
+        panic!("the fake sudo stayed busy");
     }
 
     #[test]
@@ -340,7 +352,7 @@ mod fake_sudo {
             .cwd(&work)
             .root();
 
-        let outcome = runner(&script).run(&spec).expect("approved");
+        let outcome = run(&script, &spec).expect("approved");
         assert_eq!(outcome.stdout, format!("bar|{}", work.display()));
 
         let log = fs::read_to_string(log).expect("sudo log");
@@ -362,7 +374,7 @@ mod fake_sudo {
             .arg(marker.display().to_string())
             .root();
 
-        let error = runner(&script).run(&spec).expect_err("declined");
+        let error = run(&script, &spec).expect_err("declined");
         assert!(matches!(error, RunError::Declined { .. }), "{error}");
         assert!(error.to_string().contains("did not run"), "{error}");
         assert!(!marker.exists(), "the command must not have run");
@@ -374,7 +386,7 @@ mod fake_sudo {
         let dir = tempfile::tempdir().expect("temp dir");
         let (script, _log) = fake_sudo(dir.path(), 0);
         let spec = CommandSpec::new("sh").args(["-c", "exit 3"]).root();
-        let outcome = runner(&script).run(&spec).expect("ran");
+        let outcome = run(&script, &spec).expect("ran");
         assert_eq!(outcome.code, Some(3));
     }
 

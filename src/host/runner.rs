@@ -215,7 +215,12 @@ pub struct Runner {
     lines: Vec<String>,
     specs: Vec<CommandSpec>,
     responses: VecDeque<Response>,
+    observer: Option<Observer>,
+    responder: Option<Responder>,
 }
+
+type Observer = Box<dyn FnMut(&CommandSpec)>;
+type Responder = Box<dyn FnMut(&CommandSpec) -> Option<Outcome>>;
 
 struct Response {
     matches: Box<dyn Fn(&CommandSpec) -> bool>,
@@ -254,6 +259,8 @@ impl Runner {
             lines: Vec::new(),
             specs: Vec::new(),
             responses: VecDeque::new(),
+            observer: None,
+            responder: None,
         }
     }
 
@@ -292,6 +299,23 @@ impl Runner {
             matches: Box::new(matches),
             outcome,
         });
+        self
+    }
+
+    /// In `Record` mode, answers commands from `responder` first (a `None` falls through to the
+    /// scripted [`Runner::respond`] answers), so a test can model state that commands change.
+    pub fn responder(
+        mut self,
+        responder: impl FnMut(&CommandSpec) -> Option<Outcome> + 'static,
+    ) -> Self {
+        self.responder = Some(Box::new(responder));
+        self
+    }
+
+    /// In `Record` mode, calls `observer` with every command that runs, so a test can change the
+    /// state the commands would have changed.
+    pub fn observe(mut self, observer: impl FnMut(&CommandSpec) + 'static) -> Self {
+        self.observer = Some(Box::new(observer));
         self
     }
 
@@ -343,6 +367,12 @@ impl Runner {
             Mode::Record => {
                 self.lines.push(line);
                 self.specs.push(spec.clone());
+                if let Some(observer) = self.observer.as_mut() {
+                    observer(spec);
+                }
+                if let Some(outcome) = self.responder.as_mut().and_then(|r| r(spec)) {
+                    return Ok(outcome);
+                }
                 let index = self.responses.iter().position(|r| (r.matches)(spec));
                 Ok(match index.and_then(|i| self.responses.remove(i)) {
                     Some(response) => response.outcome,
@@ -350,6 +380,23 @@ impl Runner {
                 })
             }
             Mode::Execute => self.execute_spec(spec, line),
+        }
+    }
+
+    /// Runs a command that only reads the machine (`cargo metadata`, `rustup toolchain list`) and
+    /// whose output the caller needs. It runs for real in `Execute` and `Print` mode, because
+    /// `--check` still has to look, and is recorded and answered by a scripted response in
+    /// `Record` mode. A query cannot be privileged or interactive.
+    pub fn query(&mut self, spec: &CommandSpec) -> Result<Outcome, RunError> {
+        if spec.privilege != Privilege::None || spec.interactive {
+            return Err(RunError::Unsupported {
+                command_line: self.command_line(spec),
+                reason: "a query cannot be privileged or interactive".into(),
+            });
+        }
+        match self.mode {
+            Mode::Record => self.run(spec),
+            Mode::Execute | Mode::Print => run_process(spec, false),
         }
     }
 
