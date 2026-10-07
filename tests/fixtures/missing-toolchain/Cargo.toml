@@ -1,0 +1,6 @@
+[workspace]
+resolver = "2"
+members = ["apps/*"]
+
+[workspace.metadata.rayx]
+web-toolchain = "nightly-2031-02-03"

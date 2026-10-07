@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = ["apps/demo"]
+
+[workspace.metadata.rayx]
+web-toolchain = "nightly-2030-01-01"
+node = 24
+jdk = "23"
+playwright = "1.60.0"
+android-ndk = "29.0.1"
+android-platform = "android-35"
+android-build-tools = "35.0.0"
+android-ndk-api = "30"
+android-system-image = "android-35;google_apis_playstore"
+xcode = "26.1"
