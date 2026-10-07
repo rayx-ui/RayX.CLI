@@ -36,6 +36,9 @@ pub struct CommandSpec {
     pub env: Vec<(String, String)>,
     pub cwd: Option<PathBuf>,
     pub privilege: Privilege,
+    /// Text written to the program's standard input, then closed (answers to prompts such as
+    /// `sdkmanager --licenses`).
+    pub stdin: Option<String>,
     /// Inherit the console so prompts (`sudo`, license questions) reach the user and output is
     /// shown as it happens. A non-interactive command has its output captured in [`Outcome`].
     pub interactive: bool,
@@ -80,6 +83,11 @@ impl CommandSpec {
 
     pub fn admin(mut self) -> Self {
         self.privilege = Privilege::Admin;
+        self
+    }
+
+    pub fn stdin(mut self, text: impl Into<String>) -> Self {
+        self.stdin = Some(text.into());
         self
     }
 
@@ -513,6 +521,7 @@ fn sudo_wrapped(spec: &CommandSpec, sudo: &str) -> CommandSpec {
         env: Vec::new(),
         cwd: spec.cwd.clone(),
         privilege: Privilege::None,
+        stdin: spec.stdin.clone(),
         interactive: spec.interactive,
     }
 }
@@ -527,7 +536,9 @@ fn run_process(spec: &CommandSpec, inherit_stdin: bool) -> Result<Outcome, RunEr
     if let Some(cwd) = &spec.cwd {
         command.current_dir(cwd);
     }
-    if inherit_stdin || spec.interactive {
+    if spec.stdin.is_some() {
+        command.stdin(Stdio::piped());
+    } else if inherit_stdin || spec.interactive {
         command.stdin(Stdio::inherit());
     } else {
         command.stdin(Stdio::null());
@@ -545,23 +556,21 @@ fn run_process(spec: &CommandSpec, inherit_stdin: bool) -> Result<Outcome, RunEr
         }
     };
     if spec.interactive {
-        let status = command
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .status()
-            .map_err(map_error)?;
-        Ok(Outcome {
-            code: status.code(),
-            ..Outcome::default()
-        })
+        command.stdout(Stdio::inherit()).stderr(Stdio::inherit());
     } else {
-        let output = command.output().map_err(map_error)?;
-        Ok(Outcome {
-            code: output.status.code(),
-            stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-            stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
-        })
+        command.stdout(Stdio::piped()).stderr(Stdio::piped());
     }
+    let mut child = command.spawn().map_err(map_error)?;
+    if let (Some(text), Some(mut input)) = (&spec.stdin, child.stdin.take()) {
+        // The program may exit before reading everything (it asked less than we answer).
+        let _ = input.write_all(text.as_bytes());
+    }
+    let output = child.wait_with_output().map_err(map_error)?;
+    Ok(Outcome {
+        code: output.status.code(),
+        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+    })
 }
 
 fn render(spec: &CommandSpec, os: Os, is_root: bool) -> String {
@@ -609,6 +618,15 @@ fn render(spec: &CommandSpec, os: Os, is_root: bool) -> String {
     for arg in &spec.args {
         line.push(' ');
         line.push_str(&quote(arg));
+    }
+    if let Some(input) = &spec.stdin {
+        let first = input.lines().next().unwrap_or_default();
+        let more = if input.lines().count() > 1 {
+            " ..."
+        } else {
+            ""
+        };
+        line.push_str(&format!(" < (answers: {first}{more})"));
     }
     line
 }

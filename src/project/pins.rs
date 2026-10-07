@@ -65,8 +65,9 @@ pub struct Defaults {
     pub android_ndk: &'static str,
     pub android_platform: &'static str,
     pub android_ndk_api: &'static str,
-    /// `<platform>;<tag>` of the emulator system image; the host architecture is added at install.
-    pub android_system_image: &'static str,
+    /// The tag of the emulator system image (`google_apis`); the image is `<platform>;<tag>` of
+    /// the platform pin, with the host architecture added at install.
+    pub android_image_tag: &'static str,
 }
 
 /// The one table of default versions.
@@ -78,7 +79,7 @@ pub const DEFAULTS: Defaults = Defaults {
     android_ndk: "28.0.12674087",
     android_platform: "android-34",
     android_ndk_api: "31",
-    android_system_image: "android-34;google_apis",
+    android_image_tag: "google_apis",
 };
 
 /// What a gpux checkout pins for Android (its lane E).
@@ -144,6 +145,12 @@ impl Pins {
             None => (None, None),
         };
 
+        let android_platform = pin(
+            "android-platform",
+            Some(GPUX_CHECKOUT.android_platform),
+            DEFAULTS.android_platform,
+        );
+
         Pins {
             wasm_bindgen,
             rust_toolchain,
@@ -156,11 +163,7 @@ impl Pins {
                 Some(GPUX_CHECKOUT.android_ndk),
                 DEFAULTS.android_ndk,
             ),
-            android_platform: pin(
-                "android-platform",
-                Some(GPUX_CHECKOUT.android_platform),
-                DEFAULTS.android_platform,
-            ),
+            android_platform: android_platform.clone(),
             android_build_tools: if let Some(value) = key("android-build-tools") {
                 Some(Pin::new(value, PinSource::Project))
             } else if gpux {
@@ -172,7 +175,14 @@ impl Pins {
                 None
             },
             android_ndk_api: pin("android-ndk-api", None, DEFAULTS.android_ndk_api),
-            android_system_image: pin("android-system-image", None, DEFAULTS.android_system_image),
+            // Unless set explicitly, the image is at the platform pin, whose source it reports.
+            android_system_image: match key("android-system-image") {
+                Some(value) => Pin::new(value, PinSource::Project),
+                None => Pin::new(
+                    format!("{};{}", android_platform.value, DEFAULTS.android_image_tag),
+                    android_platform.source,
+                ),
+            },
             xcode: key("xcode").map(|v| Pin::new(v, PinSource::Project)),
         }
     }

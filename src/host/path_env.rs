@@ -65,6 +65,10 @@ pub trait PathStore {
     fn read(&self) -> io::Result<Option<PathValue>>;
     /// Replaces the value.
     fn write(&mut self, value: &PathValue) -> io::Result<()>;
+    /// A user environment variable other than `Path`, such as `JAVA_HOME`.
+    fn read_var(&self, name: &str) -> io::Result<Option<String>>;
+    /// Sets a user environment variable.
+    fn write_var(&mut self, name: &str, value: &str) -> io::Result<()>;
     /// Tells running programs that the environment changed (`WM_SETTINGCHANGE`).
     fn broadcast_change(&mut self) -> io::Result<()>;
     /// Expands `%VARIABLE%` references the way Windows does when it builds a process
@@ -79,6 +83,7 @@ pub trait PathStore {
 pub struct MemoryPathStore {
     value: Option<PathValue>,
     variables: Vec<(String, String)>,
+    user_vars: std::collections::BTreeMap<String, String>,
     broadcasts: usize,
     fail_broadcast: bool,
 }
@@ -101,6 +106,17 @@ impl MemoryPathStore {
         self.value.as_ref()
     }
 
+    /// A user variable written through [`PathStore::write_var`].
+    pub fn var(&self, name: &str) -> Option<&str> {
+        self.user_vars.get(name).map(String::as_str)
+    }
+
+    /// Starts with a user variable already set.
+    pub fn with_user_var(mut self, name: &str, value: &str) -> Self {
+        self.user_vars.insert(name.to_string(), value.to_string());
+        self
+    }
+
     /// Makes [`PathStore::broadcast_change`] fail, as a timed-out `WM_SETTINGCHANGE` does.
     pub fn with_failing_broadcast(mut self) -> Self {
         self.fail_broadcast = true;
@@ -120,6 +136,15 @@ impl PathStore for MemoryPathStore {
 
     fn write(&mut self, value: &PathValue) -> io::Result<()> {
         self.value = Some(value.clone());
+        Ok(())
+    }
+
+    fn read_var(&self, name: &str) -> io::Result<Option<String>> {
+        Ok(self.user_vars.get(name).cloned())
+    }
+
+    fn write_var(&mut self, name: &str, value: &str) -> io::Result<()> {
+        self.user_vars.insert(name.to_string(), value.to_string());
         Ok(())
     }
 
@@ -291,6 +316,102 @@ pub fn add_to_profile(profile: &Path, entry: &str, dry_run: bool) -> io::Result<
     Ok(PathChange::Added)
 }
 
+/// The lines inside the `rayx` block of a profile's text.
+fn block_lines(text: &str) -> Vec<&str> {
+    let lines: Vec<&str> = text.lines().collect();
+    let Some(start) = lines.iter().position(|l| l.trim() == BLOCK_START) else {
+        return Vec::new();
+    };
+    let end = lines[start + 1..]
+        .iter()
+        .position(|l| l.trim() == BLOCK_END)
+        .map_or(lines.len(), |e| start + 1 + e);
+    lines[start + 1..end].to_vec()
+}
+
+fn validate_profile_text(text: &str) -> io::Result<()> {
+    if text.contains(['"', '`', '\\', '\n'])
+        || text.matches('$').count() > text.matches("$HOME").count()
+    {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("`{text}` cannot be written to a shell profile"),
+        ));
+    }
+    Ok(())
+}
+
+/// Sets `export NAME="value"` in the `rayx` block of the profile, replacing a line for the same
+/// name and creating the file or block as needed.
+pub fn set_profile_variable(
+    profile: &Path,
+    name: &str,
+    value: &str,
+    dry_run: bool,
+) -> io::Result<PathChange> {
+    validate_profile_text(value)?;
+    if name.is_empty() || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("`{name}` is not a variable name"),
+        ));
+    }
+    let text = match fs::read_to_string(profile) {
+        Ok(text) => text,
+        Err(error) if error.kind() == io::ErrorKind::NotFound => String::new(),
+        Err(error) => return Err(error),
+    };
+    let line = format!("export {name}=\"{value}\"");
+    let prefix = format!("export {name}=");
+    let lines: Vec<&str> = text.lines().collect();
+    let start = lines.iter().position(|l| l.trim() == BLOCK_START);
+    let end = start.and_then(|s| {
+        lines[s + 1..]
+            .iter()
+            .position(|l| l.trim() == BLOCK_END)
+            .map(|e| s + 1 + e)
+    });
+    let updated = match (start, end) {
+        (Some(start), Some(end)) => {
+            let existing = lines[start + 1..end]
+                .iter()
+                .position(|l| l.trim().starts_with(&prefix))
+                .map(|i| start + 1 + i);
+            match existing {
+                Some(index) if lines[index].trim() == line => {
+                    return Ok(PathChange::AlreadyPresent);
+                }
+                Some(index) => {
+                    let mut out: Vec<&str> = lines.clone();
+                    out[index] = &line;
+                    join_lines(&out)
+                }
+                None => {
+                    let mut out: Vec<&str> = lines[..end].to_vec();
+                    out.push(&line);
+                    out.extend_from_slice(&lines[end..]);
+                    join_lines(&out)
+                }
+            }
+        }
+        _ => {
+            let mut out = text.clone();
+            if !out.is_empty() && !out.ends_with('\n') {
+                out.push('\n');
+            }
+            if !out.is_empty() {
+                out.push('\n');
+            }
+            out.push_str(&format!("{BLOCK_START}\n{line}\n{BLOCK_END}\n"));
+            out
+        }
+    };
+    if !dry_run {
+        fs::write(profile, updated)?;
+    }
+    Ok(PathChange::Added)
+}
+
 fn join_lines(lines: &[&str]) -> String {
     let mut text = lines.join("\n");
     text.push('\n');
@@ -304,6 +425,71 @@ pub enum UserPath {
 }
 
 impl UserPath {
+    /// The value of a user environment variable that was set persistently (not the running
+    /// process's environment).
+    pub fn variable(&self, name: &str) -> io::Result<Option<String>> {
+        match self {
+            UserPath::Windows(store) => store.read_var(name),
+            UserPath::Profiles { files, .. } => {
+                let prefix = format!("export {name}=\"");
+                for file in files {
+                    let Ok(text) = fs::read_to_string(file) else {
+                        continue;
+                    };
+                    let value = block_lines(&text).into_iter().rev().find_map(|line| {
+                        line.trim()
+                            .strip_prefix(&prefix)?
+                            .strip_suffix('"')
+                            .map(str::to_string)
+                    });
+                    if value.is_some() {
+                        return Ok(value);
+                    }
+                }
+                Ok(None)
+            }
+        }
+    }
+
+    /// Persistently sets a user environment variable, replacing an earlier value; reports whether
+    /// anything changed. Profiles keep it in the `rayx` block as `export NAME="value"`.
+    pub fn set_variable(
+        &mut self,
+        name: &str,
+        value: &Path,
+        dry_run: bool,
+    ) -> io::Result<PathChange> {
+        match self {
+            UserPath::Windows(store) => {
+                let text = value.display().to_string();
+                if store.read_var(name)?.as_deref() == Some(text.as_str()) {
+                    return Ok(PathChange::AlreadyPresent);
+                }
+                if !dry_run {
+                    store.write_var(name, &text)?;
+                    let _ = store.broadcast_change();
+                }
+                Ok(PathChange::Added)
+            }
+            UserPath::Profiles { files, home } => {
+                let text = match value.strip_prefix(&*home) {
+                    Ok(relative) => format!(
+                        "$HOME/{}",
+                        relative.display().to_string().replace('\\', "/")
+                    ),
+                    Err(_) => value.display().to_string(),
+                };
+                let mut result = PathChange::AlreadyPresent;
+                for file in files.iter() {
+                    if set_profile_variable(file, name, &text, dry_run)? == PathChange::Added {
+                        result = PathChange::Added;
+                    }
+                }
+                Ok(result)
+            }
+        }
+    }
+
     /// The user PATH of the machine `rayx` runs on: the registry on Windows, and the profile of
     /// `$SHELL` under `$HOME` elsewhere.
     pub fn system(os: Os) -> io::Result<Self> {
@@ -408,84 +594,100 @@ mod registry {
         }
     }
 
+    fn read_named(value_name: &str) -> io::Result<Option<PathValue>> {
+        let key = Key::open(KEY_QUERY_VALUE)?;
+        let name = wide(value_name);
+        let mut kind = 0u32;
+        let mut size = 0u32;
+        // SAFETY: a null data pointer asks only for the type and the size in bytes.
+        let status = unsafe {
+            RegQueryValueExW(
+                key.0,
+                name.as_ptr(),
+                std::ptr::null(),
+                &mut kind,
+                std::ptr::null_mut(),
+                &mut size,
+            )
+        };
+        if status == ERROR_FILE_NOT_FOUND {
+            return Ok(None);
+        }
+        if status != ERROR_SUCCESS {
+            return Err(os_error(status));
+        }
+        let mut buffer = vec![0u16; (size as usize).div_ceil(2) + 1];
+        let mut size = (buffer.len() * 2) as u32;
+        // SAFETY: `buffer` holds `size` writable bytes.
+        let status = unsafe {
+            RegQueryValueExW(
+                key.0,
+                name.as_ptr(),
+                std::ptr::null(),
+                &mut kind,
+                buffer.as_mut_ptr().cast(),
+                &mut size,
+            )
+        };
+        if status != ERROR_SUCCESS {
+            return Err(os_error(status));
+        }
+        buffer.truncate(size as usize / 2);
+        while buffer.last() == Some(&0) {
+            buffer.pop();
+        }
+        let text = String::from_utf16_lossy(&buffer);
+        match kind {
+            REG_SZ => Ok(Some(PathValue::Plain(text))),
+            REG_EXPAND_SZ => Ok(Some(PathValue::Expandable(text))),
+            other => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("HKCU\\Environment\\{value_name} has unexpected registry type {other}"),
+            )),
+        }
+    }
+
+    fn write_named(value_name: &str, value: &PathValue) -> io::Result<()> {
+        let key = Key::open(KEY_SET_VALUE)?;
+        let name = wide(value_name);
+        let data = wide(value.text());
+        let kind = match value {
+            PathValue::Plain(_) => REG_SZ,
+            PathValue::Expandable(_) => REG_EXPAND_SZ,
+        };
+        // SAFETY: `data` is a NUL-terminated UTF-16 buffer of exactly the byte length passed.
+        let status = unsafe {
+            RegSetValueExW(
+                key.0,
+                name.as_ptr(),
+                0,
+                kind,
+                data.as_ptr().cast(),
+                (data.len() * 2) as u32,
+            )
+        };
+        if status == ERROR_SUCCESS {
+            Ok(())
+        } else {
+            Err(os_error(status))
+        }
+    }
+
     impl PathStore for RegistryPathStore {
         fn read(&self) -> io::Result<Option<PathValue>> {
-            let key = Key::open(KEY_QUERY_VALUE)?;
-            let name = wide("Path");
-            let mut kind = 0u32;
-            let mut size = 0u32;
-            // SAFETY: a null data pointer asks only for the type and the size in bytes.
-            let status = unsafe {
-                RegQueryValueExW(
-                    key.0,
-                    name.as_ptr(),
-                    std::ptr::null(),
-                    &mut kind,
-                    std::ptr::null_mut(),
-                    &mut size,
-                )
-            };
-            if status == ERROR_FILE_NOT_FOUND {
-                return Ok(None);
-            }
-            if status != ERROR_SUCCESS {
-                return Err(os_error(status));
-            }
-            let mut buffer = vec![0u16; (size as usize).div_ceil(2) + 1];
-            let mut size = (buffer.len() * 2) as u32;
-            // SAFETY: `buffer` holds `size` writable bytes.
-            let status = unsafe {
-                RegQueryValueExW(
-                    key.0,
-                    name.as_ptr(),
-                    std::ptr::null(),
-                    &mut kind,
-                    buffer.as_mut_ptr().cast(),
-                    &mut size,
-                )
-            };
-            if status != ERROR_SUCCESS {
-                return Err(os_error(status));
-            }
-            buffer.truncate(size as usize / 2);
-            while buffer.last() == Some(&0) {
-                buffer.pop();
-            }
-            let text = String::from_utf16_lossy(&buffer);
-            match kind {
-                REG_SZ => Ok(Some(PathValue::Plain(text))),
-                REG_EXPAND_SZ => Ok(Some(PathValue::Expandable(text))),
-                other => Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("HKCU\\Environment\\Path has unexpected registry type {other}"),
-                )),
-            }
+            read_named("Path")
         }
 
         fn write(&mut self, value: &PathValue) -> io::Result<()> {
-            let key = Key::open(KEY_SET_VALUE)?;
-            let name = wide("Path");
-            let data = wide(value.text());
-            let kind = match value {
-                PathValue::Plain(_) => REG_SZ,
-                PathValue::Expandable(_) => REG_EXPAND_SZ,
-            };
-            // SAFETY: `data` is a NUL-terminated UTF-16 buffer of exactly the byte length passed.
-            let status = unsafe {
-                RegSetValueExW(
-                    key.0,
-                    name.as_ptr(),
-                    0,
-                    kind,
-                    data.as_ptr().cast(),
-                    (data.len() * 2) as u32,
-                )
-            };
-            if status == ERROR_SUCCESS {
-                Ok(())
-            } else {
-                Err(os_error(status))
-            }
+            write_named("Path", value)
+        }
+
+        fn read_var(&self, name: &str) -> io::Result<Option<String>> {
+            Ok(read_named(name)?.map(|value| value.text().to_string()))
+        }
+
+        fn write_var(&mut self, name: &str, value: &str) -> io::Result<()> {
+            write_named(name, &PathValue::Plain(value.to_string()))
         }
 
         fn broadcast_change(&mut self) -> io::Result<()> {
