@@ -1,6 +1,7 @@
 //! The `rayx` command-line tool: machine setup, doctor, WSL, self update and the app pipeline for
 //! any app that uses RayX. The `rayx` binary only calls [`run`].
 
+pub mod app;
 pub mod cli;
 pub mod doctor;
 pub mod host;
@@ -53,7 +54,7 @@ fn dispatch(cli: Cli) -> ExitCode {
         Command::SelfCommand {
             command: SelfCommand::Update { .. },
         } => "self update",
-        Command::App(_) => "app",
+        Command::App(args) => return run_app(args.args.clone()),
         Command::Fmt => "fmt",
     };
     not_implemented(name)
@@ -62,4 +63,15 @@ fn dispatch(cli: Cli) -> ExitCode {
 fn not_implemented(command: &str) -> ExitCode {
     eprintln!("rayx: `{command}` is not implemented in this build");
     ExitCode::FAILURE
+}
+
+/// Runs `rayx app` and turns its error into a message and an exit code.
+fn run_app(args: Vec<String>) -> ExitCode {
+    match app::run(args) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("rayx: {error:#}");
+            ExitCode::FAILURE
+        }
+    }
 }
