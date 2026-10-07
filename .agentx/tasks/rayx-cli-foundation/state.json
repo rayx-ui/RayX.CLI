@@ -1,12 +1,12 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 19,
-  "planRevision": 4,
+  "revision": 35,
+  "planRevision": 6,
   "specHashes": {
     "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
     "design": "bf10b0221d4688d0f4522567f1167fa4fba5b66f804e60a391a88f2dc8e9cbff",
-    "plan": "7f6b79a5f1cae39cd3e72983869e58076697e83feb28c841bed8538c69b30aae"
+    "plan": "084f86369434b2936a0772ed72a6b8b81d650d28529e814a05ab530b1a5a34fa"
   },
   "tasks": {
     "t01-package-scaffold": {
@@ -112,13 +112,22 @@
       "status": "pending"
     },
     "t29-nightly-pin": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t30-jdk-pin": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t31-toolchain-skill-reference": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t32-setup-gpu": {
       "status": "pending"
@@ -147,6 +156,17 @@
         }
       },
       "recordedAt": "2026-10-07T21:22:32Z"
+    },
+    "f701f5571372b093103bc708e578fc2c546cdacdfa606b636173b60d561b0047": {
+      "snapshot": {
+        "specHash": "faffa76704b0537650d072763de5577f16213e8237856d37276b3dd66c5722e9",
+        "repositories": {
+          "rayx-cli": "42e24747be621598db7248f511b6bf63fc93b1a6d1086504a4ae678945d90650",
+          "rayx": "c163196a9dfb131fe084bd13aafa0006af155a3dce0e259b22c89529a4d266b4",
+          "gpux": "3398ecb8dca8c23047da86f58951329618b9da68493c277d932ccdec1a3a4bb6"
+        }
+      },
+      "recordedAt": "2026-10-07T21:40:18Z"
     }
   },
   "checkResults": {
@@ -268,6 +288,103 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1-foundation-final-e99b98c2fdf3.log",
       "logSha256": "d4e20e629c500b4ff9df926cc29cd0f7690702af48d770ae49c90f687dfe0a30",
       "inputsHash": "53f1385f4011e2611bb457c719b6fe69a1dc1e04b98e5a016c14ad538041b067"
+    },
+    "s1b-toolchain-pins/check-rayx-nightly-pinned/final": {
+      "checkId": "check-rayx-nightly-pinned",
+      "boundaryId": "s1b-toolchain-pins",
+      "phase": "final",
+      "batchId": "f701f5571372b093103bc708e578fc2c546cdacdfa606b636173b60d561b0047",
+      "definitionHash": "f491aa8026f9800ffaeea07f3cdd3d8fd7e63979985a8624f2be28db3db315a7",
+      "basisHash": "0c571fbb96eefba4ee4418693e632f923a8d04c3a26558fcc582e48bd56ce185",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.1417,
+      "recordedAt": "2026-10-07T21:38:26Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1b-toolchain-pins-final-b4d272de6e0b.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "s1b-toolchain-pins/check-gpux-nightly-pinned/final": {
+      "checkId": "check-gpux-nightly-pinned",
+      "boundaryId": "s1b-toolchain-pins",
+      "phase": "final",
+      "batchId": "f701f5571372b093103bc708e578fc2c546cdacdfa606b636173b60d561b0047",
+      "definitionHash": "18a6781b7bc40de1544156dfea61a522db1f6810c46237b447ea99d83e681161",
+      "basisHash": "96f4dcb2056a9c87922562ef9226e699d22a12253b25cb793d7cc08bec12d9bc",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.086,
+      "recordedAt": "2026-10-07T21:38:26Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1b-toolchain-pins-final-49ed2cd6e8d7.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "s1b-toolchain-pins/check-gpux-testkit-web/final": {
+      "checkId": "check-gpux-testkit-web",
+      "boundaryId": "s1b-toolchain-pins",
+      "phase": "final",
+      "batchId": "f701f5571372b093103bc708e578fc2c546cdacdfa606b636173b60d561b0047",
+      "definitionHash": "961e2d5beba8b217027f5907ee503fd125591d868981b884e8544f775acd6925",
+      "basisHash": "f3efc4355733435ed336c86b61836f4e196409229265431d00fd51b18f9f38f7",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 13,
+      "durationSeconds": 3.7496,
+      "recordedAt": "2026-10-07T21:38:29Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1b-toolchain-pins-final-1e4fe41c039f.log",
+      "logSha256": "eeb540e44d0f58418b34419883fec90633eb5f4a13909b4a5969d0c69db3adbf",
+      "inputsHash": "47683b18ebb868e02869b00264272e7c08454845b023c8e53b1d4db4ee6907d1"
+    },
+    "s1b-toolchain-pins/check-rayx-jdk21/final": {
+      "checkId": "check-rayx-jdk21",
+      "boundaryId": "s1b-toolchain-pins",
+      "phase": "final",
+      "batchId": "f701f5571372b093103bc708e578fc2c546cdacdfa606b636173b60d561b0047",
+      "definitionHash": "bc30f28964754fc078d5c31961ac16b7e8b2dfd93691e9a0d7740f6b1fc5b46c",
+      "basisHash": "84ec81583d676a12bea38ad555570d4914b6c9e399fbf44fdb94c12e7418f886",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.1505,
+      "recordedAt": "2026-10-07T21:38:30Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1b-toolchain-pins-final-b87539bc5282.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "s1b-toolchain-pins/check-gpux-jdk21/final": {
+      "checkId": "check-gpux-jdk21",
+      "boundaryId": "s1b-toolchain-pins",
+      "phase": "final",
+      "batchId": "f701f5571372b093103bc708e578fc2c546cdacdfa606b636173b60d561b0047",
+      "definitionHash": "0d9aa65485e1eaaed3b403ea2eb286ba2258d8b8fb87a7ceefe30864f88d87bc",
+      "basisHash": "7e6e09b6d8741274260469d3391561b9a16d72490a8b19af0f82c953dc26c70a",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.0932,
+      "recordedAt": "2026-10-07T21:38:30Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1b-toolchain-pins-final-f122624d4dc1.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "s1b-toolchain-pins/check-rayx-skill-link/final": {
+      "checkId": "check-rayx-skill-link",
+      "boundaryId": "s1b-toolchain-pins",
+      "phase": "final",
+      "batchId": "f701f5571372b093103bc708e578fc2c546cdacdfa606b636173b60d561b0047",
+      "definitionHash": "369da34f95f85240f00754034b196713d42cf7d716f6992e13de9ae9db1490f1",
+      "basisHash": "136238c63f769a46387a61f4e5a11f7a3432092f02af4bc5c48259c5834e8c31",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.0374,
+      "recordedAt": "2026-10-07T21:38:30Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s1b-toolchain-pins-final-079d3df189f6.log",
+      "logSha256": "5f715a047ade0120a5dd6a598dacf74285c277b89cd080a9968931aa04dd1115"
     }
   },
   "reviews": {
@@ -455,6 +572,196 @@
         "F-HOST2-WIN-TRAILING-BACKSLASH"
       ],
       "recordedAt": "2026-10-07T21:23:13Z"
+    },
+    "s1b-toolchain-pins": {
+      "reviewerId": "reviewer-s1b-4cead5db",
+      "snapshotId": "f701f5571372b093103bc708e578fc2c546cdacdfa606b636173b60d561b0047",
+      "criterionIds": [
+        "PINX-1",
+        "PINX-2",
+        "PINX-3"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx",
+          "path": "Cargo.toml",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "15210089d38a8a85c226f3b62d9cd4a402104d421ee732fe0baba97da19899db"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/wasm.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "0a346c0fe12abc6bbd04d365312c6478e9dba5d78ecfbf4089700e442faa01a0"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/workspace_paths.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "bf901cdfce3467bc49a9cd471815cae3f2dd8b196305ca4ae1f8e5f95e863c05"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".github/workflows/pr-test.yml",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "347171f42c76b846589c70f40abb508d5730ff09083ae763b2dbafa827f2201f"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "6f862d50b864508770197ac7095aadca8b2b35aedcce91cd39821963cbf549b9"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".claude/skills/rayx/references/diagnostics.md",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "5123fb3fd4d28b57b24df8eaaaed603439b9c0276e0a3178992970362800cfc1"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": "tooling/testkit/src/web.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "626f0e0a7d81b957504b1577e9f88b550e85f7e7061353edd38e1cfc87e46c73"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": "docs/testing.md",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "91870830ac127f61e7e8f3705646361c146b347831488d11b9458784b05acd18"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".github/workflows/lane-b.yml",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "8c4f8987ae12e6dd8835925bfd9448736ac2d89f04a3c7660f00a57f79bc9e3b"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": "tooling/testkit/tests/web.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PINX-1"
+          ],
+          "sha256": "f87b44a645ae56e1ef787274504b2f41923d497531f70aff54d96a703967e352"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "apps/lab/platform/android/gradle/app/build.gradle.kts",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-2"
+          ],
+          "sha256": "594b53218e9d7adc84d2acf671b9efc87e57751735b2a23b999165301905d965"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "apps/test_suite/platform/android/gradle/app/build.gradle.kts",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-2"
+          ],
+          "sha256": "c0a4b009cca70aede20a32db89faf0c04c11bfc37e9438ae726f4dad76fa4cd2"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "apps/examples_mobile/platform/android/gradle/app/build.gradle.kts",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-2"
+          ],
+          "sha256": "f6aa7854014f7cadf8b085b3db66c1e5c13b0e6548762aa375c3fcf0800e13d0"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".github/workflows/lane-e.yml",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-2"
+          ],
+          "sha256": "f1334e83ce89a3fdcf585cca4ba5e2381cb0f9a21dbb3c2043c6eb9260233368"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": "tooling/testkit/src/android.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-2"
+          ],
+          "sha256": "c7a38652b4a1f9ab4b1db3f54ff457ba20bf554cb09d451985f33a486d968bc1"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": "tooling/testkit/tests/android.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PINX-2"
+          ],
+          "sha256": "efebfe9926906eca07bdd021b9d33bd4fb3b12088cf3e000ee89b7334448d178"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".claude/skills/rayx/references/wasm-toolchain-update.md",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-3"
+          ],
+          "sha256": "fbd1203582f925b3fc222d39cbb4beacbfb7a0607ec872aac523e2c25ab19cc5"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".claude/skills/rayx/SKILL.md",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-3"
+          ],
+          "sha256": "b39ba073b1eef1c73deb4805906ae85fb0b9f472352564021c486b7a69c0f668"
+        },
+        {
+          "repositoryId": "gpux",
+          "path": ".claude/skills/gpux/references/multithreaded-wasm-apps.md",
+          "kind": "source",
+          "criterionIds": [
+            "PINX-3"
+          ],
+          "sha256": "fceea25d2b896b4d2fdfbd1f80e0dfb6f7d708b25223b07d96786333067ba462"
+        }
+      ],
+      "summaryMarkdown": "All three findings repaired and verified: the nightly setup step now exists in both pr-test.yml jobs that run the xtask WASM build; the reference's closing grep is the sprint pattern and finds nothing in RayX or in Gpux (vendor and crates excluded, reason stated); the stale doc comment is fixed. PINX-1..3 hold; forbidden paths untouched. Excluding Gpux crates from the nightly grep is reasonable: its only two matches are a cargo feature and an example toolchain file, not pins.",
+      "findingIds": [
+        "s1b-ci-build-job-no-nightly",
+        "s1b-reference-false-grep-claim",
+        "s1b-stale-toolchain-doc-comment"
+      ],
+      "recordedAt": "2026-10-07T21:39:40Z"
     }
   },
   "checkpoints": {
@@ -535,6 +842,58 @@
         }
       ],
       "boundaryId": "s1-foundation"
+    },
+    {
+      "id": "s1b-ci-build-job-no-nightly",
+      "boundaryId": "s1b-toolchain-pins",
+      "criterionIds": [
+        "PINX-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** `.github/workflows/pr-test.yml` installs `nightly-2026-06-23` (with `rust-src` and wasm32) in every job whose steps now run `cargo +nightly-2026-06-23`. **Observed:** the install step was added only to the `wasm-playwright` job (line ~124). The `rust-validation` job (name \"Rust Workspace\") still sets up only stable and then runs `cargo run -p xtask -- app apps/lab build wasm` and `app apps/test_suite build wasm ...` (lines ~87-90). Those now invoke `cargo +nightly-2026-06-23 build -Z build-std`, and a dated toolchain cannot be a runner-preinstalled `nightly`, so the job fails with 'toolchain is not installed'. **Repair:** add the same 'Setup the threaded-WASM nightly' step (`dtolnay/rust-toolchain@master`, `toolchain: nightly-2026-06-23`, `components: rust-src`, `targets: wasm32-unknown-unknown`) to `rust-validation` after 'Setup Rust' (or rustup-install it via `rustup toolchain install nightly-2026-06-23 --profile minimal --component rust-src --target wasm32-unknown-unknown`), and update the reference table in `wasm-toolchain-update.md` accordingly.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": ".github/workflows/pr-test.yml"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".claude/skills/rayx/references/wasm-toolchain-update.md"
+        }
+      ]
+    },
+    {
+      "id": "s1b-reference-false-grep-claim",
+      "boundaryId": "s1b-toolchain-pins",
+      "criterionIds": [
+        "PINX-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** the reference's closing verification (`wasm-toolchain-update.md` lines ~52-56) is a `git grep` that finds nothing once the pin is consistent. **Observed:** it says `git grep -n nightly -- . ':(exclude).agentx' ':(exclude)vendor' | grep -v 'nightly-[0-9]'` 'finds nothing' in RayX and Gpux, but that command matches prose such as 'nightly `-Z build-std`', 'nightly schedule' and 'nightly pipeline' (about 14 lines in RayX and 24 in Gpux outside `crates/`), so an agent following it will conclude the move is incomplete or chase false hits. **Repair:** replace it with the sprint's own pattern: `git grep -n -P '\\+nightly(?!-\\d)|toolchain install nightly(?!-\\d)|--toolchain nightly(?!-\\d)|\"nightly\"' -- . ':(exclude).agentx' ':(exclude)vendor' ':(exclude)crates'` (Gpux) and the same without the `crates` and `vendor` excludes (RayX), which find nothing when the pins are consistent; state that Gpux's `crates/` is excluded because of the `nightly` cargo feature and the `hello_web` example toolchain file.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": ".claude/skills/rayx/references/wasm-toolchain-update.md"
+        }
+      ]
+    },
+    {
+      "id": "s1b-stale-toolchain-doc-comment",
+      "boundaryId": "s1b-toolchain-pins",
+      "criterionIds": [
+        "PINX-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** doc comments agree with the new default. **Observed:** `gpux:tooling/testkit/src/web.rs:25` still says `TOOLCHAIN_ENV_VAR` overrides the nightly toolchain '(`nightly` by default)', directly above the new `DEFAULT_TOOLCHAIN = \"nightly-2026-06-23\"`. **Repair:** change it to 'overrides [`DEFAULT_TOOLCHAIN`]'.",
+      "regressionRefs": [
+        {
+          "repositoryId": "gpux",
+          "path": "tooling/testkit/src/web.rs"
+        }
+      ]
     }
   ],
   "handoffMarkdown": "",
