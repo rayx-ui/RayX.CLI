@@ -3,6 +3,8 @@
 
 pub mod cli;
 pub mod host;
+pub mod project;
+pub mod setup;
 
 use std::ffi::OsString;
 use std::process::ExitCode;
@@ -38,7 +40,7 @@ where
 
 fn dispatch(cli: Cli) -> ExitCode {
     let name = match &cli.command {
-        Command::Setup(_) => "setup",
+        Command::Setup(args) => return ExitCode::from(setup::run(args)),
         Command::Doctor(_) => "doctor",
         Command::Wsl {
             command: WslCommand::Status,
