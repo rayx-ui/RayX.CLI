@@ -35,6 +35,21 @@ pub fn rustup_program(cx: &Cx) -> String {
     "rustup".to_string()
 }
 
+/// A tool installed by cargo or rustup: on PATH, else in `~/.cargo/bin` (a shell opened before
+/// the install does not have that directory yet), else just its name.
+pub fn tool_program(cx: &Cx, name: &str) -> String {
+    if let Some(found) = cx.machine.which(name) {
+        return found.display().to_string();
+    }
+    if let Some(bin) = cargo_bin_dir(cx) {
+        let candidate = bin.join(exe(name, cx.env.host.os));
+        if cx.machine.exists(&candidate) {
+            return candidate.display().to_string();
+        }
+    }
+    name.to_string()
+}
+
 fn has_rustup(cx: &mut Cx) -> bool {
     if cx.machine.which("rustup").is_some() {
         return true;
@@ -110,14 +125,15 @@ pub fn toolchain_step(env: &PlanEnv) -> Step {
                 })
                 .filter(|(name, _)| triple.is_none_or(|triple| name.ends_with(triple)))
                 .collect();
-            let ok = match &probe_pinned {
+            let found = match &probe_pinned {
                 Some(channel) => entries
                     .iter()
-                    .any(|(name, _)| toolchain_matches(name, channel)),
-                None => entries.iter().any(|(_, is_default)| *is_default),
-            };
-            if ok {
-                Probed::ok()
+                    .find(|(name, _)| toolchain_matches(name, channel)),
+                None => entries.iter().find(|(_, is_default)| *is_default),
+            }
+            .map(|(name, _)| name.to_string());
+            if let Some(found) = found {
+                Probed::ok().with_found(found)
             } else {
                 Probed::missing(match (&probe_pinned, triple) {
                     (Some(channel), Some(triple)) => format!("{channel}-{triple} is not installed"),
@@ -195,4 +211,18 @@ pub fn cargo_path_step() -> Step {
             Ok(vec![Action::AddToPath(dir)])
         },
     )
+}
+
+/// Whether `rustup` has `name` installed (on Windows, for the native triple only).
+pub fn toolchain_installed(cx: &mut Cx, name: &str) -> bool {
+    let triple = (cx.env.host.os == Os::Windows).then(|| windows::native_triple(cx.env.host.arch));
+    let program = rustup_program(cx);
+    cx.query(&CommandSpec::new(program).args(["toolchain", "list"]))
+        .is_some_and(|list| {
+            list.stdout
+                .lines()
+                .filter_map(|line| line.split_whitespace().next())
+                .filter(|installed| triple.is_none_or(|triple| installed.ends_with(triple)))
+                .any(|installed| toolchain_matches(installed, name))
+        })
 }

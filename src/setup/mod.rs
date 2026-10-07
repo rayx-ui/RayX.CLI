@@ -4,10 +4,15 @@
 //! One step table feeds `setup`, `setup --check` and `doctor`; there is no second requirement
 //! list. A probe never installs anything, and a second run of `setup` executes nothing.
 
+pub mod android;
+pub mod gpu;
+pub mod ios;
 pub mod linux;
 pub mod machine;
 pub mod macos;
 pub mod rust;
+pub mod test_tools;
+pub mod web;
 pub mod windows;
 
 use std::fmt;
@@ -84,6 +89,9 @@ pub struct PlanEnv {
     pub pins: Pins,
     /// The project's workspace root when setup runs inside one.
     pub project_root: Option<PathBuf>,
+    /// `[workspace.metadata.rayx] tools-node`: the project's Playwright package directory,
+    /// relative to the workspace root (`tools-node` when unset).
+    pub tools_node: Option<String>,
     /// `--yes`: accept licenses and agreements, and make installers non-interactive.
     pub yes: bool,
 }
@@ -148,6 +156,9 @@ pub struct Probed {
     pub missing: Vec<String>,
     /// A short reason shown next to the status.
     pub detail: String,
+    /// The version found, when the probe reads one: `doctor` reports a present requirement
+    /// with it, and an unmet one that has a version as a wrong version.
+    pub found: Option<String>,
 }
 
 impl Probed {
@@ -163,7 +174,14 @@ impl Probed {
             satisfied: false,
             missing: Vec::new(),
             detail: detail.into(),
+            found: None,
         }
+    }
+
+    /// Records the version the probe found.
+    pub fn with_found(mut self, version: impl Into<String>) -> Self {
+        self.found = Some(version.into());
+        self
     }
 
     pub fn missing_items(items: Vec<String>) -> Self {
@@ -171,6 +189,7 @@ impl Probed {
             satisfied: items.is_empty(),
             detail: items.join(", "),
             missing: items,
+            found: None,
         }
     }
 }
@@ -184,6 +203,13 @@ pub enum Action {
     WriteFile {
         path: PathBuf,
         contents: String,
+    },
+    /// Creates a directory and its parents.
+    CreateDir(PathBuf),
+    /// Persistently sets a user environment variable to a path.
+    SetUserEnv {
+        name: String,
+        value: PathBuf,
     },
     /// Removes a file; runs even when an earlier action failed, so markers never linger.
     RemoveFile(PathBuf),
@@ -201,6 +227,12 @@ impl fmt::Debug for Action {
             Action::Run(spec) => f.debug_tuple("Run").field(spec).finish(),
             Action::AddToPath(path) => f.debug_tuple("AddToPath").field(path).finish(),
             Action::WriteFile { path, .. } => f.debug_tuple("WriteFile").field(path).finish(),
+            Action::CreateDir(path) => f.debug_tuple("CreateDir").field(path).finish(),
+            Action::SetUserEnv { name, value } => f
+                .debug_tuple("SetUserEnv")
+                .field(name)
+                .field(value)
+                .finish(),
             Action::RemoveFile(path) => f.debug_tuple("RemoveFile").field(path).finish(),
             Action::Custom { description, .. } => {
                 f.debug_tuple("Custom").field(description).finish()
@@ -233,6 +265,9 @@ pub struct Step {
     pub fix_hint: String,
     pub probe: ProbeFn,
     pub install: Install,
+    /// When set, the step cannot be met until the machine restarts: after its install ran, a probe
+    /// that still fails is reported with this notice instead of as a failure.
+    pub reboot_notice: Option<String>,
 }
 
 impl Step {
@@ -248,6 +283,7 @@ impl Step {
             fix_hint: format!("sudo apt-get install {}", packages.join(" ")),
             probe: Box::new(move |cx| linux::probe_packages(cx, &probe_packages)),
             install: Install::Apt(packages),
+            reboot_notice: None,
         }
     }
 
@@ -268,7 +304,14 @@ impl Step {
             fix_hint: String::new(),
             probe: Box::new(probe),
             install: Install::Actions(Box::new(actions)),
+            reboot_notice: None,
         }
+    }
+
+    /// The step needs a restart before its probe passes.
+    pub fn with_reboot_notice(mut self, notice: impl Into<String>) -> Self {
+        self.reboot_notice = Some(notice.into());
+        self
     }
 
     pub fn with_fix_hint(mut self, hint: impl Into<String>) -> Self {
@@ -340,7 +383,11 @@ pub fn plan(env: &PlanEnv, sets: &[Set]) -> Result<Plan, SetupError> {
                 Os::Windows => windows::steps(env)?,
                 Os::MacOs => macos::steps(env)?,
             }),
-            other => return Err(SetupError::SetNotAvailable(other)),
+            Set::Web => steps.extend(web::steps(env)?),
+            Set::Test => steps.extend(test_tools::steps(env)?),
+            Set::Android => steps.extend(android::steps(env)?),
+            Set::Ios => steps.extend(ios::steps(env)?),
+            Set::Gpu => steps.extend(gpu::steps(env)?),
         }
     }
     Ok(Plan { steps })
@@ -388,6 +435,10 @@ pub fn describe_actions(
                     Action::Run(spec) => cx.runner.command_line(spec),
                     Action::AddToPath(dir) => format!("add {} to the user PATH", dir.display()),
                     Action::WriteFile { path, .. } => format!("create {}", path.display()),
+                    Action::CreateDir(path) => format!("create the directory {}", path.display()),
+                    Action::SetUserEnv { name, value } => {
+                        format!("set {name} to {} for the user", value.display())
+                    }
                     Action::RemoveFile(path) => format!("remove {}", path.display()),
                     Action::Custom { description, .. } => description.clone(),
                 })
@@ -439,8 +490,15 @@ pub fn render_plan(plan: &Plan, checked: &Checked, cx: &mut Cx) -> String {
             "missing"
         };
         let mut line = format!("[{status}] {}: {}", step.set, step.title);
-        if !probed.satisfied && !probed.detail.is_empty() {
-            line.push_str(&format!(" ({})", probed.detail));
+        let mut notes: Vec<String> = Vec::new();
+        if !probed.detail.is_empty() {
+            notes.push(probed.detail.clone());
+        }
+        if let Some(found) = &probed.found {
+            notes.push(format!("found {found}"));
+        }
+        if !notes.is_empty() {
+            line.push_str(&format!(" ({})", notes.join("; ")));
         }
         out.push_str(&line);
         out.push('\n');
@@ -479,6 +537,8 @@ pub enum StepOutcome {
 #[derive(Debug)]
 pub struct Report {
     pub steps: Vec<(&'static str, StepOutcome)>,
+    /// Things the user still has to do, such as restarting the machine.
+    pub notices: Vec<String>,
 }
 
 impl Report {
@@ -518,6 +578,7 @@ pub fn execute(plan: &Plan, cx: &mut Cx, out: &mut dyn Write) -> Report {
         })
         .collect();
     let mut batch_done = false;
+    let mut notices: Vec<String> = Vec::new();
 
     for (index, step) in plan.steps.iter().enumerate() {
         if outcomes[index] != StepOutcome::NotRun {
@@ -544,6 +605,9 @@ pub fn execute(plan: &Plan, cx: &mut Cx, out: &mut dyn Write) -> Report {
                 let again = (step.probe)(cx);
                 if again.satisfied {
                     StepOutcome::Installed
+                } else if let Some(notice) = &step.reboot_notice {
+                    notices.push(notice.clone());
+                    StepOutcome::Installed
                 } else {
                     StepOutcome::Failed(format!(
                         "{} is still missing after its install ran{}{}",
@@ -569,6 +633,7 @@ pub fn execute(plan: &Plan, cx: &mut Cx, out: &mut dyn Write) -> Report {
             .map(|step| step.id)
             .zip(outcomes)
             .collect(),
+        notices,
     }
 }
 
@@ -606,6 +671,22 @@ fn run_actions(cx: &mut Cx, actions: Vec<Action>) -> Result<(), SetupError> {
                 }
             }
             Action::Custom { run, .. } => run(cx),
+            Action::SetUserEnv { name, value } => cx
+                .user_path
+                .set_variable(name, value, dry_run)
+                .map(|change| {
+                    if change == PathChange::Added && !dry_run {
+                        cx.path_changed = true;
+                    }
+                })
+                .map_err(Into::into),
+            Action::CreateDir(path) => {
+                if dry_run {
+                    Ok(())
+                } else {
+                    std::fs::create_dir_all(path).map_err(Into::into)
+                }
+            }
             Action::RemoveFile(path) => {
                 if dry_run {
                     Ok(())
@@ -631,6 +712,26 @@ fn write_file(path: &Path, contents: &str) -> io::Result<()> {
     std::fs::write(path, contents)
 }
 
+/// The plan environment of the current directory: its project (none is fine, since `setup` also
+/// runs on a fresh machine before cargo exists), the resolved pins and the host.
+pub fn environment(host: HostFacts, yes: bool) -> (PlanEnv, Option<Project>) {
+    let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let project = Project::discover(&mut Runner::print(), &cwd, None).ok();
+    let env = PlanEnv {
+        host,
+        pins: Pins::resolve(project.as_ref()),
+        project_root: project.as_ref().map(|p| p.workspace_root.clone()),
+        tools_node: project
+            .as_ref()
+            .and_then(|p| p.rayx_metadata.as_ref())
+            .and_then(|metadata| metadata.get("tools-node"))
+            .and_then(|value| value.as_str())
+            .map(str::to_string),
+        yes,
+    };
+    (env, project)
+}
+
 /// Runs `rayx setup` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     if args.wsl {
@@ -643,16 +744,7 @@ pub fn run(args: &SetupArgs) -> u8 {
     } else {
         Runner::execute()
     };
-    let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    // No project is fine: setup also runs on a fresh machine, before cargo exists.
-    let project = Project::discover(&mut Runner::print(), &cwd, None).ok();
-    let pins = Pins::resolve(project.as_ref());
-    let env = PlanEnv {
-        host: host.clone(),
-        pins,
-        project_root: project.map(|p| p.workspace_root),
-        yes: args.yes,
-    };
+    let (env, _) = environment(host.clone(), args.yes);
     let mut user_path = match UserPath::system(host.os) {
         Ok(path) => path,
         Err(error) => {
@@ -719,6 +811,9 @@ pub fn run_plan(args: &SetupArgs, plan: &Plan, cx: &mut Cx, out: &mut dyn Write)
     } else {
         writeln!(out, "Installed {} step(s).", report.executed())
     };
+    for notice in &report.notices {
+        let _ = writeln!(out, "{notice}");
+    }
     if cx.path_changed {
         // Running shells keep the PATH they started with.
         let _ = writeln!(out, "Open a new shell for the PATH change to take effect.");

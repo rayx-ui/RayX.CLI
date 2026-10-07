@@ -30,6 +30,7 @@ fn env(yes: bool) -> PlanEnv {
         host: host(Os::Linux, Arch::X64),
         pins: Pins::resolve(None),
         project_root: None,
+        tools_node: None,
         yes,
     }
 }
