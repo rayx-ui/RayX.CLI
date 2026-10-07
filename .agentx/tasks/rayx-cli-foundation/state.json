@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 49,
+  "revision": 69,
   "planRevision": 6,
   "specHashes": {
     "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
@@ -76,19 +76,34 @@
       ]
     },
     "t12-setup-web": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t13-setup-test-tools": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t14-setup-android": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t15-setup-ios": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t16-doctor": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t17-move-app-pipeline": {
       "status": "pending"
@@ -145,7 +160,10 @@
       ]
     },
     "t32-setup-gpu": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t33-validation-environment": {
       "status": "pending"
@@ -193,6 +211,17 @@
         }
       },
       "recordedAt": "2026-10-07T22:12:57Z"
+    },
+    "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36": {
+      "snapshot": {
+        "specHash": "faffa76704b0537650d072763de5577f16213e8237856d37276b3dd66c5722e9",
+        "repositories": {
+          "rayx-cli": "267c3e3a655e8a899249ed9bdbcdc35a95eff431a2fcda842ca8ed55cd18ff17",
+          "rayx": "c163196a9dfb131fe084bd13aafa0006af155a3dce0e259b22c89529a4d266b4",
+          "gpux": "3398ecb8dca8c23047da86f58951329618b9da68493c277d932ccdec1a3a4bb6"
+        }
+      },
+      "recordedAt": "2026-10-07T23:14:03Z"
     }
   },
   "checkResults": {
@@ -530,6 +559,159 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s2-pins-and-base-setup-final-673dc4a7b8b6.log",
       "logSha256": "6c300cbc76d70309a8c6773d4e077c696afd804700aaed7397a48f018be37791",
       "inputsHash": "9f3c08223ec987af19d3c0eb404b476f07b19b6d7f1e91f6c310bdb94578bec7"
+    },
+    "s3-optional-sets-and-doctor/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "phase": "final",
+      "batchId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "definitionHash": "32cee98ae43a6fe58272ad1411f4d72cab9a903874325bf1be89098d23713486",
+      "basisHash": "f0d6c162038994eed9382bcf1c9c1573881b8904bd4d4b3badf9b760593e7f62",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.3469,
+      "recordedAt": "2026-10-07T23:13:47Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-5ad8e20ff91e.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "b196e2c2a256c2f5e550197acc5bc30490b15d9d931492b19eabec4dc6ccebd0"
+    },
+    "s3-optional-sets-and-doctor/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "phase": "final",
+      "batchId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "definitionHash": "67c592bba17b7b720efc70b7b5b11322e3bc7fcd8490722aede92373d72ba844",
+      "basisHash": "e1d8c14215b78248065283f61433a87f9e5877cdc6fdb6ede107ca846bc50a99",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2309,
+      "recordedAt": "2026-10-07T23:13:48Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-5de9050d6143.log",
+      "logSha256": "a5f4c585ee974ca44916ac30a98bbc189e067a7e0a6bc6d2e8d6bc525be724af",
+      "inputsHash": "98e4641d3ecdda2cc11853dd69bb667a7929e24807206e0f19c5f21e8d744c29"
+    },
+    "s3-optional-sets-and-doctor/check-setup-web/final": {
+      "checkId": "check-setup-web",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "phase": "final",
+      "batchId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "definitionHash": "55c57f3543cc29d80704dfd6c1c2771266181416eef0bfe50142bf49e07f1bc7",
+      "basisHash": "d16688bc612e0f5ef737212450d679750125e22fbe24fe4e76c0ab1637ccaffc",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 1.0818,
+      "recordedAt": "2026-10-07T23:13:49Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-7ae2b9fd76f2.log",
+      "logSha256": "a08af78d1833cdd60c3d99e7772a4943b3e56dedd032bbc14f166c0e6d5da3f7",
+      "inputsHash": "a4d027971ca246cd0277492a3a95785546185eb3b052c5894708e30997a4410d"
+    },
+    "s3-optional-sets-and-doctor/check-setup-test-tools/final": {
+      "checkId": "check-setup-test-tools",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "phase": "final",
+      "batchId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "definitionHash": "d1585ab070e17c35139217fbf7b4783dc91ae85f6dbe33c0d039590566c2df80",
+      "basisHash": "79130b174bb0aa38c804451517f50a6263cb9f0eb7f6d37b741827cca8283d6c",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 15,
+      "durationSeconds": 0.181,
+      "recordedAt": "2026-10-07T23:13:49Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-3af7db503d06.log",
+      "logSha256": "7e27358d19343186c596e7d4009c54a09350db7755f7d1f49e1b70ff54925d7a",
+      "inputsHash": "d06528f39f668d7eaf8d3587ec60d76687b13483a125e4b9b200a6078d8b2393"
+    },
+    "s3-optional-sets-and-doctor/check-setup-android/final": {
+      "checkId": "check-setup-android",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "phase": "final",
+      "batchId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "definitionHash": "4ec9736be359872740816be6e0bcc137f3dca8dfde6944fa7b81f1488989fb44",
+      "basisHash": "848263af1c62b6fbc79d92c7edec84c10fdf1087b82a2998c179d10d8d1253d6",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 14,
+      "durationSeconds": 0.9285,
+      "recordedAt": "2026-10-07T23:13:50Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-79ea32fdd044.log",
+      "logSha256": "2fbecf154ac08b4670c8e145bca6a29ccc40fa9f3bc2f4965d15504162c0b679",
+      "inputsHash": "529c9478e7d2eac4858a541281885345f22db875a49261955317c251a7d7ca0d"
+    },
+    "s3-optional-sets-and-doctor/check-setup-ios/final": {
+      "checkId": "check-setup-ios",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "phase": "final",
+      "batchId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "definitionHash": "a2e0ca9e6121026f21e087eab3e1de718a061bee4bb7a2d97b159a601ab15f0d",
+      "basisHash": "585453d5741144906d4d63b138fea24526f501e30defc5632f46d8e1690affd7",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 11,
+      "durationSeconds": 0.885,
+      "recordedAt": "2026-10-07T23:13:51Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-5b9ca2ba4f59.log",
+      "logSha256": "b10ad0e27ad6ca4024a538d8f132c4f62f6b0bcffc5c79268d9b52cbd6e18a08",
+      "inputsHash": "eb04e34a58f487fe9873edad390b3d86a9006f0ceb1c5887931401b5a4260146"
+    },
+    "s3-optional-sets-and-doctor/check-setup-gpu/final": {
+      "checkId": "check-setup-gpu",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "phase": "final",
+      "batchId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "definitionHash": "393a5b0f702b906567248ddfa1e6f03a335dde82a7cba8b5c2201874056aaaf6",
+      "basisHash": "140e95164f92772990d7972405a5afedd2e14af392b5e5a6d8570f6bf49c7fd0",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 13,
+      "durationSeconds": 0.9515,
+      "recordedAt": "2026-10-07T23:13:52Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-f53ccbb633f3.log",
+      "logSha256": "eab422b40f96a345fb2e2d049fac8fde4ea1be4b94f69fd4799c5fb0a925604f",
+      "inputsHash": "c0cb0d4d180acca72360e44bfbd23216810736580dba09390b19bda2660e3464"
+    },
+    "s3-optional-sets-and-doctor/check-doctor/final": {
+      "checkId": "check-doctor",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "phase": "final",
+      "batchId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "definitionHash": "db7fc846d95c38eed46eab51b234080ec517a7882d27c74513c61ac8fcdf6fac",
+      "basisHash": "62cbca4d819802ad5298aa6f7e2ddd054df01af905020db8dc93c2a50a36cb73",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 4.6557,
+      "recordedAt": "2026-10-07T23:13:56Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-3cb040702f87.log",
+      "logSha256": "9828a627acdb86b17d5fd969479fa47c89e5a081ae0298e022e3e4e29e6f4042",
+      "inputsHash": "17d9511c85981e859e38fc03281f3c68fe20f097e836d07e4d04fdec29da3f35"
+    },
+    "s3-optional-sets-and-doctor/check-doctor-runtime/final": {
+      "checkId": "check-doctor-runtime",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "phase": "final",
+      "batchId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "definitionHash": "9c1c7d7da2209a16b486c4f2e776767e132db1c574ea4d591ab54468ac2cfea2",
+      "basisHash": "cca2fc64ecdcc20b5b8931f2648a998151b4d9929d66a4cc2683ee8bba76ea1e",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 27,
+      "durationSeconds": 3.9693,
+      "recordedAt": "2026-10-07T23:14:00Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-a439870fe634.log",
+      "logSha256": "92e337ebfcaf33e0fd3ef2e9f54bb36ae43f310c7a67e1380684ab3d8b232476",
+      "inputsHash": "1c9d17fd57244663553a3c46d53dabd93dface0689be1aeb98b1652e18702a38"
     }
   },
   "reviews": {
@@ -1044,6 +1226,161 @@
         "F-S2-7-homebrew-noninteractive-needs-sudo"
       ],
       "recordedAt": "2026-10-07T22:14:24Z"
+    },
+    "s3-optional-sets-and-doctor": {
+      "reviewerId": "reviewer-s3-fb0f1eba",
+      "snapshotId": "cfe9e1427ccd53a517a23cf76f80d16581949316e5777313183e4ebc96913c36",
+      "criterionIds": [
+        "SETUP-5",
+        "SETUP-6",
+        "SETUP-7",
+        "SETUP-8",
+        "SETUP-9",
+        "DOCTOR-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/web.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-5"
+          ],
+          "sha256": "192834e20d5ff92fd4cb7aea1f6d84b9d225931a01e69556108a7c0239a003db"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_web.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETUP-5"
+          ],
+          "sha256": "b6152f66f5cd7aa6416240ea728b83b3472c7f76bf739d82c15d1c9bcbae4f43"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/test_tools.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-6"
+          ],
+          "sha256": "c585e0ac466bd311623b5a99a300bbf2cf34f1719ec4a311df608b364199f065"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_test_tools.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETUP-6"
+          ],
+          "sha256": "a7bff87ca91add4eb9b79ffb697e653b9e75ca232667068267e7273058e7393e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/android.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-7"
+          ],
+          "sha256": "2a91eb85c56e596019f4939030cb33ffe92beb91f9a364279068c50ff14cc49a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETUP-7"
+          ],
+          "sha256": "dbed90c08dd2f876a31d53e43105aa14a06459350f08108744ed40b94cd1b03c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/ios.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-8"
+          ],
+          "sha256": "f9b579b6690851f22db4b6bf6ca7a0a0b34b8926d2ea8bf582883d3f98795efa"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_ios.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETUP-8"
+          ],
+          "sha256": "242aaf507e24c48af179644fb851ac741443cbb98437812cf1d5b8169a1cb5c7"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/gpu.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETUP-9"
+          ],
+          "sha256": "1a5e28a81c03c953bb1f4de6d4711e11338739fce5831e413dba5653bbf620a8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_gpu.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETUP-9"
+          ],
+          "sha256": "4d8aaddf4a8511ecc0063f3d945064a6d6c612a29f0c5508d07f2a492cc43496"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCTOR-1"
+          ],
+          "sha256": "0d894c3d6aee08dc6ccd80265a23b18ee60e4e60c4db141997e0940f7cbb7192"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCTOR-1"
+          ],
+          "sha256": "73c39e352fc2b750e931fc09b9bdf7cafc8eca3a94991750dbbd0c8a7854c100"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/doctor.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOCTOR-1"
+          ],
+          "sha256": "dbf8037f5dfc5ae39521bbf4010a09af53afe0d50ea535e98ff8bec715edcf5d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/main.rs",
+          "kind": "runtime",
+          "criterionIds": [
+            "DOCTOR-1"
+          ],
+          "sha256": "e67dbaf78d43530de95e04d417f4861ece80d087dcaeb98d842cd80e9064c246"
+        }
+      ],
+      "summaryMarkdown": "All ten findings are repaired and verified in source and tests. Node, corepack and pnpm are found on PATH (without WSL /mnt entries) and in the install locations, and run by absolute path. `with_node_path` puts the found Node directory and the user bin directory at the front of PATH for the pnpm probe and every node_command, so the corepack shim finds `node` right after an install. Xcode versions come from version.plist, the pin drives selection, the AVD probe filters log lines, the system image follows the platform pin, the batch tools start by full path, doctor records versions and reports usable hardware adapters, and the Playwright and GPU probes are idempotent. Accepted as disclosed: the Windows Update fallback for NVIDIA, AMD and Qualcomm, and no DXGI driver date.",
+      "findingIds": [
+        "S3-TEST-REPROBE-PATH",
+        "S3-IOS-XCODE-PROBE",
+        "S3-ANDROID-AVD-PROBE",
+        "S3-ANDROID-IMAGE-PLATFORM",
+        "S3-ANDROID-CMD-QUOTING",
+        "S3-DOCTOR-VERSIONS",
+        "S3-DOCTOR-HARDWARE-ADAPTER",
+        "S3-TEST-PLAYWRIGHT-BROWSERS-ZERO",
+        "S3-GPU-LINUX-DETECT",
+        "S3-TEST-PNPM-LOCKFILE-DRIFT"
+      ],
+      "recordedAt": "2026-10-07T23:14:37Z"
     }
   },
   "checkpoints": {
@@ -1347,6 +1684,223 @@
           "repositoryId": "rayx-cli",
           "path": "tests/setup_macos.rs",
           "symbol": "homebrew_under_yes_asks_for_sudo_credentials_before_the_noninteractive_installer"
+        }
+      ]
+    },
+    {
+      "id": "S3-TEST-REPROBE-PATH",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "SETUP-6"
+      ],
+      "descriptionMarkdown": "**Delta verified:** `find_tool`/`which_all`/`node_command` now find node, corepack and pnpm in PATH (skipping /mnt under WSL) and the known install locations, and run them by absolute path. The node step and the corepack call are fixed.\n\n**Still open (Windows first run, and macOS with keg-only node):** `src/setup/test_tools.rs:85-88` (`node_command`), `:187-197` (pnpm probe), `:205-217`, `:233-238`, `:333-340`. The pnpm that `corepack enable --install-directory <user bin>` writes is a shim that starts `node` *by name from PATH* when no `node.exe` sits beside it. I generated one on this host: `pnpm.CMD` contains `@IF EXIST \"%~dp0\\node.exe\" (...) ELSE (... node \"...corepack\\dist\\pnpm.js\" %*)`. Run with a PATH that lacks Node (`PATH=C:\\Windows\\System32`) it prints `'node' is not recognized` and exits 1. On a fresh Windows machine `winget install OpenJS.NodeJS.LTS` does not change this process's PATH, so `pnpm --version` (the pnpm probe and its re-probe) fails with \"pnpm does not run\" and the step fails after install; the later `pnpm install` / `pnpm exec playwright install` would fail the same way. On macOS the shim is `#!/usr/bin/env node`, which fails the same way while the keg-only `node@<major>/bin` is not on PATH. The new tests cannot show this: the fixtures only prove that the absolute path is chosen.\n\n**Repair:** for every spec that runs pnpm, corepack or node (`node_command`, the node/pnpm `--version` queries), set `PATH` in the spec env to the directory of the found `node` (and the user bin dir) prepended to the machine's PATH; this is the one place the process PATH needs correcting. Add a test asserting the pnpm commands carry that PATH entry when node was found only in a known location (Windows `%ProgramFiles%\\nodejs`, Homebrew keg).",
+      "severity": "major",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/test_tools.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_test_tools.rs"
+        }
+      ]
+    },
+    {
+      "id": "S3-IOS-XCODE-PROBE",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "SETUP-8"
+      ],
+      "descriptionMarkdown": "**Where:** `src/setup/ios.rs:27-37` (`xcode_version`), step order `:313-321`, selection `:14-24` and `:126-130`.\n\n**Expected:** the Xcode step is satisfied by an installed Xcode at the pinned version and is met right after `xcodes`/`mas` installed it; `xcode-select --switch` then points at the pinned Xcode.\n\n**Observed:**\n1. The Xcode probe runs `xcodebuild -version`. That fails (exit 1/69) whenever the active developer directory is the Command Line Tools or the license is not accepted. Right after `xcodes install` the CLT are still selected and the license is pending (the select and license steps come after the xcode step), so the re-probe fails and `rayx setup --ios` stops with \"Xcode ... is still missing after its install ran\" on the first run of every fresh Mac. An Xcode.app that is installed but unselected, or whose license changed after an update, is likewise reported missing and its multi-GB download is started again. The test fixture `bare()` (CLT selected, `xcodebuild` exits 1) encodes this state as \"Xcode missing\".\n2. `xcode_apps(..).pop()` takes the lexicographically last `Xcode*.app` and ignores the pin. With `Xcode-16.2.0.app` and `Xcode.app` or `Xcode-26.1.0.app` installed and a pin of 16.2, it switches to the other app, the probe then sees the wrong version, `xcodes install 16.2` is a no-op, and the step can never be satisfied. `Xcode-16.10` also sorts before `Xcode-16.2`.\n\n**Repair:** read the installed version without depending on selection or license, for example from `/Applications/Xcode*.app/Contents/version.plist` (`CFBundleShortVersionString`), and treat the step as satisfied when an app matching the pin (or any app when unpinned) exists. Make `xcode-select --switch` choose the app that matches the pin (else the highest by numeric version, not by name). Add tests: Xcode.app present with CLT selected and license pending (no download, only select/license), and a pinned version with a newer Xcode also installed.",
+      "severity": "major",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/ios.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_ios.rs"
+        }
+      ]
+    },
+    {
+      "id": "S3-ANDROID-AVD-PROBE",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "SETUP-7"
+      ],
+      "descriptionMarkdown": "**Where:** `src/setup/android.rs:595-598` (AVD probe).\n\n**Expected:** the default AVD is created when no AVD exists, as RayX xtask's `first_android_avd_name` decides (it skips `INFO |`, `WARNING |`, `ERROR |`, `DEBUG |` log lines that `emulator -list-avds` can print on stdout, for example the crashdata notice).\n\n**Observed:** the probe treats any non-blank stdout line as an AVD. Emulator builds that print `INFO    | Storing crashdata in: ...` make the step \"present\" on a machine with no AVD, so `rayx app ... run android` has nothing to start and `setup`/`doctor` report success. The port dropped the xtask filter; the test only feeds a bare AVD name.\n\n**Repair:** reuse xtask's filter (ignore lines whose prefix before `|` is INFO/WARNING/ERROR/DEBUG) and add a test with a log line plus no AVD (missing) and a log line plus an AVD (present).",
+      "severity": "major",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/android.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android.rs"
+        }
+      ]
+    },
+    {
+      "id": "S3-ANDROID-IMAGE-PLATFORM",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "SETUP-7"
+      ],
+      "descriptionMarkdown": "**Where:** `src/project/pins.rs:175` (system image pin independent of the platform pin), used at `src/setup/android.rs:497` and `:614-618`, AVD name at `:565-571`.\n\n**Expected:** SETUP-7: \"a system image for the host CPU (`x86_64` or `arm64-v8a`) at the pinned platform\", and the default AVD `rayx-<platform>-<abi>` uses it.\n\n**Observed:** `android-system-image` defaults to `android-34;google_apis` whatever `android-platform` is. In a gpux checkout (profile `android-36`) or a project with `android-platform = \"android-35\"`, the plan installs `platforms;android-36` but the image `system-images;android-34;google_apis;<abi>`, and creates an AVD named `rayx-android-36-<abi>` backed by an android-34 image. No test pins a platform and checks the image.\n\n**Repair:** when `android-system-image` is not set explicitly, derive it from the resolved platform pin (`<platform>;google_apis`, reporting the platform pin's source), keep the explicit key as an override, and add tests for the gpux profile and for a project platform pin (package list and AVD name/image).",
+      "severity": "major",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/android.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android.rs"
+        }
+      ]
+    },
+    {
+      "id": "S3-ANDROID-CMD-QUOTING",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "SETUP-7"
+      ],
+      "descriptionMarkdown": "**Where:** `src/setup/android.rs:39-45` (`cmdline_tool`), pinned by `tests/setup_android.rs` `windows_runs_the_batch_tools_through_cmd`.\n\n**Expected:** `sdkmanager.bat` and `avdmanager.bat` start correctly for any SDK location, including `%LOCALAPPDATA%\\Android\\Sdk` under a user name with a space.\n\n**Observed:** the tool is started as `cmd /c <path> --sdk_root=<sdk> ...`. With a space in the SDK path both the program path and `--sdk_root=...` are quoted, and `cmd /c` then sees a line that starts with a quote and holds more than two, strips the first and last quote and fails (`'C:\\Users\\First' is not recognized`). Rust already launches a `.bat` given by full path safely, which is what RayX xtask does.\n\n**Repair:** run the `.bat` path directly (`CommandSpec::new(path)`), drop the `cmd /c` wrapper for these two tools, and change the test to assert that a path with a space is passed as the program. (`node_tool` is not affected: its first token after `/c` is not a quote.) Also resolve `avdmanager` with `find_sdkmanager`'s layout search instead of the fixed `cmdline-tools/latest` at `:609-613`.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/android.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android.rs"
+        }
+      ]
+    },
+    {
+      "id": "S3-DOCTOR-VERSIONS",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "DOCTOR-1"
+      ],
+      "descriptionMarkdown": "**Where:** probes across `src/setup/*.rs` (only `web.rs:115-120`, `test_tools.rs:70-72` and `ios.rs:59-65` call `with_found`); `src/doctor.rs:367-373`.\n\n**Expected:** DOCTOR-1: each requirement is reported present with its version, missing, or wrong version.\n\n**Observed:** only wasm-bindgen, Node (major) and Xcode record a version. The JDK, Rust toolchains, nightly, pnpm, Android NDK/platform/build-tools, cargo-ndk and the rest are \"present\" with no version, and an installed-but-wrong JDK (for example 17), NDK or toolchain is reported as `missing`, never `wrong-version`.\n\n**Repair:** record `found` in the probes that already read a version (pnpm `--version`, `jdk_major_at`, the installed NDK directory, the rustup toolchain name, cargo-ndk version) and set it for the wrong-version cases (a JDK of another major, an NDK of another revision) so doctor can say `wrong-version`; extend `requirements_are_present_missing_or_at_the_wrong_version_with_their_fix` accordingly.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/android.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/test_tools.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_test_tools.rs"
+        }
+      ]
+    },
+    {
+      "id": "S3-DOCTOR-HARDWARE-ADAPTER",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "DOCTOR-1",
+        "SETUP-9"
+      ],
+      "descriptionMarkdown": "**Where:** `src/doctor.rs:396-397`, `src/setup/gpu.rs:99-101` and `:241` (`parse_lspci` builds `software: false` adapters).\n\n**Expected:** DOCTOR-1: `hardwareAdapter` says whether a hardware adapter is usable.\n\n**Observed:** `hardwareAdapter` is `any(!software)`. On Linux every `lspci` display controller counts as hardware, so an NVIDIA card with no driver (the very case the gpu step reports as missing) or a VM's virtio/VMware display (llvmpipe only) gives `hardwareAdapter: true`. Under WSL the Windows host's adapters count, yet the doctor text \"no hardware adapter is visible from WSL\" is derived from that value, not from `/dev/dxg` or a non-CPU Vulkan device.\n\n**Repair:** on Linux mark an lspci adapter usable only when a non-CPU Vulkan device with the same vendor id exists (the `has_driver` rule); under WSL require `/dev/dxg` (or a non-CPU `vulkaninfo` device); compute `hardwareAdapter` from that and add fixtures (NVIDIA without driver, VM display, WSL without `/dev/dxg`).",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/gpu.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_gpu.rs"
+        }
+      ]
+    },
+    {
+      "id": "S3-TEST-PLAYWRIGHT-BROWSERS-ZERO",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "SETUP-6"
+      ],
+      "descriptionMarkdown": "**Where:** `src/setup/test_tools.rs:236-241` (probe ignores `PLAYWRIGHT_BROWSERS_PATH=0`) versus `:333-343` (install inherits the environment).\n\n**Expected:** SETUP-6 and the RayX rule: use Playwright's per-user browser cache, never `PLAYWRIGHT_BROWSERS_PATH=0`.\n\n**Observed:** with `PLAYWRIGHT_BROWSERS_PATH=0` in the user's environment the probe looks in the per-user cache, but `pnpm exec playwright install chromium` installs into `node_modules/.local-browsers`, so the step is never satisfied and setup fails after install on every run.\n\n**Repair:** pass `PLAYWRIGHT_BROWSERS_PATH=<browser_cache path>` explicitly on the install command, so the cache the probe checks is the cache the install writes; add a test with the variable set to `0`.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/test_tools.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_test_tools.rs"
+        }
+      ]
+    },
+    {
+      "id": "S3-GPU-LINUX-DETECT",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "SETUP-9"
+      ],
+      "descriptionMarkdown": "**Where:** `src/setup/gpu.rs:541-548` (`vulkan_tools_step`), `:383-398` (`has_driver`), `:452-490` (install actions).\n\n**Expected:** Linux detection with `lspci` plus `vulkaninfo --summary`, and a step that can be met or reports what to do.\n\n**Observed:** (1) nothing installs `pciutils`, so on a minimal Ubuntu `lspci` is missing, no adapters are found and the step reports satisfied (\"no GPU adapters were found\"). (2) An adapter with an unknown vendor (virtio, VMware, Hyper-V, QEMU) never has a non-CPU Vulkan device, so the step stays missing forever; its install actions are empty and the final notice wrongly says \"Restart for the NVIDIA driver\".\n\n**Repair:** add `pciutils` to the apt packages of the vulkan-tools step; treat `Vendor::Other` and virtual display adapters as informational (not a missing driver) and make the no-action case report \"nothing to install\" rather than the NVIDIA restart notice.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/gpu.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_gpu.rs"
+        }
+      ]
+    },
+    {
+      "id": "S3-TEST-PNPM-LOCKFILE-DRIFT",
+      "boundaryId": "s3-optional-sets-and-doctor",
+      "criterionIds": [
+        "SETUP-6"
+      ],
+      "descriptionMarkdown": "**Where:** `src/setup/test_tools.rs:269-279` (`playwright-packages` probe).\n\n**Expected:** like RayX `setup-wasm` (which ran `pnpm install --frozen-lockfile --prefer-offline` every time), a changed `pnpm-lock.yaml` leads to a refreshed `node_modules`.\n\n**Observed:** the step is satisfied whenever `node_modules` exists, so a lockfile or Playwright version change after the first install is never applied by `rayx setup --test`; the Chromium probe then reads the stale `playwright-core/browsers.json`.\n\n**Repair:** compare `pnpm-lock.yaml` with `node_modules/.pnpm/lock.yaml` (or `.modules.yaml`) in the probe, or always run the idempotent install when `package.json` exists.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/test_tools.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_test_tools.rs"
         }
       ]
     }
