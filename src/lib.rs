@@ -2,9 +2,11 @@
 //! any app that uses RayX. The `rayx` binary only calls [`run`].
 
 pub mod cli;
+pub mod doctor;
 pub mod host;
 pub mod project;
 pub mod setup;
+pub mod wsl;
 
 use std::ffi::OsString;
 use std::process::ExitCode;
@@ -41,7 +43,7 @@ where
 fn dispatch(cli: Cli) -> ExitCode {
     let name = match &cli.command {
         Command::Setup(args) => return ExitCode::from(setup::run(args)),
-        Command::Doctor(_) => "doctor",
+        Command::Doctor(args) => return ExitCode::from(doctor::run(args)),
         Command::Wsl {
             command: WslCommand::Status,
         } => "wsl status",
