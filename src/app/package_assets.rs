@@ -297,7 +297,9 @@ mod tests {
     -> std::result::Result<(), Box<dyn std::error::Error>> {
         let root = fixture_root("package-asset-discovery")?;
         write_fixture_workspace(&root)?;
-        let app = AppDescriptor::resolve(root.join("app").to_str().expect("utf-8 fixture"))?;
+        let app = crate::app::test_support::resolve_str(
+            root.join("app").to_str().expect("utf-8 fixture"),
+        )?;
 
         let packages = discover_package_assets(
             &app,
@@ -333,7 +335,9 @@ mod tests {
     -> std::result::Result<(), Box<dyn std::error::Error>> {
         let root = fixture_root("package-asset-dependency-kinds")?;
         write_fixture_workspace(&root)?;
-        let app = AppDescriptor::resolve(root.join("app").to_str().expect("utf-8 fixture"))?;
+        let app = crate::app::test_support::resolve_str(
+            root.join("app").to_str().expect("utf-8 fixture"),
+        )?;
 
         let packages = discover_package_assets(
             &app,
@@ -367,7 +371,9 @@ mod tests {
         let mut text = fs::read_to_string(&app_manifest)?;
         text.push_str("\nduplicate-assets = { path = \"../duplicate-assets\" }\n");
         fs::write(&app_manifest, text)?;
-        let app = AppDescriptor::resolve(root.join("app").to_str().expect("utf-8 fixture"))?;
+        let app = crate::app::test_support::resolve_str(
+            root.join("app").to_str().expect("utf-8 fixture"),
+        )?;
 
         let error = discover_package_assets(&app, &CargoMetadataContext::default())
             .expect_err("duplicate asset package ids must fail");
@@ -383,17 +389,14 @@ mod tests {
     fn package_asset_portability_resolves_copied_crate_from_its_manifest_directory()
     -> std::result::Result<(), Box<dyn std::error::Error>> {
         let root = fixture_root("package asset portability with spaces")?;
-        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("xtask should be inside the repository root")
-            .to_path_buf();
-        let source_package = repository_root.join("crates/rayx_components/rayx_components_core");
+        let workspace = crate::app::test_support::FixtureWorkspace::new();
+        let source_package = workspace.root.join("crates/demo_components");
         let copied_package = root.join("vendor/rayx_components_core");
         fs::create_dir_all(copied_package.join("src"))?;
         fs::write(copied_package.join("src/lib.rs"), "pub fn marker() {}\n")?;
         fs::write(
             copied_package.join("Cargo.toml"),
-            "[package]\nname = \"portable-rayx-components-core\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[package.metadata.rayx.assets]\nmanifest = \"rayx.assets.toml\"\n",
+            "[package]\nname = \"portable-demo-components\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[package.metadata.rayx.assets]\nmanifest = \"rayx.assets.toml\"\n",
         )?;
         fs::copy(
             source_package.join("rayx.assets.toml"),
@@ -410,17 +413,18 @@ mod tests {
         fs::write(app_root.join("src/main.rs"), "fn main() {}\n")?;
         fs::write(
             app_root.join("Cargo.toml"),
-            "[package]\nname = \"portable-package-app\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[dependencies]\nportable-rayx-components-core = { path = \"../vendor/rayx_components_core\" }\n",
+            "[package]\nname = \"portable-package-app\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[dependencies]\nportable-demo-components = { path = \"../vendor/rayx_components_core\" }\n",
         )?;
         fs::write(
             app_root.join("rayx.assets.toml"),
-            "version = 1\n\n[package_assets]\nmode = \"explicit\"\ninclude = [\"rayx-components-core\"]\n\n[assets]\nroots = [\"assets\"]\n",
+            "version = 1\n\n[package_assets]\nmode = \"explicit\"\ninclude = [\"demo-components\"]\n\n[assets]\nroots = [\"assets\"]\n",
         )?;
 
-        let app = AppDescriptor::resolve(app_root.to_str().expect("UTF-8 fixture path"))?;
+        let app =
+            crate::app::test_support::resolve_str(app_root.to_str().expect("UTF-8 fixture path"))?;
         let packages = discover_package_assets(&app, &CargoMetadataContext::default())?;
         assert_eq!(packages.len(), 1);
-        assert_eq!(packages[0].asset_package_id, "rayx-components-core");
+        assert_eq!(packages[0].asset_package_id, "demo-components");
         assert!(
             packages[0]
                 .cargo_manifest_path
@@ -433,16 +437,9 @@ mod tests {
             fs::read(staged.join("icons/bot.svg"))?,
             fs::read(copied_package.join("assets/icons/bot.svg"))?
         );
-        assert_eq!(
-            fs::read(staged.join("locales/en/rayx_components_core.json"))?,
-            fs::read(copied_package.join("assets/locales/en/rayx_components_core.json"))?
-        );
         let index = fs::read_to_string(staged.join("index.json"))?;
-        assert!(index.contains("\"locales/en\""));
-        assert!(index.contains("\"rayx_components_core\""));
-
         let sidecar = fs::read_to_string(staged.join("index.entries.json"))?;
-        assert!(sidecar.contains("rayx-components-core"));
+        assert!(sidecar.contains("demo-components"));
         let physical_root = root.to_string_lossy();
         assert!(!index.contains(physical_root.as_ref()));
         assert!(!sidecar.contains(physical_root.as_ref()));

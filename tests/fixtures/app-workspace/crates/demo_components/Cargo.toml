@@ -1,0 +1,7 @@
+[package]
+name = "demo_components"
+version = "0.1.0"
+edition = "2024"
+
+[package.metadata.rayx.assets]
+manifest = "rayx.assets.toml"

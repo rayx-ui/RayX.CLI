@@ -1,0 +1,16 @@
+version = 1
+
+[asset_package]
+id = "demo-components"
+kind = "component"
+namespace = ""
+
+[assets]
+roots = [
+  { path = "assets/icons", mount = "icons" },
+]
+default_group = "core"
+
+[[asset_group]]
+id = "core"
+delivery = "bundled"

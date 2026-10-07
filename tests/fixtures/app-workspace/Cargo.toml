@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = [
+    "apps/demo",
+    "crates/rayx",
+    "crates/rayx_devkit",
+    "crates/demo_components",
+    "crates/gpux_fonts",
+    "patches/indxdb",
+    "patches/rexie",
+]
+
+[patch.crates-io]
+indxdb = { path = "patches/indxdb" }
+rexie = { path = "patches/rexie" }

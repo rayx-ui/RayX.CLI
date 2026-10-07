@@ -1519,7 +1519,7 @@ mod tests {
             root.join("Cargo.toml"),
             cargo_manifest("xtask-android-assets"),
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
 
         assert_eq!(
             android_content_staging_dir(&app)?.join("assets"),
@@ -1541,12 +1541,8 @@ mod tests {
     #[test]
     fn android_package_asset_staging_includes_theme_provenance_and_removes_stale_files()
     -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("xtask should be inside the repository root")
-            .to_path_buf();
-        let app_root = repository_root.join("apps/lab");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("utf-8 app path"))?;
+        let workspace = crate::app::test_support::FixtureWorkspace::new();
+        let app = workspace.app();
         let staging_root = temp_app_root("xtask-android-package-assets")?;
         let content_root = staging_root.join("generated/assets");
         let destination = content_root.join("assets");
@@ -1564,7 +1560,7 @@ mod tests {
         assert!(
             sidecar["dict"]["packageId"]
                 .as_array()
-                .is_some_and(|ids| ids.iter().any(|id| id == "rayx-components-core")),
+                .is_some_and(|ids| ids.iter().any(|id| id == "demo-components")),
             "Android sidecar should retain component-core package provenance: {sidecar}"
         );
 
@@ -1591,7 +1587,7 @@ mod tests {
             root.join("rayx.assets.toml"),
             "version = 1\n[assets]\nroots = [\"assets\"]\n[app_content]\nfiles = [\"app_settings.json\"]\n",
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let content_root = root.join("generated/main/assets");
         stage_android_package_content(&app, &AppFeatureSelection::default(), &content_root)?;
 

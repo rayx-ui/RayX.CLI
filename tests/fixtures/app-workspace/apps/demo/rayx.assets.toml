@@ -1,0 +1,8 @@
+version = 1
+
+[package_assets]
+mode = "explicit"
+include = ["demo-components"]
+
+[assets]
+roots = ["assets"]

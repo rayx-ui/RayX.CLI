@@ -345,9 +345,12 @@ impl AssetBuildGraph {
                     discovery.cargo_package_name
                 )
             })?;
-            let package = AppDescriptor::resolve(package_root.to_str().ok_or_else(|| {
-                anyhow::anyhow!("non-UTF-8 Cargo package path {}", package_root.display())
-            })?)?;
+            let package = AppDescriptor::resolve(
+                &app.context,
+                package_root.to_str().ok_or_else(|| {
+                    anyhow::anyhow!("non-UTF-8 Cargo package path {}", package_root.display())
+                })?,
+            )?;
             let config = AssetBuildConfig::for_app(&package).with_context(|| {
                 format!(
                     "loading asset package {} from {}",
@@ -2714,12 +2717,9 @@ mod tests {
     #[test]
     fn deterministic_cross_target_assets_have_identical_common_manifests_and_bytes()
     -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("xtask should be inside the repository root")
-            .to_path_buf();
-        let app_root = repository_root.join("apps/lab");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("UTF-8 app path"))?;
+        let workspace = crate::app::test_support::FixtureWorkspace::new();
+        let repository_root = workspace.root.clone();
+        let app = workspace.app();
         let root = temp_root("deterministic-cross-target-assets")?;
         let targets = ["host", "wasm", "android", "ios"];
         let mut baseline = None;
@@ -2757,7 +2757,7 @@ mod tests {
         let snapshot = baseline.expect("at least one target snapshot");
         assert!(snapshot.contains_key("icons/bot.svg"));
         let sidecar = String::from_utf8(snapshot["index.entries.json"].clone())?;
-        assert!(sidecar.contains("rayx-components-core"));
+        assert!(sidecar.contains("demo-components"));
 
         fs::remove_dir_all(root).ok();
         Ok(())
@@ -2774,7 +2774,7 @@ mod tests {
         )?;
         fs::write(root.join("assets/icons/app.svg"), "<svg/>")?;
         fs::write(root.join("assets/readme.md"), "# Hello")?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let manifest_path = root.join("assets/index.json");
         let manifest = build_manifest(&app, &manifest_path)?;
         write_manifest(&manifest_path, &manifest)?;
@@ -2823,7 +2823,7 @@ mod tests {
             root.join("assets/icons/misleading.svg"),
             [137, 80, 78, 71, 13, 10, 26, 10],
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let manifest = build_manifest(&app, &root.join("assets/index.json"))?;
 
         assert_eq!(manifest.entries.len(), 1);
@@ -2880,7 +2880,7 @@ cache = "persistent"
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let manifest = build_manifest(&app, &root.join("assets/index.json"))?;
 
         let intro = entry(&manifest, "videos/intro.mp4");
@@ -2929,7 +2929,7 @@ delivery = "bundled"
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let manifest = build_manifest(&app, &root.join("assets/index.json"))?;
 
         assert_eq!(manifest.assets, vec!["icons/app.svg", "legal/privacy.md"]);
@@ -2964,7 +2964,7 @@ delivery = "bundled"
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let manifest = build_manifest(&app, &root.join("assets/index.json"))?;
 
         assert_eq!(manifest.assets, vec!["alpha/readme.md", "zeta/icon.svg"]);
@@ -3003,7 +3003,7 @@ delivery = "bundled"
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let manifest = build_manifest(&app, &root.join("assets/index.json"))?;
 
         assert_eq!(manifest.assets, vec!["icons/bot.svg"]);
@@ -3040,7 +3040,7 @@ delivery = "bundled"
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let manifest = build_manifest(&app, &root.join("assets/index.json"))?;
 
         assert_eq!(
@@ -3083,7 +3083,7 @@ delivery = "bundled"
             ),
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let manifest = build_manifest(&app, &root.join("assets/index.json"))?;
 
         assert_eq!(manifest.assets, vec!["icons/bot.svg"]);
@@ -3183,7 +3183,7 @@ delivery = "bundled"
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let error = build_manifest(&app, &root.join("assets/index.json"))
             .expect_err("package-authored roots must stay inside the manifest directory");
 
@@ -3223,7 +3223,7 @@ delivery = "bundled"
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let error = build_manifest(&app, &root.join("assets/index.json"))
             .expect_err("duplicate logical paths should fail before staging");
 
@@ -3268,7 +3268,7 @@ delivery = "bundled"
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         package_app_assets(&app, &destination)
             .expect_err("collisions must fail before destination mutation");
 
@@ -3309,7 +3309,7 @@ delivery = "bundled"
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         build_manifest(&app, &root.join("assets/index.json"))
             .expect_err("unsafe source roots should fail before enumeration");
 
@@ -3328,7 +3328,7 @@ delivery = "bundled"
             cargo_manifest("xtask-package-assets-safety-destination"),
         )?;
         fs::write(root.join("assets/icons/app.svg"), "<svg/>")?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
 
         package_app_assets(&app, &root.join("assets"))
             .expect_err("staging must reject destinations that overlap source roots");
@@ -3371,7 +3371,7 @@ args = ["--version"]
             ),
         )?;
 
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let manifest = build_manifest(&app, &root.join("assets/index.json"))?;
 
         assert_eq!(manifest.entries.len(), 1);
@@ -3413,7 +3413,7 @@ preload = true
 ".svg" = { asset_group = "startup" }
 "#,
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let destination = root.join("staged-assets");
 
         package_app_assets(&app, &destination)?;
@@ -3436,7 +3436,7 @@ preload = true
             cargo_manifest("xtask-package-assets-graph-validation"),
         )?;
         fs::write(root.join("assets/icons/app.svg"), "<svg/>")?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let graph = AssetBuildGraph::for_app(&app, &CargoMetadataContext::default())?;
         let manifest_path = root.join("assets/index.json");
         let expected = graph.collect_entries(&manifest_path)?;
@@ -3589,7 +3589,7 @@ preload = true
             root.join("assets/index.entries.json"),
             r#"{"package":["test","test","app"],"dict":{},"columns":{}}"#,
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let report = validate_manifest(app.asset_roots()?, &root.join("assets/index.json"))?;
 
         assert!(!report.ok);
@@ -3618,7 +3618,7 @@ preload = true
             root.join("assets/index.entries.json"),
             r#"{"package":["test","test","app"],"dict":{},"columns":{}}"#,
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let report = validate_manifest(app.asset_roots()?, &root.join("assets/index.json"))?;
         let codes = report
             .diagnostics
@@ -3651,7 +3651,7 @@ preload = true
             root.join("assets/index.entries.json"),
             r#"{"package":["test","test","app"],"dict":{},"columns":{"sizeBytes":{"v":[1,2]}}}"#,
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let error = validate_manifest(app.asset_roots()?, &root.join("assets/index.json"))
             .expect_err("misaligned sidecar should fail validation");
         assert!(error.to_string().contains("align with index asset count"));
@@ -3681,7 +3681,7 @@ roots = ["assets"]
 files = ["app_settings.json"]
 "#,
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let deployment = root.join("deployment");
 
         package_app_assets(&app, &deployment.join("assets"))?;
@@ -3728,7 +3728,7 @@ app_content_root = \"../shared\"
 files = [\"app_settings.json\"]
 ",
         )?;
-        let descriptor = AppDescriptor::resolve(app.to_str().expect("utf-8 path"))?;
+        let descriptor = crate::app::test_support::resolve_str(app.to_str().expect("utf-8 path"))?;
         let deployment = root.join("out");
         package_app_content(&descriptor, &deployment)?;
         assert_eq!(
@@ -3749,7 +3749,7 @@ files = [\"app_settings.json\"]
         )?;
         fs::write(root.join("fixture.rs"), "pub fn fixture() {}")?;
         fs::write(root.join("settings.json"), "{}")?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         for (files, expected) in [
             (r#"["../settings.json"]"#, "invalid app_content"),
             (r#"["C:/settings.json"]"#, "invalid app_content"),
@@ -3794,7 +3794,7 @@ files = [\"app_settings.json\"]
             root.join("rayx.assets.toml"),
             "version = 1\n[app_content]\nfiles = [\"linked.json\"]\n",
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let error =
             package_app_content(&app, &root.join("out")).expect_err("symlinked content must fail");
         assert!(error.to_string().contains("symlink"));

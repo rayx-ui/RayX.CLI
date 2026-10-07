@@ -1,9 +1,7 @@
 use crate::app::args::{ensure_empty, take_bool_flag, take_flag_value};
 use crate::app::assets;
-use crate::app::fs_util::repo_root;
-use crate::app::node_tools;
+use crate::app::playwright;
 use crate::app::process::run as run_process;
-use crate::app::workspace_paths;
 use crate::app::{AppDescriptor, AppFeatureSelection, BuildProfile};
 use anyhow::{Context, Result, anyhow, bail};
 use std::ffi::OsStr;
@@ -131,43 +129,45 @@ pub fn test(
     profile: BuildProfile,
     mut args: Vec<String>,
 ) -> Result<()> {
-    ensure_test_suite_playwright_app(app)?;
     let headed = take_bool_flag(&mut args, "--headed");
     let webgpu = take_bool_flag(&mut args, "--webgpu");
     let port = take_port(&mut args)?;
-    let playwright_tests = take_playwright_tests(&mut args)?
-        .iter()
-        .map(|selector| normalize_test_suite_playwright_selector(selector))
-        .collect::<Result<Vec<_>>>()?;
+    let selectors = take_playwright_tests(&mut args)?;
     ensure_empty(&args)?;
+    let package = playwright::resolve(app)?;
+    if package.created {
+        println!(
+            "Created the Playwright package {} from the RayX template: commit it.",
+            package.dir.display()
+        );
+    }
+    let specs = playwright::select_specs(app, &package, &selectors)?;
+    let projects = playwright::select_projects(app)?;
     let test_features = wasm_test_features(app.diagnostic_harness, features);
-    let out_dir = prepare_before_build(node_tools::prepare_wasm_tests, || {
-        build_with_profile(app, profile, &test_features)
-    })?;
+    let out_dir = prepare_before_build(
+        || playwright::prepare(app, &package),
+        || build_with_profile(app, profile, &test_features),
+    )?;
     let (shutdown_tx, shutdown_rx) = mpsc::channel::<()>();
     let server_dir = out_dir.clone();
     let server = thread::spawn(move || serve(&server_dir, port, Some(shutdown_rx)));
     wait_for_server(port)?;
 
-    let mut command = Command::new("pnpm");
-    command
-        .current_dir(node_tools::tools_node_dir()?)
-        .args(["exec", "playwright"])
-        .arg("test");
-    command.args(&playwright_tests);
-    command
-        .arg("--project=chromium")
-        .arg("--project=chromium-dpr2")
-        .env("RAYX_WASM_URL", format!("http://127.0.0.1:{port}/"))
-        .env("RAYX_APP_SLUG", &app.slug)
-        .env("RAYX_APP_FEATURES", playwright_feature_list(&test_features))
-        .env("RAYX_WEBGPU_REQUIRED", if webgpu { "1" } else { "0" })
-        .env("RAYX_WASM_THREADS_REQUIRED", "1")
-        .env_remove("FORCE_COLOR")
-        .env_remove("NO_COLOR");
-    if headed {
-        command.arg("--headed");
-    }
+    let url = format!("http://127.0.0.1:{port}/");
+    let feature_list = playwright_feature_list(&test_features);
+    let mut command = playwright::test_command(
+        app,
+        &package,
+        &specs,
+        &projects,
+        &playwright::TestRun {
+            url: &url,
+            slug: &app.slug,
+            features: &feature_list,
+            headed,
+            webgpu,
+        },
+    );
     let result = run_process(&mut command);
     let _ = shutdown_tx.send(());
     match server.join() {
@@ -215,16 +215,43 @@ where
     build()
 }
 
+/// The `wasm-bindgen` command-line tool must be the version the project locks: the generated
+/// bindings and the CLI have to agree.
+fn ensure_wasm_bindgen_cli(app: &AppDescriptor) -> Result<()> {
+    let Some(locked) = app.context.pins.wasm_bindgen.as_ref() else {
+        return Ok(());
+    };
+    let output = Command::new("wasm-bindgen")
+        .arg("--version")
+        .output()
+        .map_err(|_| {
+            anyhow!(
+                "wasm-bindgen {} is not installed: run `rayx setup --web`",
+                locked.value
+            )
+        })?;
+    let text = String::from_utf8_lossy(&output.stdout);
+    let installed = text.split_whitespace().nth(1).unwrap_or_default();
+    if installed != locked.value {
+        bail!(
+            "the wasm-bindgen CLI is {installed} but Cargo.lock locks {}: run `rayx setup --web`",
+            locked.value
+        );
+    }
+    Ok(())
+}
+
 fn build_with_profile(
     app: &AppDescriptor,
     profile: BuildProfile,
     features: &AppFeatureSelection,
 ) -> Result<PathBuf> {
-    let root = repo_root()?;
+    let root = app.context.workspace_root().to_path_buf();
+    ensure_wasm_bindgen_cli(app)?;
     let target_dir = app.target_dir()?;
     let web_manifest = app.web_manifest(features)?;
     let module_base = app.web_module_base();
-    let toolchain = workspace_paths::web_toolchain()?;
+    let toolchain = app.context.pins.web_toolchain.value.clone();
     let mut cargo = Command::new("cargo");
     cargo
         .arg(format!("+{toolchain}"))
@@ -304,49 +331,6 @@ fn take_playwright_tests(args: &mut Vec<String>) -> Result<Vec<String>> {
     Ok(specs)
 }
 
-fn ensure_test_suite_playwright_app(app: &AppDescriptor) -> Result<()> {
-    ensure_test_suite_playwright_slug(&app.slug)
-}
-
-fn ensure_test_suite_playwright_slug(slug: &str) -> Result<()> {
-    if slug == "RayXTestSuite" {
-        return Ok(());
-    }
-
-    bail!("Playwright automation is available only for apps/test_suite")
-}
-
-fn normalize_test_suite_playwright_selector(selector: &str) -> Result<String> {
-    let path = selector
-        .rsplit_once(':')
-        .filter(|(_, suffix)| suffix.parse::<usize>().is_ok())
-        .map_or(selector, |(path, _)| path);
-    if !path.replace('\\', "/").starts_with("test_suite/") {
-        bail!("Playwright specs must be under tools-node/test_suite")
-    }
-    let Some((path, line)) = selector.rsplit_once(':') else {
-        return Ok(selector.to_owned());
-    };
-    let Ok(line) = line.parse::<usize>() else {
-        return Ok(selector.to_owned());
-    };
-    let source = fs::read_to_string(repo_root()?.join("tools-node").join(path))
-        .with_context(|| format!("failed to read Playwright selector source {path}"))?;
-    let Some(test_line) = nearest_playwright_test_line(&source, line) else {
-        return Ok(selector.to_owned());
-    };
-    Ok(format!("{path}:{test_line}"))
-}
-
-fn nearest_playwright_test_line(source: &str, requested_line: usize) -> Option<usize> {
-    source
-        .lines()
-        .take(requested_line)
-        .enumerate()
-        .filter_map(|(index, line)| line.trim_start().starts_with("test(").then_some(index + 1))
-        .last()
-}
-
 fn copy_app_assets(
     app: &AppDescriptor,
     features: &AppFeatureSelection,
@@ -354,7 +338,10 @@ fn copy_app_assets(
 ) -> Result<PathBuf> {
     let destination = out_dir.join("assets");
     // The fonts gpux's SVG renderer loads through the app's asset source (`fonts/...`).
-    let gpux_assets = workspace_paths::gpux_root()?.join("crates/gpux_fonts/assets");
+    let gpux_assets = app
+        .context
+        .resolved_package_dir("gpux-fonts", &app.manifest())?
+        .join("assets");
     if !gpux_assets.is_dir() {
         bail!("gpux font assets are missing at {}", gpux_assets.display());
     }
@@ -820,6 +807,14 @@ mod tests {
         let theme_root = root.join("theme");
         fs::create_dir_all(app_root.join("assets/icons"))?;
         fs::create_dir_all(theme_root.join("assets/icons"))?;
+        let fonts_root = root.join("gpux-fonts");
+        fs::create_dir_all(fonts_root.join("assets/fonts"))?;
+        fs::write(fonts_root.join("assets/fonts/Fixture.txt"), "font")?;
+        fs::write(fonts_root.join("fixture.rs"), "pub fn fonts() {}")?;
+        fs::write(
+            fonts_root.join("Cargo.toml"),
+            "[package]\nname = \"gpux-fonts\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[lib]\npath = \"fixture.rs\"\n",
+        )?;
         fs::write(app_root.join("fixture.rs"), "pub fn app() {}")?;
         fs::write(theme_root.join("fixture.rs"), "pub fn theme() {}")?;
         fs::write(app_root.join("assets/icons/app.svg"), "<svg/>")?;
@@ -836,6 +831,7 @@ path = "fixture.rs"
 
 [dependencies]
 wasm-fixture-theme = { path = "../theme" }
+gpux-fonts = { path = "../gpux-fonts" }
 "#,
         )?;
         fs::write(
@@ -882,11 +878,13 @@ roots = [{ path = "assets/icons", mount = "icons" }]
 "#,
         )?;
 
-        let app = AppDescriptor::resolve(app_root.to_str().expect("UTF-8 fixture path"))?;
+        let app =
+            crate::app::test_support::resolve_str(app_root.to_str().expect("UTF-8 fixture path"))?;
         let assets_dir = copy_app_assets(&app, &AppFeatureSelection::default(), &root.join("out"))?;
         assets::package_app_content(&app, &root.join("out"))?;
         assert!(assets_dir.join("icons/app.svg").is_file());
         assert!(assets_dir.join("icons/package-only.svg").is_file());
+        assert!(assets_dir.join("fonts/Fixture.txt").is_file());
         assert_eq!(
             fs::read_to_string(root.join("out/app_settings.json"))?,
             "{\"wasm\":true}"
@@ -1076,14 +1074,6 @@ roots = [{ path = "assets/icons", mount = "icons" }]
     }
 
     #[test]
-    fn playwright_line_selector_resolves_to_containing_test_start() {
-        let source = "test(\"first\", () => {\n  expect(true);\n});\n\ntest(\"second\", () => {\n  expect(true);\n});\n";
-
-        assert_eq!(nearest_playwright_test_line(source, 2), Some(1));
-        assert_eq!(nearest_playwright_test_line(source, 6), Some(5));
-    }
-
-    #[test]
     fn client_disconnects_are_not_fatal_server_errors() {
         for kind in [
             std::io::ErrorKind::BrokenPipe,
@@ -1188,19 +1178,6 @@ roots = [{ path = "assets/icons", mount = "icons" }]
         ));
         assert!(script.contains("textureReallocationCount: 0"));
         assert!(script.contains("path: 'unsupported'"));
-    }
-
-    #[test]
-    fn playwright_app_boundary_rejects_non_test_suite_apps_and_specs() {
-        assert!(ensure_test_suite_playwright_slug("RayXLab").is_err());
-        assert!(ensure_test_suite_playwright_slug("RayXTestSuite").is_ok());
-        assert!(normalize_test_suite_playwright_selector("lab/rayx-carousel.spec.ts").is_err());
-        assert!(
-            normalize_test_suite_playwright_selector(
-                "test_suite/rayx-component-diagnostics.spec.ts"
-            )
-            .is_ok()
-        );
     }
 
     #[test]

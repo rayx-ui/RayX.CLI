@@ -305,7 +305,7 @@ mod tests {
         let root = temp_app_root("xtask-ios-assets")?;
         fs::create_dir_all(root.join("platform/ios"))?;
         fs::write(root.join("Cargo.toml"), cargo_manifest("xtask-ios-assets"))?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
 
         assert_eq!(
             ios_asset_staging_dir(&app)?,
@@ -319,12 +319,8 @@ mod tests {
     #[test]
     fn ios_package_asset_staging_includes_theme_provenance_and_removes_stale_files()
     -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("xtask should be inside the repository root")
-            .to_path_buf();
-        let app_root = repository_root.join("apps/lab");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("utf-8 app path"))?;
+        let workspace = crate::app::test_support::FixtureWorkspace::new();
+        let app = workspace.app();
         let staging_root = temp_app_root("xtask-ios-package-assets")?;
         let destination = staging_root.join("platform/ios/assets");
         fs::create_dir_all(&destination)?;
@@ -341,7 +337,7 @@ mod tests {
         assert!(
             sidecar["dict"]["packageId"]
                 .as_array()
-                .is_some_and(|ids| ids.iter().any(|id| id == "rayx-components-core")),
+                .is_some_and(|ids| ids.iter().any(|id| id == "demo-components")),
             "iOS sidecar should retain component-core package provenance: {sidecar}"
         );
 
@@ -368,7 +364,7 @@ mod tests {
             root.join("rayx.assets.toml"),
             "version = 1\n[assets]\nroots = [\"assets\"]\n[app_content]\nfiles = [\"app_settings.json\"]\n",
         )?;
-        let app = AppDescriptor::resolve(root.to_str().expect("utf-8 path"))?;
+        let app = crate::app::test_support::resolve_str(root.to_str().expect("utf-8 path"))?;
         let resource_root = root.join("platform/ios/assets");
         stage_ios_package_content(&app, &AppFeatureSelection::default(), &resource_root)?;
 
@@ -379,33 +375,6 @@ mod tests {
         assert!(resource_root.join("index.json").is_file());
         assert!(!fs::read_to_string(resource_root.join("index.json"))?.contains("app_settings"));
         fs::remove_dir_all(root).ok();
-        Ok(())
-    }
-
-    #[test]
-    fn ios_projects_package_generated_assets_as_folder_resources()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("xtask should be inside the repository root")
-            .to_path_buf();
-        for project in [
-            "apps/lab/platform/ios/project.yml",
-            "apps/examples_mobile/platform/ios/project.yml",
-        ] {
-            let source = fs::read_to_string(repository_root.join(project))?.replace("\r\n", "\n");
-            assert!(
-                source.contains(
-                    "- path: assets\n        type: folder\n        buildPhase: resources"
-                ),
-                "{project} should copy the generated public asset tree into the app bundle"
-            );
-        }
-        let ignore = fs::read_to_string(repository_root.join(".gitignore"))?;
-        assert!(
-            ignore.contains("**/platform/ios/assets/"),
-            "generated iOS resource assets should remain untracked"
-        );
         Ok(())
     }
 

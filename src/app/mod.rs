@@ -5,35 +5,54 @@
 mod android;
 mod args;
 mod assets;
+mod context;
 mod descriptor;
 mod desktop;
 mod fs_util;
 mod ios;
-mod node_tools;
 mod package_assets;
+pub mod playwright;
 mod process;
+#[cfg(test)]
+mod test_support;
 mod wasm;
-mod workspace_paths;
 
+pub use context::ProjectContext;
 pub use descriptor::*;
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use args::take_profile;
+use std::path::Path;
 
 /// Runs `rayx app` with the arguments after `app`.
 pub fn run(args: Vec<String>) -> Result<()> {
     app_command(args)
 }
 
-fn app_command(mut args: Vec<String>) -> Result<()> {
-    if args.len() < 2 {
-        print_help();
-        bail!("app command requires an app directory and action");
-    }
+/// The actions of `rayx app`. The app directory is optional and defaults to the current
+/// directory, so the first token is an action when it names one.
+const ACTIONS: [&str; 7] = [
+    "build", "run", "pack", "publish", "deploy", "test", "assets",
+];
 
-    let app_dir = args.remove(0);
+fn app_command(mut args: Vec<String>) -> Result<()> {
+    if args.is_empty() {
+        print_help();
+        bail!("app command requires an action");
+    }
+    let app_dir = if ACTIONS.contains(&args[0].as_str()) {
+        ".".to_string()
+    } else {
+        args.remove(0)
+    };
+    if args.is_empty() {
+        print_help();
+        bail!("app command requires an action");
+    }
     let action = args.remove(0);
-    let app = AppDescriptor::resolve(&app_dir)?;
+    let cwd = std::env::current_dir().context("reading the current directory")?;
+    let context = ProjectContext::discover(&cwd, Some(Path::new(&app_dir)))?;
+    let app = AppDescriptor::resolve(&context, &app_dir)?;
     if action == "assets" {
         let features = AppFeatureSelection::take_from_args(&mut args)?;
         features.validate_for(&app.manifest())?;
@@ -166,27 +185,23 @@ fn normalize_target(target: &str) -> String {
 }
 
 fn print_help() {
-    println!("xtask commands:");
-    println!("  setup-android");
-    println!("  setup-wasm");
-    println!("  code-themes import-lumis [--output <directory>] [--check]");
-    println!("  theme generate [--check]");
-    println!("  component-index --analyze <Type,...> [--designed <Type,...>] [--out <file>]");
-    println!("  fmt [--check]");
     println!(
-        "  app <app-dir> <build|run|pack|publish|deploy|test> <host|windows|linux|macos|ios|android|mobile|wasm|web> [--debug|--development] [--features <list>] [--all-features|--no-default-features]"
+        "rayx app [<app-dir>] <action> <target> [options]   (the app directory defaults to .)"
+    );
+    println!("  actions: build, run, pack, publish, deploy (android), test (wasm), assets");
+    println!("  targets: host, windows, linux, macos, ios, android, mobile, wasm (alias web)");
+    println!(
+        "  options: [--debug|--development] [--features <list>] [--all-features|--no-default-features] [-- <app arguments>]"
     );
     println!(
-        "  app <app-dir> assets <generate|validate|list> [--output <path>] [--manifest <path>] [--features <list>] [--all-features|--no-default-features]"
+        "  rayx app [<app-dir>] assets <generate|validate|list> [--output <path>] [--manifest <path>] [--features <list>] [--all-features|--no-default-features]"
     );
-    println!("  app apps/lab run host");
-    println!("  app apps/lab run wasm --port 7878");
-    println!("  app apps/test_suite test wasm --headed --webgpu");
-    println!(
-        "  app apps/test_suite test wasm --headed --webgpu --playwright-test test_suite/rayx-component-diagnostics.spec.ts"
-    );
-    println!("  app apps/lab build wasm --no-default-features --features code-view-rust-dracula");
-    println!("  app apps/lab run android --android-paired");
+    println!("  rayx app apps/lab run host");
+    println!("  rayx app apps/lab run wasm --port 7878");
+    println!("  rayx app test wasm --headed --webgpu");
+    println!("  rayx app test wasm --headed --webgpu --playwright-test <spec>.spec.ts");
+    println!("  rayx app apps/lab build wasm --no-default-features --features <list>");
+    println!("  rayx app apps/lab run android --android-paired");
     println!(
         "  Android device knobs: --android-device <serial> --android-connect <host:port> --android-paired"
     );

@@ -1,8 +1,8 @@
 use crate::app::args::{ensure_empty, take_flag_value};
 use crate::app::assets;
-use crate::app::fs_util::repo_root;
 use crate::app::process::run as run_process;
 use crate::app::{AppDescriptor, AppFeatureSelection, BuildProfile, package_name_from_manifest};
+use crate::host::{Arch, HostFacts};
 use anyhow::{Result, anyhow, bail};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -18,7 +18,7 @@ pub fn build(
     profile: BuildProfile,
     mut args: Vec<String>,
 ) -> Result<()> {
-    let target_triple = desktop_target_triple(target_name, &mut args)?;
+    let target_triple = desktop_target_triple(target_name, &app.context.host, &mut args)?;
     ensure_empty(&args)?;
     let manifest = desktop_manifest(app, target_name)?;
     build_manifest(&manifest, features, profile, target_triple.as_deref())
@@ -31,7 +31,7 @@ pub fn run(
     profile: BuildProfile,
     mut args: Vec<String>,
 ) -> Result<()> {
-    let target_triple = desktop_target_triple(target_name, &mut args)?;
+    let target_triple = desktop_target_triple(target_name, &app.context.host, &mut args)?;
     let app_args = split_app_args(&mut args);
     ensure_empty(&args)?;
     let manifest = desktop_manifest(app, target_name)?;
@@ -66,14 +66,14 @@ pub fn pack(
     profile: BuildProfile,
     mut args: Vec<String>,
 ) -> Result<()> {
-    let target_triple = desktop_target_triple(target_name, &mut args)?;
+    let target_triple = desktop_target_triple(target_name, &app.context.host, &mut args)?;
     ensure_empty(&args)?;
     let manifest = desktop_manifest(app, target_name)?;
     build_manifest(&manifest, features, profile, target_triple.as_deref())?;
 
     let package_name = package_name_from_manifest(&manifest)?;
     let exe_name = executable_name_for_target(&package_name, target_triple.as_deref());
-    let mut binary_path = repo_root()?.join("target");
+    let mut binary_path = app.target_dir()?;
     if let Some(target_triple) = target_triple.as_deref() {
         binary_path = binary_path.join(target_triple);
     }
@@ -144,13 +144,24 @@ fn desktop_manifest(app: &AppDescriptor, target_name: &str) -> Result<PathBuf> {
     }
 }
 
-fn desktop_target_triple(target_name: &str, args: &mut Vec<String>) -> Result<Option<String>> {
+/// The explicit `--target`, else the native triple of the host for `windows`, `linux` and `macos`
+/// (an ARM64 Windows machine builds `aarch64-pc-windows-msvc`).
+fn desktop_target_triple(
+    target_name: &str,
+    host: &HostFacts,
+    args: &mut Vec<String>,
+) -> Result<Option<String>> {
     let explicit = take_flag_value(args, "--target")?;
+    let arch = if host.arch == Arch::Arm64 {
+        "aarch64"
+    } else {
+        "x86_64"
+    };
     Ok(match (target_name, explicit) {
         (_, Some(target)) => Some(target),
-        ("windows", None) => Some("x86_64-pc-windows-msvc".to_string()),
-        ("linux", None) => Some("x86_64-unknown-linux-gnu".to_string()),
-        ("macos", None) => Some("aarch64-apple-darwin".to_string()),
+        ("windows", None) => Some(format!("{arch}-pc-windows-msvc")),
+        ("linux", None) => Some(format!("{arch}-unknown-linux-gnu")),
+        ("macos", None) => Some(format!("{arch}-apple-darwin")),
         _ => None,
     })
 }
@@ -307,7 +318,8 @@ roots = [{ path = "assets/icons", mount = "icons" }]
 
         let app_source = fs::read(app_root.join("assets/icons/app.svg"))?;
         let theme_source = fs::read(theme_root.join("assets/icons/theme.svg"))?;
-        let app = AppDescriptor::resolve(app_root.to_str().expect("UTF-8 fixture path"))?;
+        let app =
+            crate::app::test_support::resolve_str(app_root.to_str().expect("UTF-8 fixture path"))?;
         let content_root = stage_run_content(
             &app,
             &AppFeatureSelection::default(),

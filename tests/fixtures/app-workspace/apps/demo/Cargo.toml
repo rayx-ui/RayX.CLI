@@ -1,0 +1,24 @@
+[package]
+name = "rayx_demo"
+version = "0.1.0"
+edition = "2024"
+
+[package.metadata.rayx]
+app_name = "demo"
+android_application_id = "dev.example.demo"
+ios_project = "Demo.xcodeproj"
+ios_scheme = "Demo"
+ios_bundle_id = "dev.example.demo"
+
+[features]
+default = ["profile-all"]
+profile-all = ["profile-a", "profile-b"]
+profile-a = []
+profile-b = []
+devkit = ["dep:rayx_devkit"]
+
+[dependencies]
+rayx = { path = "../../crates/rayx" }
+rayx_devkit = { path = "../../crates/rayx_devkit", optional = true }
+demo_components = { path = "../../crates/demo_components" }
+gpux-fonts = { path = "../../crates/gpux_fonts" }

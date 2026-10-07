@@ -1,6 +1,6 @@
 use crate::app::args::{take_bool_flag, take_flag_value};
-use crate::app::fs_util::{command_path, repo_root};
-use crate::app::workspace_paths;
+use crate::app::context::{ProjectContext, dependency_toml};
+use crate::app::fs_util::command_path;
 use anyhow::{Context, Result, anyhow, bail};
 use std::collections::BTreeSet;
 use std::fs;
@@ -188,15 +188,24 @@ pub struct AppDescriptor {
     pub ios_bundle_id: Option<String>,
     pub ios_app_name: Option<String>,
     pub diagnostic_harness: bool,
+    /// The workspace, pins and host this app is built in.
+    pub context: ProjectContext,
 }
 
 impl AppDescriptor {
-    pub fn resolve(app_dir: &str) -> Result<Self> {
+    /// The app in `app_dir`, a path absolute or relative to the current directory.
+    pub fn resolve(context: &ProjectContext, app_dir: &str) -> Result<Self> {
+        let base = std::env::current_dir().context("reading the current directory")?;
+        Self::resolve_from(context, &base, app_dir)
+    }
+
+    /// The app in `app_dir`, a path absolute or relative to `base`.
+    pub fn resolve_from(context: &ProjectContext, base: &Path, app_dir: &str) -> Result<Self> {
         let requested = PathBuf::from(app_dir);
         let root = if requested.is_absolute() {
             requested
         } else {
-            repo_root()?.join(requested)
+            base.join(requested)
         };
         let root = fs::canonicalize(&root)
             .with_context(|| format!("app directory {} was not found", root.display()))?;
@@ -231,6 +240,7 @@ impl AppDescriptor {
             ios_bundle_id: metadata_string(&manifest_value, "ios_bundle_id"),
             ios_app_name: metadata_string(&manifest_value, "ios_app_name"),
             diagnostic_harness: metadata_bool(&manifest_value, "diagnostic_harness"),
+            context: context.clone(),
         })
     }
 
@@ -240,6 +250,23 @@ impl AppDescriptor {
 
     pub fn assets_dir(&self) -> PathBuf {
         self.root.join("assets")
+    }
+
+    /// `[package.metadata.rayx] playwright_specs`: the spec files or directories, relative to the
+    /// Playwright package, that `test wasm` runs for this app.
+    pub fn playwright_specs(&self) -> Result<Option<Vec<String>>> {
+        Ok(metadata_string_array(
+            &read_manifest(&self.manifest())?,
+            "playwright_specs",
+        ))
+    }
+
+    /// `[package.metadata.rayx] playwright_projects`: the Playwright projects `test wasm` runs.
+    pub fn playwright_projects(&self) -> Result<Option<Vec<String>>> {
+        Ok(metadata_string_array(
+            &read_manifest(&self.manifest())?,
+            "playwright_projects",
+        ))
     }
 
     /// Directory holding bootstrap app content such as `app_settings.json`:
@@ -343,19 +370,40 @@ impl AppDescriptor {
         self.generated_web_lib_name()
     }
 
+    /// Where packaged output goes: `artifacts/apps/<slug>` under the workspace root.
     pub fn artifact_root(&self) -> Result<PathBuf> {
-        Ok(repo_root()?.join("artifacts").join("apps").join(&self.slug))
+        Ok(self
+            .context
+            .workspace_root()
+            .join("artifacts")
+            .join("apps")
+            .join(&self.slug))
     }
 
+    /// Generated files: `artifacts-temp/apps/<slug>` under the workspace root.
     pub fn temp_root(&self) -> Result<PathBuf> {
-        Ok(repo_root()?
+        Ok(self
+            .context
+            .workspace_root()
             .join("artifacts-temp")
             .join("apps")
             .join(&self.slug))
     }
 
+    /// The Cargo target directory of the workspace.
     pub fn target_dir(&self) -> Result<PathBuf> {
-        Ok(repo_root()?.join("target"))
+        Ok(self.context.workspace_root().join("target"))
+    }
+
+    /// The workspace package of this app.
+    pub fn package(&self) -> Result<&crate::project::Package> {
+        self.context.package_in(&self.root).ok_or_else(|| {
+            anyhow!(
+                "{} is not a package of the workspace at {}",
+                self.root.display(),
+                self.context.workspace_root().display()
+            )
+        })
     }
 
     pub fn android_generated_jni_dir(&self) -> Result<PathBuf> {
@@ -480,11 +528,24 @@ impl AppDescriptor {
             "devkit = []".to_string()
         };
         feature_lines.push(devkit_feature_line);
-        let rayx_path = cargo_toml_path(&repo_root()?.join("crates").join("rayx"));
-        let rayx_devkit_path = cargo_toml_path(&repo_root()?.join("crates").join("rayx_devkit"));
+        // The entry crate depends on `rayx` (and `rayx_devkit`) from the same source the app does.
+        let package = self.package()?;
+        let rayx = package.dependency("rayx").ok_or_else(|| {
+            anyhow!(
+                "app {} does not depend on `rayx`, which its generated {target} entry crate needs",
+                self.root.display()
+            )
+        })?;
+        let rayx_dependency = dependency_toml(rayx, false)?;
         let app_path = cargo_toml_path(&self.root);
         let generated_devkit_dependency_line = if generated_devkit_dependency {
-            format!("rayx_devkit = {{ path = \"{rayx_devkit_path}\", optional = true }}\n")
+            let devkit = package.dependency("rayx_devkit").ok_or_else(|| {
+                anyhow!(
+                    "app {} enables `dep:rayx_devkit` but declares no `rayx_devkit` dependency",
+                    self.root.display()
+                )
+            })?;
+            format!("rayx_devkit = {}\n", dependency_toml(devkit, true)?)
         } else {
             String::new()
         };
@@ -492,16 +553,28 @@ impl AppDescriptor {
         // `core::intrinsics::abort`, which current nightlies removed. With `std` it aborts through
         // `std::process::abort`, which the threaded build's `build-std` provides.
         let generated_web_dependency_lines = if target == "web" {
-            "wasm-bindgen = \"=0.2.129\"\nwasm-bindgen-futures = \"0.4\"\nzune-core = \"=0.5.1\"\nbranches = { version = \"0.4\", features = [\"std\"] }\n"
+            let bindgen = self.context.pins.wasm_bindgen.as_ref().ok_or_else(|| {
+                anyhow!(
+                    "wasm-bindgen is not locked in {}: build once with `cargo build` so Cargo.lock names it",
+                    self.context.workspace_root().join("Cargo.lock").display()
+                )
+            })?;
+            format!(
+                "wasm-bindgen = \"={}\"\nwasm-bindgen-futures = \"0.4\"\nzune-core = \"=0.5.1\"\nbranches = {{ version = \"0.4\", features = [\"std\"] }}\n",
+                bindgen.value
+            )
         } else {
-            ""
+            String::new()
         };
         let generated_web_patch_lines = if target == "web" {
-            generated_web_patch_lines(manifest_has_active_dependency(
-                &app_manifest,
-                "rayx_storage_surrealdb",
-                &enabled_app_features,
-            )?)?
+            generated_web_patch_lines(
+                &self.context,
+                manifest_has_active_dependency(
+                    &app_manifest,
+                    "rayx_storage_surrealdb",
+                    &enabled_app_features,
+                )?,
+            )?
         } else {
             String::new()
         };
@@ -540,7 +613,7 @@ default = [{}]
 {}
 
 [dependencies]
-rayx = {{ path = "{}" }}
+rayx = {}
 {}{}{}
 {}
 "#,
@@ -554,7 +627,7 @@ rayx = {{ path = "{}" }}
                 .collect::<Vec<_>>()
                 .join(", "),
             feature_lines.join("\n"),
-            rayx_path,
+            rayx_dependency,
             generated_devkit_dependency_line,
             generated_web_dependency_lines,
             app_dependency_line,
@@ -809,13 +882,13 @@ fn rayx_metadata(value: &Value) -> Option<&Value> {
 /// The root workspace's patches a generated web manifest must repeat (patches only apply
 /// from the root of the workspace being built): the IndexedDB storage crates when the app
 /// enables SurrealDB storage.
-fn generated_web_patch_lines(storage: bool) -> Result<String> {
+fn generated_web_patch_lines(context: &ProjectContext, storage: bool) -> Result<String> {
     if !storage {
         return Ok(String::new());
     }
     let mut crates_io = String::new();
     for name in ["indxdb", "rexie"] {
-        if let Some(path) = workspace_paths::root_patch_path("crates-io", name)? {
+        if let Some(path) = context.root_patch_path("crates-io", name)? {
             crates_io.push_str(&format!(
                 "{name} = {{ path = \"{}\" }}\n",
                 cargo_toml_path(&path)
@@ -863,232 +936,185 @@ fn sanitize_slug(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::{LazyLock, Mutex};
+    use crate::app::test_support::FixtureWorkspace;
 
-    static LAB_WEB_MANIFEST_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
+    type TestResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
-    fn unique_test_dir(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!(
-            "rayx-xtask-{name}-{}-{}",
-            std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|duration| duration.as_nanos())
-                .unwrap_or_default()
-        ))
+    /// Replaces the fixture app's manifest in the temporary copy of the workspace.
+    fn rewrite_app_manifest(workspace: &FixtureWorkspace, text: &str) -> std::io::Result<()> {
+        std::fs::write(
+            workspace.root.join("apps").join("demo").join("Cargo.toml"),
+            text,
+        )
     }
 
-    fn descriptor(root: PathBuf) -> AppDescriptor {
-        let slug = root
-            .file_name()
-            .and_then(|name| name.to_str())
-            .unwrap_or("test-app")
-            .to_string();
-        AppDescriptor {
-            root,
-            slug,
-            lib_name: "test_app".to_string(),
-            rust_lib_name: "test_app".to_string(),
-            android_application_id: None,
-            android_activity: None,
-            ios_project: None,
-            ios_scheme: None,
-            ios_bundle_id: None,
-            ios_app_name: None,
-            diagnostic_harness: false,
-        }
-    }
-
-    fn root_patch(registry: &str, name: &str) -> String {
-        let path = crate::app::workspace_paths::root_patch_path(registry, name)
+    fn root_patch(app: &AppDescriptor, registry: &str, name: &str) -> String {
+        let path = app
+            .context
+            .root_patch_path(registry, name)
             .expect("root Cargo.toml parses")
-            .expect("the root workspace patches this crate");
+            .expect("the workspace patches this crate");
         cargo_toml_path(&path)
     }
 
-    fn repo_root_for_test() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("xtask manifest should live under the repository root")
-            .to_path_buf()
+    #[test]
+    fn resolve_reads_the_descriptor_from_the_manifest_metadata() {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+
+        assert_eq!(app.slug, "demo");
+        assert_eq!(app.rust_lib_name, "rayx_demo");
+        assert_eq!(app.lib_name, "rayx_demo");
+        assert_eq!(
+            app.android_application_id.as_deref(),
+            Some("dev.example.demo")
+        );
+        assert!(!app.diagnostic_harness);
+        assert!(app.package().is_ok());
     }
 
     #[test]
-    fn android_rust_manifest_generates_temp_manifest_when_wrapper_is_absent()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let root = unique_test_dir("android-generated-manifest");
-        std::fs::create_dir_all(root.join("src"))?;
-        std::fs::write(root.join("Cargo.toml"), "[package]\nname = \"root\"\n")?;
-        std::fs::write(root.join("src").join("main.rs"), "fn main() {}\n")?;
+    fn resolve_rejects_a_directory_without_a_manifest() {
+        let workspace = FixtureWorkspace::new();
+        let context = workspace.app().context;
+        let error =
+            AppDescriptor::resolve_from(&context, &workspace.root, "apps/missing").unwrap_err();
+        assert!(error.to_string().contains("was not found"), "{error:#}");
 
-        let app = descriptor(root.clone());
-        let manifest = app.android_rust_manifest(&AppFeatureSelection::default())?;
-        assert!(manifest.starts_with(app.temp_root()?.join("android").join("rust")));
-        assert!(manifest.is_file());
+        let error = AppDescriptor::resolve_from(&context, &workspace.root, "crates").unwrap_err();
+        assert!(error.to_string().contains("no Cargo.toml"), "{error:#}");
+    }
 
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-        assert!(manifest_text.contains("[workspace]"));
-        assert!(manifest_text.contains("crate-type = [\"cdylib\"]"));
-        assert!(manifest_text.contains("rayx = { path = "));
-        assert!(manifest_text.contains("test_app = { package = \"root\""));
+    #[test]
+    fn output_directories_live_under_the_workspace_root() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+        let root = app.context.workspace_root().to_path_buf();
 
-        let manifest_dir = manifest
-            .parent()
-            .ok_or_else(|| anyhow!("generated manifest should have a parent"))?;
-        let source = std::fs::read_to_string(manifest_dir.join("src/lib.rs"))?;
-        assert!(source.contains("src/main.rs"));
-
-        std::fs::remove_dir_all(root)?;
-        std::fs::remove_dir_all(app.temp_root()?).ok();
+        assert_eq!(app.artifact_root()?, root.join("artifacts/apps/demo"));
+        assert_eq!(app.temp_root()?, root.join("artifacts-temp/apps/demo"));
+        assert_eq!(app.target_dir()?, root.join("target"));
         Ok(())
     }
 
     #[test]
-    fn android_rust_manifest_ignores_checked_in_platform_wrapper_manifest()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let root = unique_test_dir("android-wrapper-ignored");
-        let wrapper_dir = root.join("platform").join("android");
-        std::fs::create_dir_all(&wrapper_dir)?;
-        std::fs::create_dir_all(root.join("src"))?;
-        std::fs::write(root.join("Cargo.toml"), "[package]\nname = \"root\"\n")?;
-        std::fs::write(root.join("src").join("main.rs"), "fn main() {}\n")?;
+    fn android_entry_manifest_is_generated_from_the_apps_own_rayx_dependency() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+
+        let manifest = app.android_rust_manifest(&AppFeatureSelection::default())?;
+        assert!(manifest.starts_with(app.temp_root()?.join("android").join("rust")));
+        let text = std::fs::read_to_string(&manifest)?;
+        assert!(text.contains("[workspace]"));
+        assert!(text.contains("crate-type = [\"cdylib\"]"));
+        assert!(text.contains("rayx = { path = "));
+        assert!(text.contains("crates/rayx\" }"));
+        assert!(text.contains("rayx_demo = { package = \"rayx_demo\", path = "));
+        assert!(text.contains("default = [\"rayx_demo/profile-all\"]"));
+
+        let source = std::fs::read_to_string(manifest.parent().unwrap().join("src/lib.rs"))?;
+        assert!(source.contains("apps/demo/src/main.rs"));
+        Ok(())
+    }
+
+    #[test]
+    fn android_entry_manifest_ignores_a_checked_in_wrapper_manifest() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+        let wrapper = app.root.join("platform").join("android");
         std::fs::write(
-            wrapper_dir.join("Cargo.toml"),
+            wrapper.join("Cargo.toml"),
             "[package]\nname = \"wrapper\"\n",
         )?;
 
-        let app = descriptor(root.clone());
         let manifest = app.android_rust_manifest(&AppFeatureSelection::default())?;
-        assert_ne!(manifest, wrapper_dir.join("Cargo.toml"));
+        assert_ne!(manifest, wrapper.join("Cargo.toml"));
         assert!(manifest.starts_with(app.temp_root()?.join("android").join("rust")));
-
-        std::fs::remove_dir_all(root)?;
-        std::fs::remove_dir_all(app.temp_root()?).ok();
         Ok(())
     }
 
     #[test]
-    fn web_rust_manifest_generates_temp_manifest_when_wrapper_is_absent()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let root = unique_test_dir("web-generated-manifest");
-        std::fs::create_dir_all(root.join("src"))?;
-        std::fs::write(root.join("Cargo.toml"), "[package]\nname = \"root\"\n")?;
-        std::fs::write(root.join("src").join("main.rs"), "fn main() {}\n")?;
+    fn ios_entry_manifest_builds_a_static_library() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
 
-        let app = descriptor(root.clone());
+        assert!(!app.platform_manifest("ios").is_file());
+        let manifest = app.ios_rust_manifest(&AppFeatureSelection::default())?;
+        assert!(manifest.starts_with(app.temp_root()?.join("ios").join("rust")));
+        let text = std::fs::read_to_string(&manifest)?;
+        assert!(text.contains("crate-type = [\"staticlib\"]"));
+        assert!(text.contains("rayx_demo = { package = \"rayx_demo\""));
+        Ok(())
+    }
+
+    #[test]
+    fn platform_names_come_from_the_manifest_metadata() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+
+        assert_eq!(
+            app.android_launch_component()?,
+            "dev.example.demo/dev.rayx.mobile.RayXActivity"
+        );
+        assert_eq!(app.ios_project()?, "Demo.xcodeproj");
+        assert_eq!(app.ios_scheme()?, "Demo");
+        assert_eq!(app.ios_bundle_id()?, "dev.example.demo");
+        assert_eq!(app.ios_app_name()?, "Demo");
+        Ok(())
+    }
+
+    #[test]
+    fn web_manifest_is_generated_with_the_locked_wasm_bindgen() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
         let generated_root = app.temp_root()?.join("wasm").join("rust");
         std::fs::create_dir_all(&generated_root)?;
         std::fs::write(generated_root.join("Cargo.lock"), "stale lock")?;
 
         let manifest = app.web_manifest(&AppFeatureSelection::default())?;
-        assert!(manifest.starts_with(app.temp_root()?.join("wasm").join("rust")));
-        assert!(manifest.is_file());
+        assert!(manifest.starts_with(&generated_root));
         assert!(!generated_root.join("Cargo.lock").exists());
-        assert_eq!(app.web_module_base(), "test_app_web");
+        assert_eq!(app.web_module_base(), "rayx_demo_web");
 
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-        assert!(manifest_text.contains("name = \"test_app_web\""));
-        assert!(manifest_text.contains("crate-type = [\"cdylib\", \"rlib\"]"));
-        assert!(manifest_text.contains("default = []"));
-        assert!(manifest_text.contains("rayx = { path = "));
-        assert!(manifest_text.contains("test_app = { package = \"root\", path = "));
-        assert!(manifest_text.contains("default-features = false"));
-        assert!(manifest_text.contains("wasm-bindgen = \"=0.2.129\""));
-        assert!(manifest_text.contains("zune-core = \"=0.5.1\""));
-        assert!(manifest_text.contains("branches = { version = \"0.4\", features = [\"std\"] }"));
-        assert!(!manifest_text.contains("[patch"));
+        let text = std::fs::read_to_string(&manifest)?;
+        assert!(text.contains("name = \"rayx_demo_web\""));
+        assert!(text.contains("crate-type = [\"cdylib\", \"rlib\"]"));
+        assert!(text.contains("default-features = false"));
+        assert!(text.contains("wasm-bindgen = \"=0.2.129\""));
+        assert!(text.contains("zune-core = \"=0.5.1\""));
+        assert!(text.contains("branches = { version = \"0.4\", features = [\"std\"] }"));
+        assert!(!text.contains("[patch"));
+        Ok(())
+    }
 
-        std::fs::write(
-            root.join("Cargo.toml"),
-            "[package]\nname = \"root\"\nversion = \"0.1.0\"\n[features]\nindexeddb-storage-fixture = [\"dep:rayx_storage_surrealdb\"]\n[target.'cfg(target_family = \"wasm\")'.dependencies]\nrayx_storage_surrealdb = { version = \"0.1\", optional = true }\n",
-        )?;
-        let manifest = app.web_manifest(&AppFeatureSelection::default())?;
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-        assert!(!manifest_text.contains("[patch.crates-io]"));
+    #[test]
+    fn web_manifest_repeats_the_root_storage_patches_only_for_active_storage() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+        let storage_app = "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\n[features]\nstorage-fixture = [\"dep:rayx_storage_surrealdb\"]\n[target.'cfg(target_family = \"wasm\")'.dependencies]\nrayx_storage_surrealdb = { version = \"0.1\", optional = true }\n";
+        rewrite_app_manifest(&workspace, storage_app)?;
 
-        let manifest = app.web_manifest(&AppFeatureSelection {
-            features: vec!["indexeddb-storage-fixture".to_string()],
+        let text = std::fs::read_to_string(app.web_manifest(&AppFeatureSelection::default())?)?;
+        assert!(!text.contains("[patch.crates-io]"));
+
+        let selection = AppFeatureSelection {
+            features: vec!["storage-fixture".to_string()],
             no_default_features: true,
             ..AppFeatureSelection::default()
-        })?;
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-        assert!(manifest_text.contains("[patch.crates-io]"));
-        assert!(manifest_text.contains("indxdb = { path = "));
-        assert!(manifest_text.contains(&root_patch("crates-io", "indxdb")));
-        assert!(manifest_text.contains("rexie = { path = "));
-        assert!(manifest_text.contains(&root_patch("crates-io", "rexie")));
-
-        let manifest_dir = manifest
-            .parent()
-            .ok_or_else(|| anyhow!("generated manifest should have a parent"))?;
-        let source = std::fs::read_to_string(manifest_dir.join("src/lib.rs"))?;
-        assert!(source.contains("src/main.rs"));
-
-        std::fs::remove_dir_all(root)?;
-        std::fs::remove_dir_all(app.temp_root()?).ok();
-        Ok(())
-    }
-
-    #[test]
-    fn lab_web_manifest_forwards_default_combined_code_surfaces_profile()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let _lock = LAB_WEB_MANIFEST_LOCK
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner());
-        let app_root = repo_root_for_test().join("apps").join("lab");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("utf-8 app path"))?;
-
-        let manifest = app.web_manifest(&AppFeatureSelection::default())?;
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-
-        assert!(manifest_text.contains("default = [\"rayx_lab_app/code-surfaces-all\"]"));
-        assert!(manifest_text.contains("rayx_lab_app = { package = \"rayx_lab\", path = "));
-        assert!(manifest_text.contains(&root_patch("crates-io", "indxdb")));
-        assert!(manifest_text.contains(&root_patch("crates-io", "rexie")));
-        assert!(manifest_text.contains("default-features = false"));
-
-        std::fs::remove_dir_all(app.temp_root()?.join("wasm")).ok();
-        Ok(())
-    }
-
-    #[test]
-    fn lab_web_manifest_forwards_explicit_features_without_app_defaults()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let _lock = LAB_WEB_MANIFEST_LOCK
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner());
-        let app_root = repo_root_for_test().join("apps").join("lab");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("utf-8 app path"))?;
-        let selection = AppFeatureSelection {
-            features: vec!["code-editor-rust-dracula, code-view-rust-dracula".to_string()],
-            all_features: false,
-            no_default_features: true,
         };
-
-        let manifest = app.web_manifest(&selection)?;
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-
-        assert!(manifest_text.contains(
-            "default = [\"rayx_lab_app/code-editor-rust-dracula\", \"rayx_lab_app/code-view-rust-dracula\"]"
-        ));
-
-        std::fs::remove_dir_all(app.temp_root()?.join("wasm")).ok();
+        let text = std::fs::read_to_string(app.web_manifest(&selection)?)?;
+        assert!(text.contains("[patch.crates-io]"));
+        assert!(text.contains(&root_patch(&app, "crates-io", "indxdb")));
+        assert!(text.contains(&root_patch(&app, "crates-io", "rexie")));
         Ok(())
     }
 
     #[test]
-    fn generated_platform_wrappers_forward_one_explicit_feature_selection()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let root = unique_test_dir("feature-selection-wrappers");
-        std::fs::create_dir_all(root.join("src"))?;
-        std::fs::write(
-            root.join("Cargo.toml"),
-            "[package]\nname = \"root\"\n\n[features]\ndefault = [\"default-profile\"]\ndefault-profile = []\nminimal = []\n",
-        )?;
-        std::fs::write(root.join("src").join("main.rs"), "fn main() {}\n")?;
-        let app = descriptor(root.clone());
+    fn every_entry_manifest_forwards_one_explicit_feature_selection() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
         let selection = AppFeatureSelection {
-            features: vec!["minimal".to_string()],
+            features: vec!["profile-a, profile-b".to_string()],
             all_features: false,
             no_default_features: true,
         };
@@ -1099,18 +1125,50 @@ mod tests {
             app.web_manifest(&selection)?,
         ] {
             let text = std::fs::read_to_string(manifest)?;
-            assert!(text.contains("default = [\"test_app/minimal\"]"));
+            assert!(text.contains("default = [\"rayx_demo/profile-a\", \"rayx_demo/profile-b\"]"));
             assert!(text.contains("default-features = false"));
         }
-
-        std::fs::remove_dir_all(root)?;
-        std::fs::remove_dir_all(app.temp_root()?).ok();
         Ok(())
     }
 
     #[test]
-    fn app_feature_selection_rejects_conflicting_empty_and_unknown_features()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
+    fn all_features_forwards_every_feature_and_the_devkit_dependency() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+        let selection = AppFeatureSelection {
+            all_features: true,
+            ..AppFeatureSelection::default()
+        };
+
+        let text = std::fs::read_to_string(app.android_rust_manifest(&selection)?)?;
+        assert!(text.contains("profile-a = [\"rayx_demo/profile-a\"]"));
+        assert!(text.contains("devkit = [\"rayx_demo/devkit\", \"dep:rayx_devkit\"]"));
+        assert!(text.contains("rayx_devkit = { path = "));
+        assert!(text.contains(", optional = true }"));
+        Ok(())
+    }
+
+    #[test]
+    fn an_app_without_a_rayx_dependency_names_the_missing_dependency() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        rewrite_app_manifest(
+            &workspace,
+            "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
+        )?;
+        let app = workspace.app();
+
+        let error = app
+            .android_rust_manifest(&AppFeatureSelection::default())
+            .unwrap_err();
+        assert!(
+            error.to_string().contains("does not depend on `rayx`"),
+            "{error:#}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn app_feature_selection_rejects_conflicting_empty_and_unknown_features() {
         let mut conflicting = vec![
             "--all-features".to_string(),
             "--no-default-features".to_string(),
@@ -1120,13 +1178,53 @@ mod tests {
         let mut empty = vec!["--features".to_string(), " , ".to_string()];
         assert!(AppFeatureSelection::take_from_args(&mut empty).is_err());
 
-        let app_root = repo_root_for_test().join("apps").join("lab");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("utf-8 app path"))?;
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
         let unknown = AppFeatureSelection {
-            features: vec!["not-a-lab-profile".to_string()],
+            features: vec!["not-a-profile".to_string()],
             ..AppFeatureSelection::default()
         };
         assert!(unknown.validate_for(&app.manifest()).is_err());
+    }
+
+    #[test]
+    fn feature_arguments_before_the_separator_are_normalized() -> TestResult {
+        let mut args: Vec<String> = [
+            "--features",
+            "profile-a,profile-b profile-a",
+            "--no-default-features",
+            "--",
+            "--app-flag",
+        ]
+        .iter()
+        .map(ToString::to_string)
+        .collect();
+
+        let selection = AppFeatureSelection::take_from_args(&mut args)?;
+        assert_eq!(selection.normalized_features(), ["profile-a", "profile-b"]);
+        assert!(!selection.default_features_enabled());
+        assert_eq!(args, ["--", "--app-flag"]);
+        Ok(())
+    }
+
+    #[test]
+    fn playwright_metadata_is_read_from_the_package_table() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        assert_eq!(workspace.app().playwright_specs()?, None);
+
+        rewrite_app_manifest(
+            &workspace,
+            "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\n[package.metadata.rayx]\nplaywright_specs = [\"demo/\", \"shared/a.spec.ts\"]\nplaywright_projects = [\"chromium\"]\n[dependencies]\nrayx = { path = \"../../crates/rayx\" }\n",
+        )?;
+        let app = workspace.app();
+        assert_eq!(
+            app.playwright_specs()?,
+            Some(vec!["demo/".to_string(), "shared/a.spec.ts".to_string()])
+        );
+        assert_eq!(
+            app.playwright_projects()?,
+            Some(vec!["chromium".to_string()])
+        );
         Ok(())
     }
 
@@ -1137,452 +1235,5 @@ mod tests {
             cargo_toml_path(Path::new(r"\\?\C:\repo\apps\example")),
             "C:/repo/apps/example"
         );
-    }
-
-    #[test]
-    fn lab_android_uses_generated_unified_entry_manifest()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_root = repo_root_for_test().join("apps").join("lab");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("utf-8 app path"))?;
-        assert_eq!(
-            app.android_launch_component()?,
-            "dev.rayx.lab/dev.rayx.mobile.RayXActivity"
-        );
-
-        assert!(
-            !app.platform_manifest("android").is_file(),
-            "Lab should not keep a checked-in Android Rust wrapper manifest"
-        );
-
-        let manifest = app.android_rust_manifest(&AppFeatureSelection::default())?;
-        assert!(manifest.starts_with(app.temp_root()?.join("android").join("rust")));
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-        assert!(manifest_text.contains("crate-type = [\"cdylib\"]"));
-        assert!(manifest_text.contains("rayx_lab_app = { package = \"rayx_lab\""));
-
-        let source = std::fs::read_to_string(
-            manifest
-                .parent()
-                .expect("generated manifest should have parent")
-                .join("src")
-                .join("lib.rs"),
-        )?;
-        assert!(source.contains("apps/lab/src/main.rs"));
-
-        std::fs::remove_dir_all(app.temp_root()?.join("android")).ok();
-        Ok(())
-    }
-
-    #[test]
-    fn lab_ios_uses_generated_unified_entry_manifest()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_root = repo_root_for_test().join("apps").join("lab");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("utf-8 app path"))?;
-        assert_eq!(app.ios_project()?, "RayXLab.xcodeproj");
-        assert_eq!(app.ios_scheme()?, "RayXLab");
-        assert_eq!(app.ios_bundle_id()?, "dev.rayx.lab");
-        assert_eq!(app.ios_app_name()?, "RayXLab");
-
-        assert!(
-            !app.platform_manifest("ios").is_file(),
-            "Lab should not keep a checked-in iOS Rust wrapper manifest"
-        );
-
-        let manifest = app.ios_rust_manifest(&AppFeatureSelection::default())?;
-        assert!(manifest.starts_with(app.temp_root()?.join("ios").join("rust")));
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-        assert!(manifest_text.contains("crate-type = [\"staticlib\"]"));
-        assert!(manifest_text.contains("rayx_lab_app = { package = \"rayx_lab\""));
-
-        let source = std::fs::read_to_string(
-            manifest
-                .parent()
-                .expect("generated manifest should have parent")
-                .join("src")
-                .join("lib.rs"),
-        )?;
-        assert!(source.contains("apps/lab/src/main.rs"));
-
-        let project = std::fs::read_to_string(app.ios_dir().join("project.yml"))?;
-        assert!(project.contains("RAYX_IOS_RUST_MANIFEST"));
-        assert!(project.contains("--manifest-path \"${RAYX_IOS_RUST_MANIFEST}\""));
-        assert!(!project.contains("--manifest-path Cargo.toml"));
-        assert!(project.contains("$(PROJECT_DIR)/target/aarch64-apple-ios-sim"));
-        assert!(project.contains("$(PROJECT_DIR)/target/aarch64-apple-ios"));
-
-        std::fs::remove_dir_all(app.temp_root()?.join("ios")).ok();
-        Ok(())
-    }
-
-    #[test]
-    fn lab_source_uses_unified_main_and_ready_runtime_setup()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_root = repo_root_for_test().join("apps").join("lab");
-        let main = std::fs::read_to_string(app_root.join("src").join("main.rs"))?;
-        let lib = std::fs::read_to_string(app_root.join("src").join("lib.rs"))?;
-        let startup = std::fs::read_to_string(app_root.join("src").join("app").join("startup.rs"))?;
-
-        assert!(main.contains("#[rayx::main]"));
-        assert!(main.contains("const APP_MANIFEST_DIR: &str = env!(\"CARGO_MANIFEST_DIR\");"));
-        assert!(main.contains("RayXApp::builder()"));
-        assert!(main.contains(".with_assets(|options|"));
-        assert!(main.contains("options.app_manifest_assets(APP_MANIFEST_DIR)"));
-        assert!(main.contains(".with_fonts(|fonts|"));
-        assert!(main.contains("fonts.default_alias(\"Inter\")"));
-        assert!(main.contains(".with_surrealdb_storage(|options|"));
-        assert!(!main.contains("load_theme_packages_from_assets"));
-        assert!(main.contains(".with_i18n(|options|"));
-        assert!(main.contains(".with_navigation(|options|"));
-        assert!(main.contains("options.add_route(route.route_definition())"));
-        assert!(main.contains(".build()"));
-        assert!(main.contains(".await?"));
-        assert!(main.contains(".when_windowed"));
-        assert!(main.contains(".custom_title_bar()"));
-        assert!(main.contains(".when_single_view"));
-        assert!(main.contains(".on_ready(|cx|"));
-        assert!(main.contains("cx.update_gpux(initialize_app)?"));
-        assert!(main.contains(".run()"));
-        assert!(main.contains(".await"));
-        assert!(startup.contains("pub(crate) struct LabRuntime"));
-        assert!(startup.contains("if cx.has_global::<Self>()"));
-        assert!(startup.contains("AppState::install(cx)"));
-        assert!(startup.contains("pub fn initialize_app(cx: &mut App)"));
-        assert!(!startup.contains("fn install_lab_app_setup"));
-        assert!(!lib.contains("mod app_builder"));
-        assert!(!lib.contains("APP_MANIFEST_DIR"));
-        assert!(
-            !app_root
-                .join("platform")
-                .join("windows")
-                .join("Cargo.toml")
-                .is_file()
-        );
-        assert!(
-            !app_root
-                .join("platform")
-                .join("linux")
-                .join("Cargo.toml")
-                .is_file()
-        );
-        assert!(
-            !app_root
-                .join("platform")
-                .join("macos")
-                .join("Cargo.toml")
-                .is_file()
-        );
-        assert!(
-            !app_root
-                .join("platform")
-                .join("web")
-                .join("Cargo.toml")
-                .is_file()
-        );
-
-        let source = format!("{main}\n{lib}\n{startup}");
-        for forbidden in [
-            "trait LabAppBuilderExt",
-            "with_labapp",
-            "run_story_app",
-            "run_story_app_blocking",
-            "StoryAppResult",
-            "LabGpuiStartup",
-            "GpuiStartupInstaller",
-            "register_gpui_startup_installer",
-            "fn android_main(app: android_activity::AndroidApp)",
-            "pub extern \"C\" fn gpui_ios_register_app()",
-            "StoryAppHost",
-            "story_app_builder",
-            "with_app_host_extension",
-            "rayx::mobile::android::run_native_activity",
-            "rayx::mobile::ios::register_app",
-            "gpui_mobile::android::jni",
-            "gpui_mobile::ios::ffi",
-            "Application::with_platform",
-            "jni::init_platform",
-            "jni::shared_platform",
-            "set_app_callback",
-        ] {
-            assert!(
-                !source.contains(forbidden),
-                "Lab shared source should not contain low-level mobile startup `{forbidden}`"
-            );
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn examples_mobile_uses_unified_main_and_inline_service_setup()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_root = repo_root_for_test().join("apps").join("examples_mobile");
-        let main = std::fs::read_to_string(app_root.join("src").join("main.rs"))?;
-        let lib = std::fs::read_to_string(app_root.join("src").join("lib.rs"))?;
-
-        assert!(main.contains("#[rayx::main]"));
-        assert!(main.contains("RayXApp::builder()"));
-        assert!(main.contains(".with_assets(|options|"));
-        assert!(main.contains("options.app_manifest_assets(APP_MANIFEST_DIR)"));
-        assert!(main.contains(".build()"));
-        assert!(main.contains(".await?"));
-        assert!(main.contains(".when_single_view"));
-        assert!(main.contains(".run()"));
-        assert!(main.contains(".await"));
-        assert!(main.contains("root_view(window, cx)"));
-
-        assert!(!main.contains(".with_examples_mobile()"));
-        assert!(!lib.contains("ExamplesMobileAppBuilderExt"));
-        assert!(!lib.contains("with_examples_mobile"));
-        assert!(lib.contains("pub fn root_view"));
-        assert!(!lib.contains("pub fn app() -> RayXAppBuilder"));
-        Ok(())
-    }
-
-    #[test]
-    fn examples_mobile_uses_default_http_client_behavior()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_source = repo_root_for_test()
-            .join("apps")
-            .join("examples_mobile")
-            .join("src")
-            .join("lib.rs");
-        let app_manifest = repo_root_for_test()
-            .join("apps")
-            .join("examples_mobile")
-            .join("Cargo.toml");
-
-        let source = std::fs::read_to_string(app_source)?;
-        let manifest = std::fs::read_to_string(app_manifest)?;
-        assert!(!source.contains("DemoHttpClientAppBuilderExt"));
-        assert!(!source.contains("DemoHttpClientInstaller"));
-        assert!(!source.contains("register_gpui_startup_installer"));
-        assert!(!source.contains("fn install_gpui"));
-        assert!(!source.contains("cx.set_http_client"));
-        assert!(!source.contains("DemoHttpClientHost"));
-        assert!(!source.contains("AppHostExtension"));
-        assert!(!source.contains("with_app_host_extension"));
-        assert!(!manifest.contains("reqwest_client"));
-        assert!(!manifest.contains("zed-reqwest"));
-        Ok(())
-    }
-
-    #[test]
-    fn examples_mobile_devkit_feature_opt_in_matches_android_diagnostics()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_root = repo_root_for_test().join("apps").join("examples_mobile");
-        let source = std::fs::read_to_string(app_root.join("src").join("main.rs"))?;
-        let manifest = std::fs::read_to_string(app_root.join("Cargo.toml"))?;
-
-        assert!(manifest.contains("devkit = [\"dep:rayx_devkit\"]"));
-        assert!(manifest.contains("rayx_devkit = { workspace = true, optional = true }"));
-        assert!(source.contains("#[cfg(feature = \"devkit\")]"));
-        assert!(source.contains("use rayx_devkit::RayXDevKitAppBuilderExt;"));
-        assert!(source.contains(".with_devkit(|options|"));
-        assert!(source.contains("options.app_id = \"gpui-mobile-example\".to_string();"));
-        Ok(())
-    }
-
-    #[test]
-    fn examples_mobile_selects_initial_route_in_rayx_root()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_source = repo_root_for_test()
-            .join("apps")
-            .join("examples_mobile")
-            .join("src")
-            .join("lib.rs");
-
-        let source = std::fs::read_to_string(app_source)?;
-        assert!(source.contains("pub fn initial_screen_from_deeplink() -> screens::Screen"));
-        assert!(source.contains("pub fn root_view"));
-        assert!(source.contains("Router::with_initial_screen(initial_screen_from_deeplink())"));
-        assert!(!source.contains("fn open_main_window"));
-        Ok(())
-    }
-
-    #[test]
-    fn examples_mobile_android_uses_generated_unified_entry_manifest()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_root = repo_root_for_test().join("apps").join("examples_mobile");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("utf-8 app path"))?;
-
-        assert!(
-            !app.platform_manifest("android").is_file(),
-            "examples_mobile should not keep a checked-in Android Rust wrapper manifest"
-        );
-
-        let manifest = app.android_rust_manifest(&AppFeatureSelection::default())?;
-        assert!(manifest.starts_with(app.temp_root()?.join("android").join("rust")));
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-        assert!(manifest_text.contains("crate-type = [\"cdylib\"]"));
-        assert!(
-            manifest_text
-                .contains("devkit = [\"gpui_mobile_example/devkit\", \"dep:rayx_devkit\"]"),
-            "generated Android entry should expose app and direct DevKit dependencies"
-        );
-        assert!(
-            manifest_text.contains("rayx_devkit = { path = ")
-                && manifest_text.contains("optional = true }"),
-            "generated Android entry should include a direct optional rayx_devkit dependency"
-        );
-        assert!(
-            manifest_text.contains("gpui_mobile_example = { package = \"gpui-mobile-example\"")
-        );
-        let source = std::fs::read_to_string(
-            manifest
-                .parent()
-                .expect("generated manifest should have parent")
-                .join("src")
-                .join("lib.rs"),
-        )?;
-        assert!(source.contains("apps/examples_mobile/src/main.rs"));
-
-        std::fs::remove_dir_all(app.temp_root()?.join("android")).ok();
-        Ok(())
-    }
-
-    #[test]
-    fn examples_mobile_ios_uses_generated_unified_entry_manifest()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_root = repo_root_for_test().join("apps").join("examples_mobile");
-        let app = AppDescriptor::resolve(app_root.to_str().expect("utf-8 app path"))?;
-
-        assert!(
-            !app.platform_manifest("ios").is_file(),
-            "examples_mobile should not keep a checked-in iOS Rust wrapper manifest"
-        );
-
-        let manifest = app.ios_rust_manifest(&AppFeatureSelection::default())?;
-        assert!(manifest.starts_with(app.temp_root()?.join("ios").join("rust")));
-        let manifest_text = std::fs::read_to_string(&manifest)?;
-        assert!(manifest_text.contains("crate-type = [\"staticlib\"]"));
-        assert!(
-            manifest_text
-                .contains("devkit = [\"gpui_mobile_example/devkit\", \"dep:rayx_devkit\"]"),
-            "generated iOS entry should expose app and direct DevKit dependencies"
-        );
-        assert!(
-            manifest_text.contains("rayx_devkit = { path = ")
-                && manifest_text.contains("optional = true }"),
-            "generated iOS entry should include a direct optional rayx_devkit dependency"
-        );
-        assert!(
-            manifest_text.contains("gpui_mobile_example = { package = \"gpui-mobile-example\"")
-        );
-        let source = std::fs::read_to_string(
-            manifest
-                .parent()
-                .expect("generated manifest should have parent")
-                .join("src")
-                .join("lib.rs"),
-        )?;
-        assert!(source.contains("apps/examples_mobile/src/main.rs"));
-
-        let project = std::fs::read_to_string(app.ios_dir().join("project.yml"))?;
-        assert!(project.contains("RAYX_IOS_RUST_MANIFEST"));
-        assert!(project.contains("--manifest-path \"${RAYX_IOS_RUST_MANIFEST}\""));
-        assert!(!project.contains("--manifest-path Cargo.toml"));
-        assert!(project.contains("$(PROJECT_DIR)/target/aarch64-apple-ios-sim"));
-        assert!(project.contains("$(PROJECT_DIR)/target/aarch64-apple-ios"));
-
-        std::fs::remove_dir_all(app.temp_root()?.join("ios")).ok();
-        Ok(())
-    }
-
-    #[test]
-    fn examples_mobile_shared_source_has_no_manual_android_startup()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_root = repo_root_for_test().join("apps").join("examples_mobile");
-        let shared_source = app_root.join("src").join("lib.rs");
-        let binary_source = app_root.join("src").join("main.rs");
-
-        let source = format!(
-            "{}\n{}",
-            std::fs::read_to_string(shared_source)?,
-            std::fs::read_to_string(binary_source)?
-        );
-        for forbidden in [
-            "fn android_main(app: android_activity::AndroidApp)",
-            "gpui_mobile::android::jni",
-            "jni::init_platform",
-            "jni::shared_platform",
-            "gpui_mobile::android::init_logger",
-            "jni::install_panic_hook",
-            "Application::with_platform",
-        ] {
-            assert!(
-                !source.contains(forbidden),
-                "shared examples_mobile source should not contain manual Android startup call `{forbidden}`"
-            );
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn examples_mobile_shared_source_has_no_manual_ios_startup()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let app_root = repo_root_for_test().join("apps").join("examples_mobile");
-        let shared_source = app_root.join("src").join("lib.rs");
-        let binary_source = app_root.join("src").join("main.rs");
-
-        let source = format!(
-            "{}\n{}",
-            std::fs::read_to_string(shared_source)?,
-            std::fs::read_to_string(binary_source)?
-        );
-        for forbidden in [
-            "pub extern \"C\" fn gpui_ios_register_app()",
-            "gpui_mobile::ios::ffi::set_app_callback",
-            "gpui_mobile::ios::ffi::run_app",
-            "fn ios_main()",
-            "fn open_main_window",
-            "cx.open_window",
-        ] {
-            assert!(
-                !source.contains(forbidden),
-                "shared examples_mobile source should not contain manual iOS startup call `{forbidden}`"
-            );
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn examples_mobile_docs_describe_unified_generated_startup()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let repo = repo_root_for_test();
-        let readme =
-            std::fs::read_to_string(repo.join("apps").join("examples_mobile").join("README.md"))?;
-        let about = std::fs::read_to_string(
-            repo.join("apps")
-                .join("examples_mobile")
-                .join("src")
-                .join("screens")
-                .join("about.rs"),
-        )?;
-
-        assert!(readme.contains("`#[rayx::main]`"));
-        assert!(readme.contains("RayXApp::builder()"));
-        assert!(readme.contains("with_assets"));
-        assert!(readme.contains("with_devkit"));
-        assert!(readme.contains("artifacts-temp/apps/gpui-mobile-example"));
-        assert!(readme.contains("RAYX_IOS_RUST_MANIFEST"));
-        for forbidden in [
-            "this crate's `android_main",
-            "Application::with_platform",
-            "`ios_main`",
-            "Shared app code plus `android_main` and `ios_main` entrypoints",
-            "platform/android/Cargo.toml",
-            "platform/ios/Cargo.toml",
-            "wrapper static library",
-            "wrapper native library",
-        ] {
-            assert!(
-                !readme.contains(forbidden),
-                "examples_mobile README should not describe obsolete startup wording `{forbidden}`"
-            );
-        }
-
-        assert!(!about.contains("\"ios_main()\""));
-        assert!(!about.contains("\"android_main()\""));
-        assert!(about.contains("\"RayX generated entry\""));
-        Ok(())
     }
 }

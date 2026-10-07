@@ -10,6 +10,20 @@ use crate::host::{CommandSpec, RunError, Runner};
 
 pub use pins::{Pin, PinSource, Pins};
 
+/// A dependency a package declares, as `cargo metadata` reports it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Dependency {
+    /// The package name (not a rename).
+    pub name: String,
+    /// The version requirement, `*` when there is none.
+    pub req: String,
+    /// `registry+<url>` or `git+<url>[?rev=|branch=|tag=...]`; `None` for a path dependency.
+    pub source: Option<String>,
+    /// The absolute directory of a path dependency.
+    pub path: Option<PathBuf>,
+    pub optional: bool,
+}
+
 /// A Cargo workspace package.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Package {
@@ -17,12 +31,21 @@ pub struct Package {
     pub manifest_path: PathBuf,
     /// The package's `[package.metadata.rayx]` table.
     pub rayx_metadata: Option<serde_json::Value>,
+    /// The dependencies the package declares (all kinds).
+    pub dependencies: Vec<Dependency>,
 }
 
 impl Package {
     /// The directory holding the package's manifest.
     pub fn dir(&self) -> &Path {
         self.manifest_path.parent().unwrap_or(Path::new("."))
+    }
+
+    /// The first non-development dependency with this package name.
+    pub fn dependency(&self, name: &str) -> Option<&Dependency> {
+        self.dependencies
+            .iter()
+            .find(|dependency| dependency.name == name)
     }
 }
 
@@ -167,6 +190,24 @@ impl Project {
                         .get("rayx")
                         .filter(|value| !value.is_null())
                         .cloned(),
+                    dependencies: package["dependencies"]
+                        .as_array()
+                        .map(|items| {
+                            items
+                                .iter()
+                                .filter(|dep| dep["kind"] != "dev" && dep["kind"] != "build")
+                                .filter_map(|dep| {
+                                    Some(Dependency {
+                                        name: dep["name"].as_str()?.to_string(),
+                                        req: dep["req"].as_str().unwrap_or("*").to_string(),
+                                        source: dep["source"].as_str().map(str::to_string),
+                                        path: dep["path"].as_str().map(PathBuf::from),
+                                        optional: dep["optional"].as_bool().unwrap_or(false),
+                                    })
+                                })
+                                .collect()
+                        })
+                        .unwrap_or_default(),
                 })
             })
             .collect();
@@ -231,6 +272,7 @@ impl Project {
                         .get("metadata")
                         .and_then(|metadata| metadata.get("rayx"))
                         .and_then(|rayx| serde_json::to_value(rayx).ok()),
+                    dependencies: manifest_dependencies(table, dir),
                 })
             })
             .collect();
@@ -258,6 +300,57 @@ impl Project {
     pub fn is_gpux_checkout(&self) -> bool {
         self.package("gpux-testkit").is_some()
     }
+}
+
+/// The `[dependencies]` of a manifest, for when cargo cannot report them. Inherited
+/// (`workspace = true`) dependencies are not resolved.
+fn manifest_dependencies(table: &toml::Table, dir: &Path) -> Vec<Dependency> {
+    let Some(dependencies) = table.get("dependencies").and_then(toml::Value::as_table) else {
+        return Vec::new();
+    };
+    dependencies
+        .iter()
+        .map(|(key, value)| {
+            let table = value.as_table();
+            let name = table
+                .and_then(|t| t.get("package"))
+                .and_then(toml::Value::as_str)
+                .unwrap_or(key)
+                .to_string();
+            let string = |field: &str| {
+                table
+                    .and_then(|t| t.get(field))
+                    .and_then(toml::Value::as_str)
+            };
+            let path = string("path").map(|path| absolute(&dir.join(path)));
+            let source = if path.is_some() {
+                None
+            } else if let Some(git) = string("git") {
+                let query = ["rev", "branch", "tag"]
+                    .iter()
+                    .find_map(|kind| string(kind).map(|value| format!("?{kind}={value}")))
+                    .unwrap_or_default();
+                Some(format!("git+{git}{query}"))
+            } else {
+                Some("registry+https://github.com/rust-lang/crates.io-index".to_string())
+            };
+            let req = value
+                .as_str()
+                .or_else(|| string("version"))
+                .unwrap_or("*")
+                .to_string();
+            Dependency {
+                name,
+                req,
+                source,
+                path,
+                optional: table
+                    .and_then(|t| t.get("optional"))
+                    .and_then(toml::Value::as_bool)
+                    .unwrap_or(false),
+            }
+        })
+        .collect()
 }
 
 fn read_manifest(path: &Path) -> Option<toml::Table> {

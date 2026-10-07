@@ -1,20 +1,16 @@
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result};
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn repo_root() -> Result<PathBuf> {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .map(Path::to_path_buf)
-        .ok_or_else(|| anyhow!("xtask manifest directory has no repository parent"))
-}
-
+/// An absolute path: `path` itself, or `path` under the current directory.
 pub fn absolutize_path(path: &Path) -> Result<PathBuf> {
     if path.is_absolute() {
         return Ok(path.to_path_buf());
     }
-    Ok(repo_root()?.join(path))
+    Ok(std::env::current_dir()
+        .context("reading the current directory")?
+        .join(path))
 }
 
 pub fn command_path(path: &Path) -> PathBuf {
