@@ -4,6 +4,7 @@
 pub mod app;
 pub mod cli;
 pub mod doctor;
+pub mod fmt;
 pub mod host;
 pub mod project;
 pub mod setup;
@@ -55,7 +56,7 @@ fn dispatch(cli: Cli) -> ExitCode {
             command: SelfCommand::Update { .. },
         } => "self update",
         Command::App(args) => return run_app(args.args.clone()),
-        Command::Fmt => "fmt",
+        Command::Fmt(args) => return run_fmt(args.args.clone()),
     };
     not_implemented(name)
 }
@@ -63,6 +64,17 @@ fn dispatch(cli: Cli) -> ExitCode {
 fn not_implemented(command: &str) -> ExitCode {
     eprintln!("rayx: `{command}` is not implemented in this build");
     ExitCode::FAILURE
+}
+
+/// Runs `rayx fmt` and turns its error into a message and an exit code.
+fn run_fmt(args: Vec<String>) -> ExitCode {
+    match fmt::run(args) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("rayx: {error:#}");
+            ExitCode::FAILURE
+        }
+    }
 }
 
 /// Runs `rayx app` and turns its error into a message and an exit code.

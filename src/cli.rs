@@ -39,8 +39,8 @@ pub enum Command {
     },
     /// Build, run, package, publish, deploy and test a RayX app
     App(AppArgs),
-    /// Format the project's Rust sources
-    Fmt,
+    /// Format the project's Rust sources, one workspace member at a time
+    Fmt(FmtArgs),
 }
 
 /// Flags of `rayx setup`.
@@ -104,6 +104,18 @@ pub enum SelfCommand {
         #[arg(long)]
         check: bool,
     },
+}
+
+/// Arguments of `rayx fmt`: `--check` may appear anywhere.
+#[derive(Debug, Args)]
+pub struct FmtArgs {
+    /// `--check` reports unformatted members instead of formatting them
+    #[arg(
+        trailing_var_arg = true,
+        allow_hyphen_values = true,
+        value_name = "ARGS"
+    )]
+    pub args: Vec<String>,
 }
 
 /// Arguments of `rayx app`: the app grammar `[<dir>] build|run|pack|publish|deploy|test|assets
