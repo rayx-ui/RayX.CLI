@@ -36,3 +36,21 @@ jobs:
 
       - name: Test
         run: cargo test
+
+  # The tests that build for real: the threaded WebAssembly fixture and the generated Playwright
+  # package. They need the web and test sets, which `rayx setup` installs.
+  web:
+    name: web tests (ubuntu-24.04)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          rustflags: ""
+
+      - name: Install the web and test sets
+        run: cargo run --release -- setup --web --test --yes
+
+      - name: Test
+        run: cargo test --test app_wasm_fixture --test app_playwright_template -- --include-ignored
