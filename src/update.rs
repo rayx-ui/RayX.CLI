@@ -43,9 +43,13 @@ pub fn classify(exe: &Path, receipt_matches: bool) -> InstallSource {
     if receipt_matches {
         return InstallSource::Installer;
     }
+    // Split on both separators: the path names the running executable, but also arrives from
+    // receipts and tests written on another system.
     let components: Vec<String> = exe
-        .components()
-        .map(|c| c.as_os_str().to_string_lossy().to_ascii_lowercase())
+        .to_string_lossy()
+        .split(['/', '\\'])
+        .filter(|part| !part.is_empty())
+        .map(str::to_ascii_lowercase)
         .collect();
     // A cargo `target` directory: `target/debug`, `target/release`, `target/<triple>/release`,
     // `target/dist`.

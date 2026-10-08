@@ -33,7 +33,10 @@ impl FixtureWorkspace {
             .join("fixtures")
             .join("app-workspace");
         let dir = tempfile::tempdir().expect("temp dir");
-        let root = dir.path().to_path_buf();
+        // The spelling cargo reports: symlinks resolved (`/private/var` on macOS), no verbatim prefix.
+        let root = crate::app::fs_util::command_path(
+            &fs::canonicalize(dir.path()).expect("canonical temp dir"),
+        );
         copy_tree(&source, &root).expect("copy the fixture workspace");
         Self { _dir: dir, root }
     }
