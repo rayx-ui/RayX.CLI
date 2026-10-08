@@ -44,8 +44,8 @@ App commands use the engine through `src/app/prereqs.rs` (`Step::prompts`, `Step
 - [gpux Linux on WSL guide](../../../../../Gpux/LINUX-WSL.md)
 - [gpux Windows prerequisites](../../../../../Gpux/.claude/skills/gpux/references/windows-prerequisites.md)
 - [gpux macOS, Linux and WASM prerequisites](../../../../../Gpux/.claude/skills/gpux/references/macos-linux-wasm-prerequisites.md)
-- [RayX xtask setup-android](../../../../../RayX/xtask/src/android.rs)
-- [RayX xtask setup-wasm](../../../../../RayX/xtask/src/node_tools.rs)
+- [Android set](../../../../src/setup/android.rs)
+- [Test set (Playwright and Node)](../../../../src/setup/test_tools.rs)
 
 - `setup/wsl.rs` (`setup --wsl [--clone [<dir>]]`, Windows only): requires `wsl --version` to print a dotted version (the label is localized), installs `Ubuntu-24.04` when absent and stops for the first user, installs the Linux `rayx` of the same version (release asset `rayx-cli-<arch>-unknown-linux-musl.tar.xz`, or `RAYX_WSL_BINARY`), runs `rayx setup --gpu` on Windows first for `--gpu`/`--all`, then `wsl -d Ubuntu-24.04 --exec bash -lc 'rayx setup <flags>'` in the same console. `--clone` clones only the current checkout through `/mnt/<drive>` (absolute or `~` target only), fetches an existing clone, and records it in `~/.config/rayx/wsl-clones`.
 - `src/wsl.rs` (`wsl status [--json]`, `wsl compact [--distro] [--clean] [--yes]`): registry view of the distributions, `ext4.vhdx` sizes, `df` and build-output sizes of recorded clones; compaction deletes only directories named `target`, `artifacts` or `artifacts-temp` under recorded clones, runs `fstrim`, asks before `wsl --shutdown`, and compacts in one elevated PowerShell (`-EncodedCommand`, the disk path passed as base64 data, `Optimize-VHD` with a `diskpart` fallback that always detaches, exit code from `diskpart`). It never enables sparse disks. Verified on the development machine: `wsl status` (Ubuntu-24.04 vhdx 199.2 GiB on Windows, 192.5 GiB used inside). Not yet run with the owner's approval: a real compaction and the end-to-end `setup --wsl`.

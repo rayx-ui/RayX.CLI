@@ -38,8 +38,8 @@ Implemented by the epic `rayx-cli-foundation` (sprint 4; design decisions `d-app
 ## Backlinks
 
 - [Epic design (`d-app-move`)](../../../tasks/rayx-cli-foundation/design.json)
-- [RayX xtask command grammar](../../../../../RayX/xtask/src/command.rs)
-- [RayX xtask app metadata and entry manifests](../../../../../RayX/xtask/src/app.rs)
-- [RayX xtask WASM build, server and tests](../../../../../RayX/xtask/src/wasm.rs)
-- [RayX xtask guide](../../../../../RayX/docs/src/xtask.md)
+- [App command grammar and dispatch](../../../../src/app/mod.rs)
+- [App metadata and entry manifests](../../../../src/app/descriptor.rs)
+- [WASM build, server and tests](../../../../src/app/wasm.rs)
+- [The rayx guide in RayX](../../../../../RayX/docs/src/rayx.md)
 - 2026-06-29 current [RayX app-directory xtask decision](../../../../../RayX/.agentx/memory/decisions/platform/packaging-targets/2026-06-29-platform-packaging-targets-app-directory-xtask.md)

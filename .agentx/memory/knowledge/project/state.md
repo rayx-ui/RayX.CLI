@@ -32,5 +32,5 @@ Implemented in `src/project/` (epic `rayx-cli-foundation`, design decision `d-pr
 - [Project discovery](../../../../src/project/mod.rs), [pins](../../../../src/project/pins.rs)
 - [Pin tests](../../../../tests/project_pins.rs)
 - [Epic design (`d-project-pins`)](../../../tasks/rayx-cli-foundation/design.json)
-- [RayX xtask compile-time repository root this replaces](../../../../../RayX/xtask/src/fs_util.rs)
+- [The compile-time repository root this replaced: the app project context](../../../../src/app/context.rs)
 - [gpux Android pins](../../../../../Gpux/tooling/testkit/src/android.rs)
