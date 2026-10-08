@@ -270,10 +270,43 @@ pub fn cargo_build_command(
         .env("CFLAGS_wasm32_unknown_unknown", WASM_CFLAGS)
         .env("CXXFLAGS_wasm32_unknown_unknown", WASM_CFLAGS)
         .env("CARGO_FUTURE_INCOMPAT_REPORT_FREQUENCY", "never");
+    if cfg!(target_os = "macos") {
+        for (name, program) in macos_llvm_env(&[
+            PathBuf::from("/opt/homebrew/opt/llvm"),
+            PathBuf::from("/usr/local/opt/llvm"),
+        ]) {
+            if std::env::var_os(name).is_none() {
+                cargo.env(name, program);
+            }
+        }
+    }
     if let Some(profile_arg) = profile.cargo_arg() {
         cargo.arg(profile_arg);
     }
     Ok(cargo)
+}
+
+/// The C toolchain for `wasm32-unknown-unknown` build scripts on macOS: Apple's clang has no wasm32
+/// backend, so crates that compile C for the web (`arborium-sysroot`) use Homebrew's LLVM, which
+/// `rayx setup --web` installs. The first LLVM prefix that has a `clang` wins; an absent tool is
+/// left out.
+fn macos_llvm_env(prefixes: &[PathBuf]) -> Vec<(&'static str, PathBuf)> {
+    let Some(bin) = prefixes
+        .iter()
+        .map(|prefix| prefix.join("bin"))
+        .find(|bin| bin.join("clang").is_file())
+    else {
+        return Vec::new();
+    };
+    [
+        ("CC_wasm32_unknown_unknown", "clang"),
+        ("CXX_wasm32_unknown_unknown", "clang++"),
+        ("AR_wasm32_unknown_unknown", "llvm-ar"),
+    ]
+    .into_iter()
+    .map(|(name, tool)| (name, bin.join(tool)))
+    .filter(|(_, path)| path.is_file())
+    .collect()
 }
 
 fn build_with_profile(
@@ -814,6 +847,31 @@ fn content_type(path: &Path) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn macos_wasm_builds_compile_c_with_homebrew_llvm_when_it_is_installed() {
+        let root = tempfile::tempdir().unwrap();
+        let llvm = root.path().join("opt/llvm");
+        let touch = |name: &str| {
+            fs::create_dir_all(llvm.join("bin")).unwrap();
+            fs::write(llvm.join("bin").join(name), "").unwrap();
+        };
+        let missing = root.path().join("missing");
+
+        assert!(macos_llvm_env(&[missing.clone(), llvm.clone()]).is_empty());
+
+        touch("clang");
+        touch("llvm-ar");
+        let env = macos_llvm_env(&[missing, llvm.clone()]);
+        assert_eq!(
+            env,
+            [
+                ("CC_wasm32_unknown_unknown", llvm.join("bin/clang")),
+                ("AR_wasm32_unknown_unknown", llvm.join("bin/llvm-ar")),
+            ],
+            "tools that are not installed are left out"
+        );
+    }
 
     #[test]
     fn playwright_feature_list_names_the_served_build_features() {
