@@ -18,7 +18,7 @@ Windows (PowerShell):
 powershell -ExecutionPolicy Bypass -c "irm https://github.com/rayx-ui/RayX.CLI/releases/latest/download/rayx-cli-installer.ps1 | iex"
 ```
 
-Until the first release is published, build it from source: `cargo install --locked --git https://github.com/rayx-ui/RayX.CLI rayx-cli`.
+Until the first release is published, build it from source: `cargo install --locked --git https://github.com/rayx-ui/RayX.CLI --branch feature/initial-setup rayx-cli` (drop `--branch` once the work is merged to `main`).
 
 Release binaries cover Windows x64 and ARM64, Linux x64 and ARM64 (static musl), and macOS ARM64
 and x64. Update an installed `rayx` with `rayx self update`.
