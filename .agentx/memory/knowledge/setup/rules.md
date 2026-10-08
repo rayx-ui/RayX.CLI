@@ -4,7 +4,7 @@ agentx:
   scope: knowledge/setup
   status: current
   created: 2026-10-07T23:30:00+02:00
-  updated: 2026-10-08T05:00:00+02:00
+  updated: 2026-10-08T23:59:00+02:00
   topics:
     - setup
     - doctor
@@ -26,3 +26,6 @@ agentx:
 - Read what a probe needs without depending on selection, licenses or login state (Xcode versions come from `version.plist`, not `xcodebuild`).
 - Support Ubuntu/Debian only among Linux distributions for now; others fail `setup` with an actionable message while `doctor` still reports.
 - Never discover, clone, copy or download a project's dependencies (gpux included) by following its manifest's `path` entries; Cargo resolves dependencies from crates.io or git. `setup --wsl --clone` copies only the current checkout (owner, 2026-10-07).
+- An installed but outdated or unusable requirement is an update, not a first install (`Probed::is_outdated`: a found version below the pin, or `Probed::outdated`). Ask before updating it (`Cx::with_update_prompt`, answered on a terminal); `--yes` updates without asking; with no terminal and no `--yes` leave it alone, report the exact commands and exit 1. A first install is never asked about (owner, 2026-10-08).
+- A probe for a tool that can be present but unable to run must run it: Homebrew counts as present only when `brew config` works (`brew --version` is plain shell and passes on a Homebrew too old for the macOS). Update an existing Homebrew in place (`brew update --force`), never reinstall it.
+- Choose a Node by the pinned major, not by PATH order: an old nvm Node first on PATH must not hide Homebrew's keg-only `node@<major>` (`select_node`); corepack and every Node child process follow the selected Node. The app-side Playwright runner does the same with Playwright's own floor, Node 18 (`supported_node_dir`).

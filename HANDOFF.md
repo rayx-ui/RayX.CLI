@@ -8,7 +8,11 @@ Where the `rayx-cli-foundation` epic stands and exactly what is left. Read this 
 Last updated: 2026-10-08, branch `feature/initial-setup` (pushed to `origin`, public repository
 `rayx-ui/RayX.CLI`).
 
-**If you are the agent on the Mac, follow [Part 1](#part-1-the-mac-session) step by step.**
+**The Mac session ran on 2026-10-08/09: the results, the fixes and what is still open are in
+[docs/manual-verification.md](docs/manual-verification.md#macos-and-ios-this-mac-2026-10-0809). The
+one open item is not in `rayx`: RayX at its current commit fails to start on iOS (theme service,
+after the `RayX.Dtcg` and `RayX.SignalR` refactoring), and the sibling changes made along the way
+are uncommitted in `../RayX` and `../Gpux`. Part 1 below is kept as the procedure to repeat.**
 
 ## Status
 
