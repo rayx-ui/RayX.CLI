@@ -14,6 +14,7 @@ pub mod rust;
 pub mod test_tools;
 pub mod web;
 pub mod windows;
+pub mod wsl;
 
 use std::fmt;
 use std::io::{self, Write};
@@ -760,8 +761,7 @@ pub fn environment_for(host: HostFacts, project: Option<&Project>, yes: bool) ->
 /// Runs `rayx setup` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     if args.wsl {
-        eprintln!("rayx: `setup --wsl` is not implemented in this build");
-        return 1;
+        return wsl::run(args);
     }
     let host = crate::host::facts();
     let mut runner = if args.check {

@@ -92,7 +92,7 @@ fn setup_accepts_the_documented_flags() {
     };
     assert!(setup.web && setup.test && setup.android && setup.ios && setup.gpu);
     assert!(setup.all && setup.check && setup.yes);
-    assert!(!setup.wsl && !setup.clone);
+    assert!(!setup.wsl && setup.clone.is_none());
 }
 
 #[test]

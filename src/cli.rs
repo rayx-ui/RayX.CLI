@@ -73,9 +73,15 @@ pub struct SetupArgs {
     /// Set up WSL 2 with Ubuntu-24.04 and run the same setup inside it (Windows only)
     #[arg(long)]
     pub wsl: bool,
-    /// With --wsl: clone the current checkout into the WSL home directory
-    #[arg(long, requires = "wsl")]
-    pub clone: bool,
+    /// With --wsl: clone the current checkout into the distribution (default `~/<checkout name>`)
+    #[arg(
+        long,
+        requires = "wsl",
+        num_args = 0..=1,
+        default_missing_value = "",
+        value_name = "LINUX_DIR"
+    )]
+    pub clone: Option<String>,
 }
 
 /// Flags of `rayx doctor`.
