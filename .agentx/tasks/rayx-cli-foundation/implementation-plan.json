@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 8,
+  "revision": 10,
   "title": "RayX CLI: machine setup, doctor, WSL, self update and the app pipeline for any RayX app",
   "validationMode": "sprint",
   "repositories": [
@@ -28,9 +28,7 @@
       "gpux"
     ],
     "forbiddenPaths": [
-      "rayx:crates/**",
       "rayx:vendor/**",
-      "rayx:apps/*/src/**",
       "gpux:crates/**",
       "gpux:vendor/**"
     ]
