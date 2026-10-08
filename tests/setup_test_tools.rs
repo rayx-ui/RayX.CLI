@@ -598,3 +598,43 @@ fn pnpm_commands_carry_the_node_directory_because_the_shim_starts_node_by_name()
         assert!(spec.program.ends_with("pnpm.cmd"), "{id}: {}", spec.program);
     }
 }
+
+#[test]
+fn chromium_is_found_through_pnpms_store_when_playwright_core_is_not_hoisted() {
+    let env = env(Os::Linux, Arch::X64, UBUNTU_2404, false, true);
+    let tools = path(&["/work/rayx", "tools-node"]);
+    // pnpm links only direct dependencies at the top of `node_modules`; `playwright-core` is a
+    // dependency of `playwright` and lives in the store.
+    let manifest = tools
+        .join("node_modules")
+        .join(".pnpm")
+        .join("playwright-core@1.59.1")
+        .join("node_modules")
+        .join("playwright-core")
+        .join("browsers.json");
+    let browsers = r#"{"browsers":[{"name":"chromium","revision":"1181"}]}"#;
+    let cache = path(&["/home/dev", ".cache", "ms-playwright"]);
+    let installed = base_machine()
+        .with_text(tools.join("package.json"), "{}")
+        .with_dir(tools.join("node_modules").join("playwright"))
+        .with_text(&manifest, browsers)
+        .with_dir(cache.join("chromium-1181"));
+
+    let (_, text) = check(&env, &installed, &mut bare(Os::Linux));
+
+    assert!(
+        text.contains("[ok     ] test: Playwright Chromium"),
+        "{text}"
+    );
+
+    let without_browser = base_machine()
+        .with_text(tools.join("package.json"), "{}")
+        .with_dir(tools.join("node_modules").join("playwright"))
+        .with_text(&manifest, browsers);
+    let (_, text) = check(&env, &without_browser, &mut bare(Os::Linux));
+    assert!(
+        text.contains("[missing] test: Playwright Chromium"),
+        "{text}"
+    );
+    assert!(text.contains("chromium-1181"), "{text}");
+}

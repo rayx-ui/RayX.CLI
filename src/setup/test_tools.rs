@@ -378,6 +378,34 @@ fn playwright_install_step(dir: PathBuf) -> Step {
     )
 }
 
+/// The text of `playwright-core`'s `browsers.json` in a package's `node_modules`: at the top level
+/// for a flat install, else in pnpm's store (`.pnpm/playwright-core@<version>/node_modules`), where
+/// a dependency of a dependency lives.
+fn browsers_manifest(cx: &Cx, package_dir: &Path) -> Option<String> {
+    let modules = package_dir.join("node_modules");
+    let flat = modules.join("playwright-core").join("browsers.json");
+    if let Some(text) = cx.machine.read_to_string(&flat) {
+        return Some(text);
+    }
+    let store = modules.join(".pnpm");
+    let mut versions: Vec<String> = cx
+        .machine
+        .list_dir(&store)
+        .into_iter()
+        .filter(|name| name.starts_with("playwright-core@"))
+        .collect();
+    versions.sort();
+    versions.iter().rev().find_map(|name| {
+        cx.machine.read_to_string(
+            &store
+                .join(name)
+                .join("node_modules")
+                .join("playwright-core")
+                .join("browsers.json"),
+        )
+    })
+}
+
 fn playwright_browser_step(dir: PathBuf) -> Step {
     let probe_dir = dir.clone();
     Step::new(
@@ -389,11 +417,7 @@ fn playwright_browser_step(dir: PathBuf) -> Step {
             if !cx.machine.exists(&probe_dir.join("package.json")) {
                 return Probed::ok();
             }
-            let manifest = probe_dir
-                .join("node_modules")
-                .join("playwright-core")
-                .join("browsers.json");
-            let Some(text) = cx.machine.read_to_string(&manifest) else {
+            let Some(text) = browsers_manifest(cx, &probe_dir) else {
                 return Probed::missing("Playwright is not installed yet");
             };
             let revision = serde_json::from_str::<serde_json::Value>(&text)
