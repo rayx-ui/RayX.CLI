@@ -10,6 +10,9 @@ use super::{Action, Cx, PlanEnv, Probed, Set, SetupError, Step, rust};
 
 const BUILD_TOOLS_ID: &str = "Microsoft.VisualStudio.2022.BuildTools";
 const VC_WORKLOAD: &str = "Microsoft.VisualStudio.Workload.VCTools";
+/// The C++ compilers and libraries themselves: present in the Build Tools workload and in every
+/// full Visual Studio with the C++ desktop workload, so the probe asks for the component.
+const VC_TOOLS_COMPONENT: &str = "Microsoft.VisualStudio.Component.VC.Tools.x86.x64";
 const VC_ARM64_COMPONENT: &str = "Microsoft.VisualStudio.Component.VC.Tools.ARM64";
 const LLVM_ID: &str = "LLVM.LLVM";
 const WINGET_HELP: &str = "winget is not available. Install \"App Installer\" from the Microsoft \
@@ -82,8 +85,15 @@ fn find_vs(cx: &mut Cx, components: &[&str]) -> Option<String> {
     if !cx.machine.exists(&program) {
         return None;
     }
-    let mut spec = CommandSpec::new(program.display().to_string())
-        .args(["-latest", "-products", "*"])
+    // Without a component filter the newest instance is wanted (the one to modify); with one,
+    // any instance that has the components will do, even when a newer one (Visual Studio 2026
+    // next to 2022 on a hosted runner) lacks them.
+    let mut spec = CommandSpec::new(program.display().to_string());
+    if components.is_empty() {
+        spec = spec.args(["-latest"]);
+    }
+    spec = spec
+        .args(["-products", "*"])
         .args(["-property", "installationPath"]);
     if !components.is_empty() {
         spec = spec.arg("-requires").args(components.iter().copied());
@@ -93,6 +103,16 @@ fn find_vs(cx: &mut Cx, components: &[&str]) -> Option<String> {
     (outcome.is_success() && !path.is_empty()).then_some(path)
 }
 
+/// What the probe asks vswhere for.
+fn probed_components(arch: Arch) -> Vec<&'static str> {
+    let mut components = vec![VC_TOOLS_COMPONENT];
+    if arch == Arch::Arm64 {
+        components.push(VC_ARM64_COMPONENT);
+    }
+    components
+}
+
+/// What an install or modify adds.
 fn required_components(arch: Arch) -> Vec<&'static str> {
     let mut components = vec![VC_WORKLOAD];
     if arch == Arch::Arm64 {
@@ -113,7 +133,7 @@ fn build_tools_step(env: &PlanEnv) -> Step {
         },
         Privilege::None,
         move |cx| {
-            if find_vs(cx, &required_components(arch)).is_some() {
+            if find_vs(cx, &probed_components(arch)).is_some() {
                 Probed::ok()
             } else {
                 Probed::missing("the C++ build tools are not installed")

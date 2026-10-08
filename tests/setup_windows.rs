@@ -397,3 +397,33 @@ fn a_provisioned_windows_host_has_nothing_to_do() {
     let text = String::from_utf8(out).expect("UTF-8");
     assert_eq!(code, 0, "{text}");
 }
+
+#[test]
+fn a_full_visual_studio_with_the_cpp_tools_counts_even_without_the_build_tools_workload() {
+    // A hosted runner has Visual Studio 2022 Enterprise with the C++ desktop workload and a newer
+    // instance without it: vswhere must be asked for the compiler component, of any instance.
+    let env = env(Arch::X64, false, false);
+    let machine = sdk_machine().with_file(vswhere());
+    let mut runner = runner().responder(|spec| {
+        if !spec.program.ends_with("vswhere.exe") {
+            return None;
+        }
+        let asked = spec.args.join(" ");
+        let has_compilers = asked.contains("Microsoft.VisualStudio.Component.VC.Tools.x86.x64");
+        let wants_build_tools_workload = asked.contains("Workload.VCTools");
+        Some(
+            if has_compilers && !wants_build_tools_workload && !asked.contains("-latest") {
+                Outcome::success().with_stdout("C:\\VS2022-Enterprise\n")
+            } else {
+                Outcome::success()
+            },
+        )
+    });
+
+    let (_, text) = check(&env, &machine, &mut runner);
+
+    assert!(
+        text.contains("[ok     ] base: Visual Studio 2022 Build Tools (C++ workload)"),
+        "{text}"
+    );
+}
