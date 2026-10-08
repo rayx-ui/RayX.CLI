@@ -271,6 +271,9 @@ pub struct Step {
     /// The install asks the user a question (a license) even though it needs no privileges, so an
     /// app command does not run it on its own.
     pub prompts: bool,
+    /// Building does not need this step (an IDE, say): `rayx setup` installs it, an app command
+    /// does not wait for it.
+    pub optional_for_builds: bool,
 }
 
 impl Step {
@@ -288,6 +291,7 @@ impl Step {
             install: Install::Apt(packages),
             reboot_notice: None,
             prompts: false,
+            optional_for_builds: false,
         }
     }
 
@@ -310,6 +314,7 @@ impl Step {
             install: Install::Actions(Box::new(actions)),
             reboot_notice: None,
             prompts: false,
+            optional_for_builds: false,
         }
     }
 
@@ -322,6 +327,12 @@ impl Step {
     /// The install asks the user a question.
     pub fn with_prompt(mut self) -> Self {
         self.prompts = true;
+        self
+    }
+
+    /// Building does not need this step.
+    pub fn optional_for_builds(mut self) -> Self {
+        self.optional_for_builds = true;
         self
     }
 

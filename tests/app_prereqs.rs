@@ -311,3 +311,62 @@ fn only_the_android_license_step_asks_a_question() {
         .collect();
     assert_eq!(asking, ["android-packages"]);
 }
+
+#[test]
+fn a_step_builds_do_not_need_is_neither_waited_for_nor_installed() {
+    let present = Rc::new(Cell::new(false));
+    let ide = step("Android Studio", Privilege::None, &present).optional_for_builds();
+    let outcome = run(vec![ide], batch(), false);
+
+    assert_eq!(outcome.result.expect("nothing blocks the build"), 0);
+    assert!(outcome.installed.is_empty());
+    assert!(outcome.output.is_empty());
+}
+
+#[test]
+fn a_winget_install_that_asks_for_the_license_belongs_to_the_owner() {
+    let installed = Rc::new(Cell::new(false));
+    let probe_state = installed.clone();
+    let winget = |accepts: bool| {
+        let probe_state = probe_state.clone();
+        Step::new(
+            "jdk",
+            Set::Android,
+            "JDK 21",
+            Privilege::None,
+            move |_| {
+                if probe_state.get() {
+                    Probed::ok()
+                } else {
+                    Probed::missing("no JDK")
+                }
+            },
+            move |_, _| {
+                let mut spec = rayx_cli::host::CommandSpec::new("winget").args([
+                    "install",
+                    "--id",
+                    "Microsoft.OpenJDK.21",
+                    "--exact",
+                ]);
+                if accepts {
+                    spec = spec.arg("--accept-package-agreements");
+                }
+                Ok(vec![Action::Run(spec)])
+            },
+        )
+    };
+
+    let asks = run(vec![winget(false)], batch(), true);
+    assert!(
+        message(&asks).contains("license answer"),
+        "{}",
+        message(&asks)
+    );
+    assert!(asks.installed.is_empty());
+
+    let accepted = run(vec![winget(true)], batch(), true);
+    assert_eq!(
+        accepted.result.expect("agreements were accepted up front"),
+        1
+    );
+}

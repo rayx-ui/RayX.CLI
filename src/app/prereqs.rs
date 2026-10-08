@@ -8,10 +8,11 @@ use std::io::{self, BufRead, IsTerminal, Write};
 use anyhow::{Result, anyhow, bail};
 
 use crate::app::ProjectContext;
-use crate::host::Privilege;
-use crate::host::Runner;
 use crate::host::path_env::UserPath;
-use crate::setup::{self, Cx, Machine, Plan, PlanEnv, Set, Step, SystemMachine};
+use crate::host::{CommandSpec, Privilege, Runner};
+use crate::setup::{
+    self, Action, Cx, Install, Machine, Plan, PlanEnv, Probed, Set, Step, SystemMachine,
+};
 
 /// How the prerequisite step behaves.
 #[derive(Clone, Copy, Debug, Default)]
@@ -56,9 +57,33 @@ pub fn setup_command(sets: &[Set]) -> String {
 }
 
 /// Whether the owner has to be involved to install a step: it needs administrator rights, or it
-/// asks a question.
-fn needs_owner(step: &Step) -> bool {
-    step.privilege != Privilege::None || step.prompts
+/// asks a question (a license, as `winget` does without `--accept-package-agreements`).
+fn needs_owner(step: &Step, probed: &Probed, cx: &mut Cx) -> bool {
+    if step.privilege != Privilege::None || step.prompts {
+        return true;
+    }
+    let Install::Actions(build) = &step.install else {
+        return false;
+    };
+    build(cx, probed).is_ok_and(|actions| {
+        actions
+            .iter()
+            .any(|action| matches!(action, Action::Run(spec) if asks_for_a_license(spec)))
+    })
+}
+
+fn asks_for_a_license(spec: &CommandSpec) -> bool {
+    let program = spec
+        .program
+        .rsplit(['/', '\\'])
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    matches!(program.as_str(), "winget" | "winget.exe")
+        && !spec
+            .args
+            .iter()
+            .any(|arg| arg == "--accept-package-agreements")
 }
 
 /// Plans the sets (and the base set) and installs what is missing, as [`ensure_plan`] does.
@@ -96,19 +121,18 @@ pub fn ensure_plan(
     confirm: &mut dyn FnMut(&str) -> bool,
 ) -> Result<usize> {
     let checked = setup::check(plan, cx);
-    let missing: Vec<&Step> = plan
+    let missing: Vec<(&Step, &Probed)> = plan
         .steps
         .iter()
         .zip(&checked.probed)
-        .filter(|(_, probed)| !probed.satisfied)
-        .map(|(step, _)| step)
+        .filter(|(step, probed)| !probed.satisfied && !step.optional_for_builds)
         .collect();
     if missing.is_empty() {
         return Ok(0);
     }
     let titles = missing
         .iter()
-        .map(|step| step.title.as_str())
+        .map(|(step, _)| step.title.as_str())
         .collect::<Vec<_>>()
         .join(", ");
 
@@ -117,8 +141,8 @@ pub fn ensure_plan(
     }
     let owner = missing
         .iter()
-        .filter(|step| needs_owner(step))
-        .map(|step| step.title.as_str())
+        .filter(|(step, probed)| needs_owner(step, probed, cx))
+        .map(|(step, _)| step.title.as_str())
         .collect::<Vec<_>>()
         .join(", ");
     if !owner.is_empty() {
