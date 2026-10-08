@@ -80,7 +80,11 @@ fn jdk_roots(cx: &Cx) -> Vec<PathBuf> {
 
 /// The Java major version of the JDK at `home`, from its `release` file.
 pub fn jdk_major_at(cx: &Cx, home: &Path) -> Option<u32> {
-    let release = cx.machine.read_to_string(&home.join("release"))?;
+    jdk_major_from_release(&cx.machine.read_to_string(&home.join("release"))?)
+}
+
+/// The Java major version named by the text of a JDK's `release` file.
+pub fn jdk_major_from_release(release: &str) -> Option<u32> {
     let version = release
         .lines()
         .find_map(|line| line.strip_prefix("JAVA_VERSION="))?
@@ -379,18 +383,32 @@ pub fn find_cmdline_tool(cx: &Cx, sdk: &Path, tool: &str) -> Option<PathBuf> {
         })
 }
 
-/// An NDK found the way RayX xtask finds one: `ANDROID_NDK_HOME`, `ANDROID_NDK_ROOT`, `NDK_HOME`,
-/// else the newest under `<sdk>/ndk`.
+/// An NDK the user chose explicitly: `ANDROID_NDK_HOME`, `ANDROID_NDK_ROOT` or `NDK_HOME`.
+fn ndk_override(cx: &Cx) -> Option<PathBuf> {
+    ["ANDROID_NDK_HOME", "ANDROID_NDK_ROOT", "NDK_HOME"]
+        .into_iter()
+        .filter_map(|name| setting(cx, name))
+        .map(PathBuf::from)
+        .find(|path| cx.machine.is_dir(path))
+}
+
+/// The NDK the project pins, when it is installed in the SDK.
+fn pinned_ndk(cx: &Cx, sdk: &Path) -> Option<PathBuf> {
+    let path = sdk.join("ndk").join(&cx.env.pins.android_ndk.value);
+    cx.machine.is_dir(&path).then_some(path)
+}
+
+/// The NDK a build uses: the one the user chose through the environment, else the pinned one,
+/// else (so an SDK that holds only another NDK still reports it) the newest installed.
 pub fn find_ndk(cx: &Cx, sdk: Option<&Path>) -> Option<PathBuf> {
-    for name in ["ANDROID_NDK_HOME", "ANDROID_NDK_ROOT", "NDK_HOME"] {
-        if let Some(value) = setting(cx, name) {
-            let path = PathBuf::from(value);
-            if cx.machine.is_dir(&path) {
-                return Some(path);
-            }
-        }
+    if let Some(path) = ndk_override(cx) {
+        return Some(path);
     }
-    let ndk_root = sdk?.join("ndk");
+    let sdk = sdk?;
+    if let Some(path) = pinned_ndk(cx, sdk) {
+        return Some(path);
+    }
+    let ndk_root = sdk.join("ndk");
     let mut versions = cx.machine.list_dir(&ndk_root);
     versions.sort();
     versions.pop().map(|version| ndk_root.join(version))
@@ -505,7 +523,9 @@ fn wanted_packages(cx: &Cx, sdk: &Path) -> Vec<(String, bool)> {
         ),
         (
             format!("ndk;{}", pins.android_ndk.value),
-            find_ndk(cx, Some(sdk)).is_some(),
+            // Another NDK in the SDK does not stand in for the pinned one; an NDK the user
+            // points the environment at does.
+            ndk_override(cx).is_some() || pinned_ndk(cx, sdk).is_some(),
         ),
     ];
     if let Some(build_tools) = &pins.android_build_tools {
@@ -599,7 +619,12 @@ fn sdk_packages_step() -> Step {
 /// `ERROR |` and `DEBUG |` log lines the emulator can print on standard output (RayX xtask does
 /// the same).
 pub fn first_avd_name(output: &str) -> Option<&str> {
-    output.lines().map(str::trim).find(|line| {
+    avd_names(output).next()
+}
+
+/// Every AVD name in `emulator -list-avds` output, without the emulator's log lines.
+pub fn avd_names(output: &str) -> impl Iterator<Item = &str> {
+    output.lines().map(str::trim).filter(|line| {
         !line.is_empty()
             && !matches!(
                 line.split_once('|').map(|(prefix, _)| prefix.trim()),
@@ -619,6 +644,7 @@ pub fn avd_name(env: &PlanEnv) -> String {
 
 fn avd_step(env: &PlanEnv) -> Step {
     let wsl = env.host.wsl;
+    let default = avd_name(env);
     Step::new(
         "android-avd",
         Set::Android,
@@ -642,11 +668,20 @@ fn avd_step(env: &PlanEnv) -> Step {
             let listed = cx
                 .query(&CommandSpec::new(emulator.display().to_string()).arg("-list-avds"))
                 .filter(|outcome| outcome.is_success())
-                .is_some_and(|outcome| first_avd_name(&outcome.stdout).is_some());
-            if listed {
+                .map(|outcome| {
+                    avd_names(&outcome.stdout)
+                        .map(str::to_string)
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            // Only the default AVD counts: it is made for the pinned system image, while another
+            // AVD on the machine can point at an image that is not installed.
+            if listed.contains(&default) {
                 Probed::ok()
-            } else {
+            } else if listed.is_empty() {
                 Probed::missing("no AVD exists")
+            } else {
+                Probed::missing(format!("only other AVDs exist ({})", listed.join(", ")))
             }
         },
         |cx, _| {

@@ -360,7 +360,7 @@ fn sdkmanager_installs_the_pinned_packages_in_one_command_with_licenses() {
 }
 
 #[test]
-fn pinned_build_tools_an_existing_ndk_and_the_host_architecture_shape_the_package_list() {
+fn pinned_build_tools_the_pinned_ndk_and_the_host_architecture_shape_the_package_list() {
     let os = Os::MacOs;
     let mut env = env(os, Arch::Arm64, false, false);
     env.pins.android_build_tools = Some(Pin {
@@ -372,13 +372,13 @@ fn pinned_build_tools_an_existing_ndk_and_the_host_architecture_shape_the_packag
         os,
         &["platform-tools"],
     )
-    // An NDK that is not the pinned one is honoured, as xtask does.
+    // An NDK that is not the pinned one does not stand in for it.
     .with_dir(sdk_dir(os).join("ndk").join("27.1.12297006"));
     let (_, text) = check(&env, &machine, &mut runner(os));
     assert!(text.contains("build-tools;36.0.0"), "{text}");
     assert!(
-        !text.contains("ndk;"),
-        "an existing NDK is honoured:\n{text}"
+        text.contains("ndk;28.0.12674087"),
+        "the pinned NDK is installed next to another one:\n{text}"
     );
     assert!(
         text.contains("system-images;android-34;google_apis;arm64-v8a"),
@@ -406,7 +406,7 @@ fn pinned_build_tools_an_existing_ndk_and_the_host_architecture_shape_the_packag
 }
 
 #[test]
-fn a_default_avd_is_created_only_when_none_exists() {
+fn a_default_avd_is_created_unless_it_already_exists() {
     let os = Os::Linux;
     let env = env(os, Arch::X64, false, false);
     let packages = &["platform-tools", "platform", "ndk", "emulator", "image"];
@@ -429,12 +429,24 @@ fn a_default_avd_is_created_only_when_none_exists() {
         "{text}"
     );
 
-    let some = runner(os).responder(|spec| {
+    // Another AVD does not stand in for the default one.
+    let other = runner(os).responder(|spec| {
         spec.program
             .ends_with("emulator")
             .then(|| Outcome::success().with_stdout("Pixel_6_API_34\n"))
     });
-    let (_, text) = check(&env, &machine, &mut { some });
+    let (_, text) = check(&env, &machine, &mut { other });
+    assert!(
+        status(&text, "default AVD").starts_with("[missing]"),
+        "{text}"
+    );
+
+    let default = runner(os).responder(|spec| {
+        spec.program
+            .ends_with("emulator")
+            .then(|| Outcome::success().with_stdout("Pixel_6_API_34\nrayx-android-34-x86_64\n"))
+    });
+    let (_, text) = check(&env, &machine, &mut { default });
     assert!(
         status(&text, "default AVD").starts_with("[ok     ]"),
         "{text}"
@@ -651,7 +663,7 @@ fn emulator_log_lines_are_not_avds() {
     let with_avd = runner(os).responder(|spec| {
         spec.program.ends_with("emulator").then(|| {
             Outcome::success()
-                .with_stdout("INFO    | Storing crashdata in: /tmp/x\nPixel_6_API_34\n")
+                .with_stdout("INFO    | Storing crashdata in: /tmp/x\nrayx-android-34-x86_64\n")
         })
     });
     let (_, text) = check(&env, &machine, &mut { with_avd });
