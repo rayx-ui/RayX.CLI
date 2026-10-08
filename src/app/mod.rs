@@ -84,6 +84,9 @@ fn app_command(mut args: Vec<String>, check_prerequisites: bool) -> Result<()> {
     let features = AppFeatureSelection::take_from_args(&mut args)?;
     features.validate_for(&app.manifest())?;
     validate_diagnostic_feature_policy(app.diagnostic_harness, &action, &features)?;
+    // An action the target does not support fails with its own message before anything is
+    // offered for installation.
+    check_supported(&action, &target)?;
     if check_prerequisites && ACTIONS.contains(&action.as_str()) {
         prereqs::ensure_for_command(&context, &action, &target, no_install)?;
         // Without cargo (or the pinned toolchain) discovery reads manifests only; with what the
@@ -208,6 +211,30 @@ fn test_target(
             )
         }
         other => bail!("unknown app test target: {other}"),
+    }
+}
+
+/// Fails, with the message the action itself gives, when `action` does not exist for `target`.
+pub fn check_supported(action: &str, target: &str) -> Result<()> {
+    const BUILDABLE: [&str; 8] = [
+        "host", "windows", "linux", "macos", "mobile", "ios", "android", "wasm",
+    ];
+    match action {
+        "build" | "run" | "pack" | "publish" if !BUILDABLE.contains(&target) => {
+            bail!("unknown app {action} target: {target}")
+        }
+        "deploy" if target != "android" => {
+            bail!("app deploy is currently supported only for android, not {target}")
+        }
+        "test" => match target {
+            "host" | "windows" | "linux" | "macos" | "wasm" => Ok(()),
+            "android" | "ios" | "mobile" => bail!(
+                "app test for {target} is not supported yet: use `host`, a desktop target or `wasm`"
+            ),
+            other => bail!("unknown app test target: {other}"),
+        },
+        "build" | "run" | "pack" | "publish" | "deploy" => Ok(()),
+        other => bail!("unknown app action: {other}"),
     }
 }
 

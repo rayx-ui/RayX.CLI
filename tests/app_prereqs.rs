@@ -142,6 +142,32 @@ fn the_target_decides_which_sets_a_command_needs() {
 }
 
 #[test]
+fn unsupported_action_target_pairs_fail_before_anything_is_offered_for_install() {
+    use rayx_cli::app::check_supported;
+
+    // `test android` would need the Android set; it says "not supported yet" instead.
+    for target in ["android", "ios", "mobile"] {
+        let error = check_supported("test", target).expect_err(target);
+        assert!(error.to_string().contains("not supported yet"), "{error}");
+    }
+    let error = check_supported("deploy", "wasm").expect_err("deploy wasm");
+    assert!(error.to_string().contains("only for android"), "{error}");
+    assert!(check_supported("build", "nowhere").is_err());
+    assert!(check_supported("explode", "host").is_err());
+    for (action, target) in [
+        ("build", "wasm"),
+        ("run", "android"),
+        ("pack", "ios"),
+        ("publish", "host"),
+        ("deploy", "android"),
+        ("test", "wasm"),
+        ("test", "host"),
+    ] {
+        check_supported(action, target).unwrap_or_else(|e| panic!("{action} {target}: {e}"));
+    }
+}
+
+#[test]
 fn the_setup_command_names_each_set_but_the_base() {
     assert_eq!(setup_command(&[]), "rayx setup");
     assert_eq!(
