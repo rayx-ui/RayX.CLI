@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 90,
+  "revision": 100,
   "planRevision": 10,
   "specHashes": {
     "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
@@ -142,16 +142,28 @@
       ]
     },
     "t23-wsl": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t24-release": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t25-self-update": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t26-docs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t27-slim-xtask": {
       "status": "pending"
@@ -202,7 +214,10 @@
       ]
     },
     "t36-wsl-disk": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     }
   },
   "validationBatches": {
@@ -259,7 +274,18 @@
           "gpux": "33242c321b86a84507d0f3118a7939b1c9afefbedb00053c0e5575cd2fdf61a3"
         }
       },
-      "recordedAt": "2026-10-08T06:44:48Z"
+      "recordedAt": "2026-10-08T06:46:49Z"
+    },
+    "4e3d60b69faffeeb86c0a03646ccac4871037b471da9e4d1f64eaf724ded88b8": {
+      "snapshot": {
+        "specHash": "26042ddd08dc078829a899c2829e752f9bc85566f19d294c5a369103378efede",
+        "repositories": {
+          "rayx-cli": "df4265a8cdd8723013fa787ca1d66ba2dd39d1aaf5ecdbc0eaebe458edebc0cb",
+          "rayx": "041089a679bc6e24bbcedd07f99ff4a2e58059d949021905ffd74ec64d15139c",
+          "gpux": "33242c321b86a84507d0f3118a7939b1c9afefbedb00053c0e5575cd2fdf61a3"
+        }
+      },
+      "recordedAt": "2026-10-08T06:54:47Z"
     }
   },
   "checkResults": {
@@ -1053,6 +1079,108 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-9e7e898528ff.log",
       "logSha256": "d4fd42feb0e4f4cb198dae06ca804d1490549c713c2cc188d087c732487baab4",
       "inputsHash": "c8abc198fb771fd4b7f832e0c043e7499fe2dfdb0a8ce0029e309b921c7f323f"
+    },
+    "s5-wsl-release-update/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "s5-wsl-release-update",
+      "phase": "final",
+      "batchId": "4e3d60b69faffeeb86c0a03646ccac4871037b471da9e4d1f64eaf724ded88b8",
+      "definitionHash": "32cee98ae43a6fe58272ad1411f4d72cab9a903874325bf1be89098d23713486",
+      "basisHash": "5e9de444289e0e5cd462eca572cdf54b05c41e1989e275698dbbf473aae3bb38",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.4904,
+      "recordedAt": "2026-10-08T06:54:38Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s5-wsl-release-update-final-47e4858b587c.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "23142206a385fcbebda7f857946e2b4beb453d4dab371283c002f1c9cd36bca2"
+    },
+    "s5-wsl-release-update/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "s5-wsl-release-update",
+      "phase": "final",
+      "batchId": "4e3d60b69faffeeb86c0a03646ccac4871037b471da9e4d1f64eaf724ded88b8",
+      "definitionHash": "67c592bba17b7b720efc70b7b5b11322e3bc7fcd8490722aede92373d72ba844",
+      "basisHash": "9d0722bdc3a49b4ee0b6f2bc9ef4dfb7c22f2feef6d34f9a1376c980f94dafe2",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.4353,
+      "recordedAt": "2026-10-08T06:54:39Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s5-wsl-release-update-final-29d4b497a80c.log",
+      "logSha256": "0b53209db424367e80c52cd8cde8b75e37af110438a0efde777104a1463956de",
+      "inputsHash": "b175a822f4d0637ab76e568df3096b79670e8aa36530b2a8a270264b01ab968c"
+    },
+    "s5-wsl-release-update/check-wsl-plan/final": {
+      "checkId": "check-wsl-plan",
+      "boundaryId": "s5-wsl-release-update",
+      "phase": "final",
+      "batchId": "4e3d60b69faffeeb86c0a03646ccac4871037b471da9e4d1f64eaf724ded88b8",
+      "definitionHash": "590e5bd346a631c0c084782c679568b85e930ba1fe94dd44a6310217eb0ca5f7",
+      "basisHash": "eb2d6803739164a598f40d1cbd228c15910c113ec610bf9893a7846ad999c5f9",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 18,
+      "durationSeconds": 0.389,
+      "recordedAt": "2026-10-08T06:54:39Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s5-wsl-release-update-final-15c36216aa49.log",
+      "logSha256": "58c9e3fbf6c1b11fff84dc4e41273371d1b1aa3ae670ce1db1c06f208874b539",
+      "inputsHash": "4cb81a2f14031c7bbd5753a4f4fc6cd33700d1be5889bf5711601c75e6050c2f"
+    },
+    "s5-wsl-release-update/check-wsl-disk/final": {
+      "checkId": "check-wsl-disk",
+      "boundaryId": "s5-wsl-release-update",
+      "phase": "final",
+      "batchId": "4e3d60b69faffeeb86c0a03646ccac4871037b471da9e4d1f64eaf724ded88b8",
+      "definitionHash": "e1b77fdb3cd08541580f1283ccdb6fd1d771c73a25995eac95bc8c1f0932db8c",
+      "basisHash": "4b9b8057f0d648b4ba8fd495886d2286739680c4acf8039d192e33c7b26a5ce2",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 21,
+      "durationSeconds": 0.3274,
+      "recordedAt": "2026-10-08T06:54:39Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s5-wsl-release-update-final-9769cb4010c3.log",
+      "logSha256": "68f3781d18cd0ff360b1e3e5ce0fc7e1887ae027d10039f958c3274dcabda3e0",
+      "inputsHash": "e56641f621e96917bf6aa1529fc436c2d693b6c7d17158a827ebe5b4c25668ea"
+    },
+    "s5-wsl-release-update/check-dist-plan/final": {
+      "checkId": "check-dist-plan",
+      "boundaryId": "s5-wsl-release-update",
+      "phase": "final",
+      "batchId": "4e3d60b69faffeeb86c0a03646ccac4871037b471da9e4d1f64eaf724ded88b8",
+      "definitionHash": "0f88bda2aaa56b4a203e9261f1af0b4f33b77117f39b379eab8b74643afac0d4",
+      "basisHash": "7f6a9c7fa56648855fc27b27e9d1b5166be3e216e3db9019837853e29a78a39e",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 2.3414,
+      "recordedAt": "2026-10-08T06:54:42Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s5-wsl-release-update-final-55a27b640916.log",
+      "logSha256": "17d70557e8c2d6853a6d59a5b35cc68dd98d0c2323d31b47820d345edc64dee4",
+      "inputsHash": "96705d08b5fe474afa95bd6ec98f3cdf5333144a052a494f81a7e03ae82a83e0"
+    },
+    "s5-wsl-release-update/check-self-update/final": {
+      "checkId": "check-self-update",
+      "boundaryId": "s5-wsl-release-update",
+      "phase": "final",
+      "batchId": "4e3d60b69faffeeb86c0a03646ccac4871037b471da9e4d1f64eaf724ded88b8",
+      "definitionHash": "48dab0dcfb671dbc3021b04028973cd4a79ea98b371ae5c1b15de3029e925a4b",
+      "basisHash": "679faf29a5228cbfd221ec01b290c2efbe06a556ca728cf4e8253728c2c3f9c3",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 2.1391,
+      "recordedAt": "2026-10-08T06:54:44Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s5-wsl-release-update-final-9bdbdd9c45ef.log",
+      "logSha256": "3bb8768e00ffd68115aa6fefa1ec4928a856f99cbd28ca90692faa69b8aa3c8c",
+      "inputsHash": "038207d34aaf00898d1952440196853d07104d1a1a85c8fc3fc4165761e5dad4"
     }
   },
   "reviews": {
@@ -2096,6 +2224,113 @@
         "s4-f1-unsupported-targets-install-first"
       ],
       "recordedAt": "2026-10-08T06:45:44Z"
+    },
+    "s5-wsl-release-update": {
+      "reviewerId": "s5-independent-reviewer",
+      "snapshotId": "4e3d60b69faffeeb86c0a03646ccac4871037b471da9e4d1f64eaf724ded88b8",
+      "criterionIds": [
+        "WSL-1",
+        "WSL-2",
+        "WSL-3",
+        "WSL-4",
+        "REL-1",
+        "REL-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "WSL-1",
+            "WSL-2"
+          ],
+          "sha256": "73dcf68968fd827fb7aeb4deb81fcb46fc10e25780f76e57af4571af99212562"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_plan.rs",
+          "kind": "test",
+          "criterionIds": [
+            "WSL-1",
+            "WSL-2"
+          ],
+          "sha256": "0d799a11b9ee445536a125313063c03ff5559db40ad3f7ff8ee722ea7d37f12c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "WSL-3",
+            "WSL-4"
+          ],
+          "sha256": "e4a4596a53add7818c270ef92b31b85279ce92824587f6ca06717d6c6714667f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "kind": "test",
+          "criterionIds": [
+            "WSL-3",
+            "WSL-4"
+          ],
+          "sha256": "781dd57ea3aa77e6e17ed0ad1db4c4e6e39ca6da836bef9595b1a78ee4a36614"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "dist-workspace.toml",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "b6bd169922a7a0dde29f1538fef6ea8485612e3a429583493b34d3d6a63f9959"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release.yml",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "a1cd1872cbaf576a7927852474fb8d9cf9450f9ef1846d6105706ccb700cd73c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "bf4a235da22f9c920d94ebd6987b66907908eaeaf5bbc0277a2c7d565b9a738b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REL-2"
+          ],
+          "sha256": "12ec1f2fc2fd3c660b8c1f3bb5c98e997865d480d2fbc136645f0956c7b6a0fe"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/self_update.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REL-2"
+          ],
+          "sha256": "e3ff13f959f8507269ca333ae3316a53b85260a59271d6a7bb271eab18ff2332"
+        }
+      ],
+      "summaryMarkdown": "Passed at the repaired snapshot. WSL-1/2/3 and REL-1/2 hold as in the first pass (plan, clone, status, dist config and installer receipt, axoupdater flow). The three WSL-4 findings are repaired in f866887 and verified: the vhdx path now reaches the elevated script as base64 data (a path with U+2019 round-trips through PowerShell, no code position holds it), compact refuses a non-.vhdx, control-character or missing disk before fstrim and `wsl --shutdown`, the script ends in `exit $code` taken from `$LASTEXITCODE` of the attach script (detach cannot overwrite it), and `rm -rf` runs only on paths whose last component is target, artifacts or artifacts-temp with no quote or control character (`linux_dir` also rejects control characters). `cargo test --test wsl_disk --test wsl_plan` passes (21 and 18 tests). WSL-4's real compaction, WSL-1's end-to-end run and REL-1/REL-2's first release and download stay manual. Residual risks for the first tag: no cross build runs before it (`pr-run-mode = plan`), and `aws-lc-sys` (via axoupdater, reqwest, rustls) cross-builds for aarch64-pc-windows-msvc through cargo-xwin; cut it as a prerelease. Nits left: a 3-character `\\?\\` trim in `run()` of src/setup/wsl.rs never matches (harmless), `setup --wsl --check` without the distribution reports the missing-user error, and a reboot needed after `wsl --install` is reported as the missing-user case.",
+      "findingIds": [
+        "F-S5-WSL4-PS-QUOTE",
+        "F-S5-WSL4-EXIT-MASKED",
+        "F-S5-WSL4-RM-GUARD"
+      ],
+      "recordedAt": "2026-10-08T06:56:00Z"
     }
   },
   "checkpoints": {
@@ -2138,6 +2373,16 @@
       },
       "reviewHash": "3fab63eeaa21a1a4fb144c40fb9c07717184998156ae88f1eeb4cb760bbdd305",
       "recordedAt": "2026-10-07T23:15:00Z"
+    },
+    "s4-app-pipeline": {
+      "snapshotId": "d214cfcfa5745ac4640aebb81887ab9d52c92e78ac6da801b396c4b4106ae3c7",
+      "commits": {
+        "rayx-cli": "ddacae69e76c8ece60294124ffcf4400d7299c03",
+        "rayx": "b33c62636b39e17eff54423de8854a110ae7c842",
+        "gpux": "14a63ad1b4128dfaaeaf23c26164f807cd7fe937"
+      },
+      "reviewHash": "61f6f12e2ffd3a7d1498811734429570fb4122e5a2f9fa7193590c2380cce58f",
+      "recordedAt": "2026-10-08T06:45:56Z"
     }
   },
   "findings": [
@@ -2645,9 +2890,75 @@
           "path": "tests/app_prereqs.rs"
         }
       ]
+    },
+    {
+      "id": "F-S5-WSL4-PS-QUOTE",
+      "boundaryId": "s5-wsl-release-update",
+      "criterionIds": [
+        "WSL-4"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected (WSL-4, d-wsl):** the one elevated child compacts the registry-reported `ext4.vhdx` for any valid install location, and nothing the user-writable registry or a profile path contains can change what the elevated script does. **Observed:** `compact_script` (`src/wsl.rs`) embeds the path in a PowerShell single-quoted literal and only doubles the ASCII `'`. PowerShell also ends a single-quoted string at U+2018, U+2019, U+201A and U+201B (reproduced with `powershell -EncodedCommand`: a path with one `’` gives `TerminatorExpectedAtEndOfString`, exit 1). Consequences: (1) a profile or `BasePath` containing such a character makes the compaction fail only after `wsl --shutdown` has already stopped every distribution and Docker; (2) `BasePath` is read from `HKCU`, which any unelevated process can write, and the script is passed to the elevated child as base64 `-EncodedCommand`, so the runner's quote/`%`/newline guard never sees it: a value like `x’; <command>; ’` runs elevated behind a UAC prompt that only says PowerShell. `tests/wsl_disk.rs` only tests the ASCII quote. **Repair:** do not interpolate the path as code. Pass it as data (for example a second base64 or hex segment decoded inside the script, or an environment variable set on the elevated spec) or at least reject any path containing a control character or any of `'‘’‚‛\"` before building the script, and double all four Unicode quotes. Validate before `wsl --shutdown` that the path ends in `.vhdx` and exists (`before.is_some()`), so a bad path stops before anything is shut down. Add a `tests/wsl_disk.rs` case for a path with `’` and with `'; calc; '`.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "symbol": "compaction_uses_optimize_vhd_with_a_diskpart_fallback_and_never_sets_sparse"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "symbol": "a_missing_virtual_disk_stops_before_any_side_effect"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "symbol": "a_path_that_is_not_a_vhdx_file_is_refused_before_any_side_effect"
+        }
+      ]
+    },
+    {
+      "id": "F-S5-WSL4-EXIT-MASKED",
+      "boundaryId": "s5-wsl-release-update",
+      "criterionIds": [
+        "WSL-4"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected (WSL-4 step 4):** a failed compaction (`attach vdisk` or `compact vdisk` failing because the disk is in use, diskpart error, no admin right) makes `rayx wsl compact` exit non-zero. **Observed:** the diskpart branch ends in `try { diskpart /s $attach } finally { diskpart /s $detach; Remove-Item ... }`; PowerShell's `-EncodedCommand` exit code is that of the last statement, so a failing native command is masked (reproduced: `try { cmd /c 'exit 3' } finally { cmd /c 'exit 4'; Get-Date | Out-Null }` exits 0). `compact_with` then returns a report that says the disk is the same size before and after, with exit 0; an agent or script cannot tell success from failure. **Repair:** capture `$LASTEXITCODE` after `diskpart /s $attach` (and check `diskpart` output for `DiskPart has encountered an error` or use the exit code), and end the script with `exit 1` on failure; make `compact_with` report a failure when `after` is not smaller and the child failed. Test the generated script text for the explicit exit.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "symbol": "compaction_uses_optimize_vhd_with_a_diskpart_fallback_and_never_sets_sparse"
+        }
+      ]
+    },
+    {
+      "id": "F-S5-WSL4-RM-GUARD",
+      "boundaryId": "s5-wsl-release-update",
+      "criterionIds": [
+        "WSL-4"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected (d-wsl invariant):** never delete anything outside the listed build-output directories. **Observed:** the only guard before `rm -rf -- '<path>'` is that the path parsed from the `du -sb` line starts with `/` and has no `'`. `parse_status` splits on `\\t`, `linux_dir` accepts a tab (and other control characters) in `--clone <dir>`, so a clone directory such as `/srv/a<TAB>b` makes `du` print `bytes<TAB>/srv/a<TAB>b/target`, the parser keeps `/srv/a`, and `--clean --yes` deletes `/srv/a`, which is not a build-output directory. The invariant therefore rests on shell output formatting rather than on the code. **Repair:** before the `rm`, require the last path component to be one of `BUILD_OUTPUT` and the path to contain no control characters; make `linux_dir` reject control characters (tab included); have the status script print the byte count last or use a NUL/newline-safe separator. Add a `tests/wsl_disk.rs` case where a listed path ends in a name outside `BUILD_OUTPUT` and nothing is deleted.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "symbol": "only_a_build_output_directory_is_ever_deleted"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "symbol": "a_build_output_path_with_a_quote_is_never_deleted"
+        }
+      ]
     }
   ],
-  "handoffMarkdown": "cargo-dist 0.32.0 installed; setup --check passes for web, test, gpu and all of android except Android Studio; doctor reports hardwareAdapter and interactiveDesktop true. Android Studio: winget asks the owner to accept Google's license, so the install runs in the owner's Terminal tab (rayx setup --android) and waits for the answer; check-validation-env stays red until it finishes.",
+  "handoffMarkdown": "rayx wsl status verified on this machine (Ubuntu-24.04 vhdx 199.2 GiB, 192.5 GiB used inside). Real compaction NOT run: it needs the owner approval because wsl --shutdown stops Docker Desktop and every distribution; record before and after sizes when run.",
   "protectedPaths": {
     "rayx-cli": {},
     "rayx": {
