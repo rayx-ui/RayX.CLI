@@ -10,9 +10,10 @@ Last updated: 2026-10-08, branch `feature/initial-setup` (pushed to `origin`, pu
 
 **The Mac session ran on 2026-10-08/09: the results, the fixes and what is still open are in
 [docs/manual-verification.md](docs/manual-verification.md#macos-and-ios-this-mac-2026-10-0809). The
-one open item is not in `rayx`: RayX at its current commit fails to start on iOS (theme service,
-after the `RayX.Dtcg` and `RayX.SignalR` refactoring), and the sibling changes made along the way
-are uncommitted in `../RayX` and `../Gpux`. Part 1 below is kept as the procedure to repeat.**
+real RayX Lab and `examples_mobile` build, run and render on the iOS Simulator and the headed
+WebGPU spec passes against the current `RayX.Dtcg`. The changes that belong to `../RayX` and
+`../Gpux` are uncommitted in those working trees. Part 1 below is kept as the procedure to
+repeat.**
 
 ## Status
 
