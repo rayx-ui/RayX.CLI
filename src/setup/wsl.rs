@@ -131,7 +131,7 @@ pub fn linux_dir(dir: &str) -> Result<String, String> {
     let body = expanded.strip_prefix("$HOME").unwrap_or(&expanded);
     if body
         .chars()
-        .any(|c| matches!(c, '"' | '`' | '$' | '\\' | '\n' | '\''))
+        .any(|c| matches!(c, '"' | '`' | '$' | '\\' | '\'') || c.is_control())
     {
         return Err(format!("{dir} is not a usable Linux directory name"));
     }

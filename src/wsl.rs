@@ -471,8 +471,13 @@ impl CompactReport {
 
 /// UTF-16LE base64, the form `powershell -EncodedCommand` takes.
 pub fn encode_powershell(script: &str) -> String {
-    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let bytes: Vec<u8> = script.encode_utf16().flat_map(u16::to_le_bytes).collect();
+    base64(&bytes)
+}
+
+/// Standard base64 with padding.
+pub fn base64(bytes: &[u8]) -> String {
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut encoded = String::new();
     for chunk in bytes.chunks(3) {
         let n = (u32::from(chunk[0]) << 16)
@@ -498,9 +503,12 @@ pub fn encode_powershell(script: &str) -> String {
 /// otherwise a `diskpart` script (`select vdisk`, `attach vdisk readonly`, `compact vdisk`,
 /// `detach vdisk`). It never touches the sparse-disk setting.
 pub fn compact_script(vhdx: &Path) -> String {
-    let path = vhdx.display().to_string().replace('\'', "''");
+    // The path goes in as base64 data, never as code: PowerShell ends a single-quoted string at
+    // typographic quotes too, and the registry value it comes from is writable without rights.
+    let path = base64(vhdx.display().to_string().as_bytes());
     format!(
-        "$vhdx = '{path}'\n\
+        "$vhdx = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{path}'))\n\
+         $code = 0\n\
          $done = $false\n\
          if (Get-Command Optimize-VHD -ErrorAction SilentlyContinue) {{\n\
          \x20 try {{ Optimize-VHD -Path $vhdx -Mode Full -ErrorAction Stop; $done = $true }} catch {{ Write-Warning ('Optimize-VHD failed, using diskpart: ' + $_) }}\n\
@@ -511,8 +519,9 @@ pub fn compact_script(vhdx: &Path) -> String {
          \x20 $select = ('select vdisk file=\"' + $vhdx + '\"')\n\
          \x20 Set-Content -Path $attach -Value @($select, 'attach vdisk readonly', 'compact vdisk', 'exit')\n\
          \x20 Set-Content -Path $detach -Value @($select, 'detach vdisk', 'exit')\n\
-         \x20 try {{ diskpart /s $attach }} finally {{ diskpart /s $detach; Remove-Item $attach, $detach -ErrorAction SilentlyContinue }}\n\
-         }}\n"
+         \x20 try {{ diskpart /s $attach; $code = $LASTEXITCODE }} finally {{ diskpart /s $detach; Remove-Item $attach, $detach -ErrorAction SilentlyContinue }}\n\
+         }}\n\
+         exit $code\n"
     )
 }
 
@@ -605,7 +614,22 @@ pub fn compact_with(
     }
     let name = distribution.name.clone();
     let vhdx = distribution.vhdx();
+    // Refuse anything that is not an existing virtual disk file before the first side effect: the
+    // shutdown cannot be undone and the path comes from a registry value.
+    let vhdx_text = vhdx.to_string_lossy().to_ascii_lowercase();
+    if !vhdx_text.ends_with(".vhdx") || vhdx_text.chars().any(char::is_control) {
+        return Err(CompactError::Failed(format!(
+            "{} does not look like a virtual disk (.vhdx) file",
+            vhdx.display()
+        )));
+    }
     let before = size_of(&vhdx);
+    if before.is_none() {
+        return Err(CompactError::Failed(format!(
+            "the virtual disk {} was not found",
+            vhdx.display()
+        )));
+    }
 
     let mut deleted = Vec::new();
     if args.clean {
@@ -625,9 +649,13 @@ pub fn compact_with(
             let total: u64 = outputs.iter().map(|o| o.bytes).sum();
             if args.yes || confirm(&format!("Delete these ({})?", human(total))) {
                 for output in &outputs {
-                    if output.path.contains('\'') {
+                    let last = output.path.rsplit('/').next().unwrap_or("");
+                    if output.path.contains('\'')
+                        || output.path.chars().any(char::is_control)
+                        || !BUILD_OUTPUT.contains(&last)
+                    {
                         return Err(CompactError::Failed(format!(
-                            "not deleting {}: its name contains a quote",
+                            "not deleting {}: it is not a plain build output directory",
                             output.path
                         )));
                     }

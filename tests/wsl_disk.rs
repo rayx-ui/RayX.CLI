@@ -153,7 +153,12 @@ fn a_build_output_path_with_a_quote_is_never_deleted() {
         &mut Vec::new(),
     );
 
-    assert!(result.expect_err("refused").to_string().contains("quote"));
+    assert!(
+        result
+            .expect_err("refused")
+            .to_string()
+            .contains("not a plain build output")
+    );
     assert!(!runner.lines().iter().any(|l| l.contains("rm -rf")));
 }
 
@@ -384,12 +389,23 @@ fn compaction_uses_optimize_vhd_with_a_diskpart_fallback_and_never_sets_sparse()
     assert!(script.contains("finally { diskpart /s $detach"));
     assert!(script.contains("-ErrorAction Stop"));
     assert!(!script.contains("sparse"), "WSL 2.6 disabled sparse disks");
-    assert!(script.contains(VHDX));
-    let quoted = compact_script(&PathBuf::from(r"C:\o'brien\ext4.vhdx"));
-    assert!(
-        quoted.contains("o''brien"),
-        "single quotes are doubled: {quoted}"
-    );
+    // The path is data: base64 inside the script, never in a quoted string.
+    assert!(script.contains(&rayx_cli::wsl::base64(VHDX.as_bytes())));
+    assert!(!script.contains(VHDX));
+    for hostile in [
+        "C:\\o'brien\\ext4.vhdx",
+        "C:\\it\u{2019}s\\ext4.vhdx",
+        "C:\\a$(calc)\\ext4.vhdx",
+    ] {
+        let script = compact_script(&PathBuf::from(hostile));
+        assert!(
+            !script.contains("calc") && !script.contains('\u{2019}') && !script.contains("o'brien"),
+            "{script}"
+        );
+    }
+    // A failing diskpart is the script's exit code, not masked by the cleanup after it.
+    assert!(script.contains("$code = $LASTEXITCODE"));
+    assert!(script.trim_end().ends_with("exit $code"));
 }
 
 #[test]
@@ -467,4 +483,77 @@ fn the_distribution_is_chosen_by_name_or_defaults_to_ubuntu() {
     };
     let (result, _, _, _) = compact(&named_old, &windows(), &one, true);
     assert!(result.expect_err("WSL 1").to_string().contains("WSL 1"));
+}
+
+#[test]
+fn only_a_build_output_directory_is_ever_deleted() {
+    // `du` prints `<bytes><TAB><path>`: a tab in a directory name truncates the path to a prefix.
+    for hostile in ["/home/dev/x", "/home/dev/x/src", "/home/dev/x/target/../.."] {
+        let mut runner = Runner::record().with_os(Os::Windows).respond(
+            is_status_script,
+            Outcome::success().with_stdout(format!("OUT\t5\t{hostile}\n")),
+        );
+        let result = compact_with(
+            &compact_args(true, true),
+            &windows(),
+            &mut runner,
+            &machine(),
+            &|_| Some(GIB),
+            &mut |_| true,
+            &mut Vec::new(),
+        );
+        assert!(result.is_err(), "{hostile}");
+        assert!(
+            !runner.lines().iter().any(|l| l.contains("rm -rf")),
+            "{hostile}"
+        );
+    }
+}
+
+#[test]
+fn a_missing_virtual_disk_stops_before_any_side_effect() {
+    let mut runner = Runner::record().with_os(Os::Windows);
+
+    let result = compact_with(
+        &compact_args(false, true),
+        &windows(),
+        &mut runner,
+        &machine(),
+        &|_| None,
+        &mut |_| true,
+        &mut Vec::new(),
+    );
+
+    assert!(
+        result
+            .expect_err("no such disk")
+            .to_string()
+            .contains("not found")
+    );
+    assert!(
+        runner.lines().is_empty(),
+        "no fstrim and no shutdown: {:?}",
+        runner.lines()
+    );
+}
+
+#[test]
+fn a_path_that_is_not_a_vhdx_file_is_refused_before_any_side_effect() {
+    let mut odd = distribution("Ubuntu-24.04", 2, 1000);
+    odd.base_path = PathBuf::from("C:\\x\u{0007}y");
+    let machine = FakeMachine::new().with_wsl_distributions(vec![odd]);
+    let mut runner = Runner::record().with_os(Os::Windows);
+
+    let result = compact_with(
+        &compact_args(false, true),
+        &windows(),
+        &mut runner,
+        &machine,
+        &|_| Some(GIB),
+        &mut |_| true,
+        &mut Vec::new(),
+    );
+
+    assert!(result.is_err());
+    assert!(runner.lines().is_empty(), "{:?}", runner.lines());
 }
