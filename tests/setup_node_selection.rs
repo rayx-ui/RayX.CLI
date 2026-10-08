@@ -34,10 +34,13 @@ fn runner() -> Runner {
     Runner::record()
         .with_os(Os::MacOs)
         .with_root(false)
-        .responder(|spec| match spec.program.as_str() {
-            NVM_NODE => Some(Outcome::success().with_stdout("v17.2.0\n")),
-            KEG_NODE => Some(Outcome::success().with_stdout("v22.23.3\n")),
-            _ => None,
+        .responder(|spec| {
+            // Paths are joined with the host's separator: compare them with forward slashes.
+            match spec.program.replace('\\', "/").as_str() {
+                NVM_NODE => Some(Outcome::success().with_stdout("v17.2.0\n")),
+                KEG_NODE => Some(Outcome::success().with_stdout("v22.23.3\n")),
+                _ => None,
+            }
         })
 }
 
@@ -74,7 +77,9 @@ fn the_pinned_keg_node_wins_over_an_older_node_earlier_on_path() {
         .map(|(_, value)| value.clone())
         .expect("PATH");
     assert!(
-        path_value.starts_with("/opt/homebrew/opt/node@22/bin:"),
+        path_value
+            .replace('\\', "/")
+            .starts_with("/opt/homebrew/opt/node@22/bin"),
         "{path_value}"
     );
 }
