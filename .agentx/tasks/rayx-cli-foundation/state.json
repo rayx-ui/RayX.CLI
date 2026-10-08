@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 100,
+  "revision": 108,
   "planRevision": 10,
   "specHashes": {
     "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
@@ -166,10 +166,16 @@
       ]
     },
     "t27-slim-xtask": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t28-rayx-callers": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t29-nightly-pin": {
       "status": "done",
@@ -285,7 +291,18 @@
           "gpux": "33242c321b86a84507d0f3118a7939b1c9afefbedb00053c0e5575cd2fdf61a3"
         }
       },
-      "recordedAt": "2026-10-08T06:54:47Z"
+      "recordedAt": "2026-10-08T06:56:29Z"
+    },
+    "544a2f5a7c6cfb4074a791b0206219835cbb9daa8096aa1b761213290ee1b00e": {
+      "snapshot": {
+        "specHash": "26042ddd08dc078829a899c2829e752f9bc85566f19d294c5a369103378efede",
+        "repositories": {
+          "rayx-cli": "edb03b571932ce295038930d6c29027553fd22101b4d2459e7945108b3dbe5f7",
+          "rayx": "628f83f01619337c2f66d5e3cd5104997ea6a0de7a22469fa8d0d745cca91022",
+          "gpux": "33242c321b86a84507d0f3118a7939b1c9afefbedb00053c0e5575cd2fdf61a3"
+        }
+      },
+      "recordedAt": "2026-10-08T07:04:15Z"
     }
   },
   "checkResults": {
@@ -1181,6 +1198,56 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s5-wsl-release-update-final-9bdbdd9c45ef.log",
       "logSha256": "3bb8768e00ffd68115aa6fefa1ec4928a856f99cbd28ca90692faa69b8aa3c8c",
       "inputsHash": "038207d34aaf00898d1952440196853d07104d1a1a85c8fc3fc4165761e5dad4"
+    },
+    "s6-rayx-migration/check-xtask-check/final": {
+      "checkId": "check-xtask-check",
+      "boundaryId": "s6-rayx-migration",
+      "phase": "final",
+      "batchId": "544a2f5a7c6cfb4074a791b0206219835cbb9daa8096aa1b761213290ee1b00e",
+      "definitionHash": "c586052ff0d1f630c145d6493e582b0296e3881b01670b6ebfccb63c43b1d781",
+      "basisHash": "095db6235aa7ddb33af683a7836c468a30fa4af1c9ab17630c3310160d8ab2bc",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.5636,
+      "recordedAt": "2026-10-08T07:04:10Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s6-rayx-migration-final-0df51614ae7f.log",
+      "logSha256": "45f75b19e5718ce74d75d27dc949e2b0cc21908a1e53dca4d31c24e03ebe8e09",
+      "inputsHash": "5e8504ed168e3399549ca7f5ac121680cc01cffa6d05cb7151bda7c1386cd4dc"
+    },
+    "s6-rayx-migration/check-xtask-test/final": {
+      "checkId": "check-xtask-test",
+      "boundaryId": "s6-rayx-migration",
+      "phase": "final",
+      "batchId": "544a2f5a7c6cfb4074a791b0206219835cbb9daa8096aa1b761213290ee1b00e",
+      "definitionHash": "f8c00b1552dfb13e5440e409333c06e1861d908b52b440272353710751769189",
+      "basisHash": "e57106a7f6c0bbc5a3f0e80759d5f93f48578ff24747d3835d339eb93a51d636",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 30,
+      "durationSeconds": 0.5933,
+      "recordedAt": "2026-10-08T07:04:11Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s6-rayx-migration-final-0f1f373a2068.log",
+      "logSha256": "e41d3d16aea473372b8b4a78973f8352ed1e65b1604f5bbbda6504d3c9265560",
+      "inputsHash": "5e8504ed168e3399549ca7f5ac121680cc01cffa6d05cb7151bda7c1386cd4dc"
+    },
+    "s6-rayx-migration/check-no-xtask-callers/final": {
+      "checkId": "check-no-xtask-callers",
+      "boundaryId": "s6-rayx-migration",
+      "phase": "final",
+      "batchId": "544a2f5a7c6cfb4074a791b0206219835cbb9daa8096aa1b761213290ee1b00e",
+      "definitionHash": "d359b166c97924d5310da87e580b5a420a72110fbc6eeef5a402d003240b890c",
+      "basisHash": "5fcbe6e843277813b5ea501517705cd8d8301ef090b67535c20f7c7c0c64d62a",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.1705,
+      "recordedAt": "2026-10-08T07:04:11Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s6-rayx-migration-final-d2f06c190f92.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   },
   "reviews": {
@@ -2331,6 +2398,223 @@
         "F-S5-WSL4-RM-GUARD"
       ],
       "recordedAt": "2026-10-08T06:56:00Z"
+    },
+    "s6-rayx-migration": {
+      "reviewerId": "s6-independent-reviewer",
+      "snapshotId": "544a2f5a7c6cfb4074a791b0206219835cbb9daa8096aa1b761213290ee1b00e",
+      "criterionIds": [
+        "MIG-1",
+        "MIG-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/command.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1"
+          ],
+          "sha256": "c766632c3ed82158ddda613595a8b25567a0fc2d1b7cbe8bd37979649304e611"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/main.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1"
+          ],
+          "sha256": "d7d45b5211c402631be8f60b6c4e57cd4ef419c7559cb4c7459a7e98621137f5"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/Cargo.toml",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1"
+          ],
+          "sha256": "e6c84b01ebcceb71f6e4eddc27e56a39b9bb8b9c01620c7e10bce21e78c4666b"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/fs_util.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1"
+          ],
+          "sha256": "d4e33650e22fde12e29cc182970a534a1a3e9db10b0a5a872c357b739af89bdc"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/source_policy.rs",
+          "kind": "test",
+          "criterionIds": [
+            "MIG-1"
+          ],
+          "sha256": "abe242beee17c10c73ec13669933a2604ee2086f9e56978e25f28a50a5ed5e44"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "xtask/src/command.rs",
+          "kind": "test",
+          "criterionIds": [
+            "MIG-1"
+          ],
+          "sha256": "c766632c3ed82158ddda613595a8b25567a0fc2d1b7cbe8bd37979649304e611"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".github/workflows/pr-test.yml",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "3e1fe0cc19ac12b487837908f1bcc5404cb0db842a17022585389b724204253b"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "docs/src/rayx.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "45368664961cb147390ac7e1006324fc1f69e40e0969e167924461af69f41300"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "docs/src/SUMMARY.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "e07ab5c8f5b35b3d71e5d8c5440889826a36fc5c171b5e8735759c2c898ed535"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "docs/src/rayx/command-model.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "2507356ed53bc5e4e470a0bf1dcb2de5fbed4832b3b6b6a53b5c3e6eefd52e7f"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "AGENTS.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "92b9e8f334374a5f296eaab771c97bd98ea53b62a5592cb922ee817b508520c8"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "CLAUDE.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "92b9e8f334374a5f296eaab771c97bd98ea53b62a5592cb922ee817b508520c8"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "aa2e52b706d35f27d5ef33546fe5795c3142eff73f5b24a439ad0ddb097bbaa2"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "apps/lab/README.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "a277cd42805da091b772bd155922387c7bf9ef509af9e98c52cead6298927b9f"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "apps/test_suite/README.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "d85b6df8f0a075a064b44935ca4828b012f6d6192b07060a3720077ed9427ac4"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "apps/examples_mobile/README.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "88ead9d98387789169abafadccf276dc39c6dc192eb95340f8d637099a61b2f6"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".claude/skills/rayx/references/wasm-toolchain-update.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "2b76fb359e259e6339ef1390159d1e4618a6ae69252b5cf6593075945c979be6"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "tools-node/test_suite/android-pointer-gesture-probe.mjs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "0fe7d108203b98041f7d4a4b2f0a1d0481051ecca6b01e29d6bff0352d2f130e"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "tools-node/test_suite/rayx-components-base-completion-targets.mjs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "25cbc8886dde8f734742040784fb267cf28a6ca707e3bf272a917fad825342ab"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/test_tools.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "b8a050c594bc69dc0340f80aaa83a0f35d254cb190733984d9a02aa7b88dfc2e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/playwright.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "e1170990a69afe683c5548d78ad02b6fa88aaa014fa166cb7319a9d19e2082c3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2"
+          ],
+          "sha256": "3938ca4c2336c19a9c22243dff67069bc238b1b02b7110869d79dce651237296"
+        }
+      ],
+      "summaryMarkdown": "MIG-1 and MIG-2 hold at snapshot 544a2f5a. MIG-1: xtask keeps only the three chores and its 30 tests pass. MIG-2: CI installs `rayx` at a pinned CLI revision and calls `rayx setup --test --yes` and `rayx app`; the docs, READMEs, agent files, skill and the two tools-node scripts use `rayx`; the removed-command grep is empty and `mdbook build docs` succeeds. The four prose findings (s6-f1 to s6-f4) are repaired, and the from-source install command now names the pushed branch that holds the package.",
+      "findingIds": [
+        "s6-f1-test-suite-restriction-claim",
+        "s6-f2-test-action-understated",
+        "s6-f3-bulk-replace-damage",
+        "s6-f4-installer-url-not-live"
+      ],
+      "recordedAt": "2026-10-08T07:04:50Z"
     }
   },
   "checkpoints": {
@@ -2383,6 +2667,16 @@
       },
       "reviewHash": "61f6f12e2ffd3a7d1498811734429570fb4122e5a2f9fa7193590c2380cce58f",
       "recordedAt": "2026-10-08T06:45:56Z"
+    },
+    "s5-wsl-release-update": {
+      "snapshotId": "4e3d60b69faffeeb86c0a03646ccac4871037b471da9e4d1f64eaf724ded88b8",
+      "commits": {
+        "rayx-cli": "abab878e626e3039f57500337b605b444b449023",
+        "rayx": "b33c62636b39e17eff54423de8854a110ae7c842",
+        "gpux": "14a63ad1b4128dfaaeaf23c26164f807cd7fe937"
+      },
+      "reviewHash": "ef566057adce8398661209c80c599cfa7960528b0a9614bde05ef913284b4714",
+      "recordedAt": "2026-10-08T06:56:05Z"
     }
   },
   "findings": [
@@ -2954,6 +3248,82 @@
           "repositoryId": "rayx-cli",
           "path": "tests/wsl_disk.rs",
           "symbol": "a_build_output_path_with_a_quote_is_never_deleted"
+        }
+      ]
+    },
+    {
+      "id": "s6-f1-test-suite-restriction-claim",
+      "boundaryId": "s6-rayx-migration",
+      "criterionIds": [
+        "MIG-2"
+      ],
+      "descriptionMarkdown": "**Expected:** prose that names `rayx` names only what `rayx` does. **Observed:** `docs/rayx-components-base-architecture.md` line 93 (\"agent-driven runtime proof is restricted to Test Suite by rayx itself\") is false: the old xtask enforced it (`ensure_test_suite_playwright_app` and the `test_suite/` selector check in `xtask/src/wasm.rs` at f8a1f36e), but `rayx app <dir> test wasm` works for any app by design (RayX.CLI `docs/app-project.md`, `src/app/playwright.rs`), so `rayx app apps/lab test wasm` runs. **Repair:** reword to say the restriction is a RayX policy (`AGENTS.md`, test-suite memory rules) rather than something `rayx` enforces, or state the policy without naming the enforcer. The loss of the xtask guard is accepted CLI behavior and needs no code change here.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": "docs/rayx-components-base-architecture.md"
+        }
+      ]
+    },
+    {
+      "id": "s6-f2-test-action-understated",
+      "boundaryId": "s6-rayx-migration",
+      "criterionIds": [
+        "MIG-2"
+      ],
+      "descriptionMarkdown": "**Expected:** the command model matches `rayx`. **Observed:** `docs/src/rayx/command-model.md` Actions table says `test` is \"Currently WASM Playwright only\". `rayx app <dir> test host|windows|linux|macos` runs `cargo test -p <app package>` (RayX.CLI `docs/app-project.md`, section Tests); only android and ios are unsupported. **Repair:** say `test` runs the app's native tests on desktop targets and Playwright browser tests for `wasm`.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": "docs/src/rayx/command-model.md"
+        }
+      ]
+    },
+    {
+      "id": "s6-f3-bulk-replace-damage",
+      "boundaryId": "s6-rayx-migration",
+      "criterionIds": [
+        "MIG-2"
+      ],
+      "descriptionMarkdown": "**Expected:** the bulk `xtask` to `rayx` replacement leaves sentences that still make sense. **Repaired in ea686a24:** the `wasm-toolchain-update.md` parenthetical, the \"root/repository/Rust `rayx`\" phrases in `docs/src/theming.md`, `themes-icons-assets.md`, both lab READMEs, `diagnostics.md`, `text-fields.md` and `text-system.md`. **Still open:** `docs/src/rayx/apps-and-artifacts.md` line 25 still says \"RayX/rayx generates those from `#[rayx::main]`\" (only the \"Rayx rejects\" sentence on another line was changed), which reads as the crate. **Repair:** write \"RayX and the `rayx` CLI generate those from `#[rayx::main]`\".",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": "docs/src/rayx/apps-and-artifacts.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": ".claude/skills/rayx/references/wasm-toolchain-update.md"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "docs/src/theming.md"
+        }
+      ]
+    },
+    {
+      "id": "s6-f4-installer-url-not-live",
+      "boundaryId": "s6-rayx-migration",
+      "criterionIds": [
+        "MIG-2"
+      ],
+      "descriptionMarkdown": "**Expected:** the install route the guide leads with works today. **Repaired in ea686a24 and ea8985e (CLI README):** the guide now leads with a from-source install and keeps the installers for the first release. **Still open:** the command is `cargo install --locked --git https://github.com/rayx-ui/RayX.CLI rayx-cli` with no `--rev` or `--branch`, which resolves the remote default branch `main`. `git ls-remote` and `git ls-tree origin/main` show `main` is still `b88dcd6` with only `.agentx`, `AGENTS.md`, `CLAUDE.md` and similar files, no `Cargo.toml`; the code lives on `feature/initial-setup` (`c87552a`), so the command fails today with no `rayx-cli` package found. The same command is in `RayX.CLI/README.md`. **Repair:** either pin it the way CI does (`--rev <commit>` from `.github/workflows/pr-test.yml`) in `docs/src/rayx.md` and the CLI README, or merge `feature/initial-setup` into `main` before the docs ship and re-verify the command against the remote.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": "docs/src/rayx.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md"
         }
       ]
     }
