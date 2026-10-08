@@ -98,7 +98,16 @@ pub fn ensure(
     out: &mut dyn Write,
     confirm: &mut dyn FnMut(&str) -> bool,
 ) -> Result<usize> {
-    let plan = setup::plan(env, sets).map_err(|error| anyhow!("{error}"))?;
+    let plan = match setup::plan(env, sets) {
+        Ok(plan) => plan,
+        // A host `rayx setup` cannot install for (another Linux distribution, say) is not a reason
+        // to refuse to build: say so and let the build find what is missing.
+        Err(setup::SetupError::Unsupported(message)) => {
+            let _ = writeln!(out, "rayx: prerequisites not checked: {message}");
+            return Ok(0);
+        }
+        Err(error) => return Err(anyhow!("{error}")),
+    };
     let mut cx = Cx::new(env, runner, machine, user_path);
     ensure_plan(&plan, &setup_command(sets), options, &mut cx, out, confirm)
 }

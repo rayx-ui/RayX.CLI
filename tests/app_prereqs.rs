@@ -398,3 +398,36 @@ fn a_winget_install_that_asks_for_the_license_belongs_to_the_owner() {
         1
     );
 }
+
+#[test]
+fn a_host_setup_cannot_install_for_does_not_block_the_build() {
+    let mut env = env();
+    env.host.distro = Some(Distro::parse(
+        "ID=fedora\nVERSION_ID=\"41\"\nPRETTY_NAME=\"Fedora Linux 41\"\n",
+    ));
+    let mut runner = Runner::record().with_os(Os::Linux).with_root(false);
+    let machine = FakeMachine::new().with_home("/home/dev");
+    let mut path = user_path();
+    let mut out = Vec::new();
+
+    let installed = ensure(
+        &env,
+        &[Set::Web],
+        &Options {
+            no_install: false,
+            interactive: false,
+        },
+        &mut runner,
+        &machine,
+        &mut path,
+        &mut out,
+        &mut |_| false,
+    )
+    .expect("the build goes on");
+
+    assert_eq!(installed, 0);
+    let text = String::from_utf8(out).expect("UTF-8");
+    assert!(text.contains("prerequisites not checked"), "{text}");
+    assert!(text.contains("Fedora"), "{text}");
+    assert!(runner.specs().is_empty(), "nothing ran");
+}

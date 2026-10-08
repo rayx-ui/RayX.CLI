@@ -22,7 +22,7 @@ rayx app [<app-dir>] <action> <target> [options]
 
 Builds are release builds; `--debug` (or `--development`) selects a debug build. `--features`,
 `--all-features` and `--no-default-features` select the app's Cargo features, and everything after
-`--` goes to the app. `--no-install` turns the prerequisite step off.
+`--` goes to the app. `--no-install` makes the prerequisite step report what is missing and stop instead of installing it. On a host `rayx setup` cannot install for, such as a Linux distribution other than Ubuntu or Debian, the step says so and the build goes on.
 
 ## What the project provides
 
