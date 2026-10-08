@@ -28,7 +28,8 @@ impl Distribution {
         // The registry stores `\\?\C:\...`; the prefix is valid for file APIs, but plain paths
         // read better and compare equal to what the user types.
         let plain = base.strip_prefix(r"\\?\").unwrap_or(&base);
-        PathBuf::from(plain).join("ext4.vhdx")
+        // A Windows path whatever system formats it, so the same text is reported everywhere.
+        PathBuf::from(format!("{}\\ext4.vhdx", plain.trim_end_matches('\\')))
     }
 }
 
