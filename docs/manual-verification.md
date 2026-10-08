@@ -54,6 +54,9 @@ ones that belong to RayX or Gpux are listed under "Changes for the siblings".
 | iOS pack | `rayx app apps/lab pack ios --simulator` | pass after a fix: `pack ios` rejected `--simulator`; it takes the same selectors as `build ios` now. It still only prepares the output directory and reports Xcode's build directory |
 | `examples_mobile` | `rayx app apps/examples_mobile run ios --simulator` | pass after Gpux fixes (36 `extern "C"` blocks that edition 2024 requires to be `unsafe`): the home screen with its cards and tab bar renders |
 | Smoke app | `rayx app apps/mobile_smoke run ios --simulator` | pass: a new RayX app with no theming and no SignalR draws four coloured stripes through Gpux's Metal backend on the iPhone 17 Simulator, built and launched by `rayx` alone |
+| WASM run | `rayx app apps/lab build wasm`, then `run wasm` | pass: 1 min 17 s build, threaded WASM verified; served on `127.0.0.1:7878`, the Lab renders in the browser pane with `crossOriginIsolated` and WebGPU available |
+| Android set | `rayx setup --android --yes` in the Terminal panel, then `--check --android` | pass: JDK 21 cask (sudo prompt answered by the owner), SDK licenses accepted by `--yes`, `cargo-ndk`, `aarch64-linux-android` and `x86_64-linux-android`; `--check` exits 0. Finding: without `--yes` and a terminal the JDK "update?" question defaults to no and setup stops at `JAVA_HOME` |
+| Android build and run | `rayx app apps/examples_mobile build android`, then `run android` | pass after three fixes: `gradlew` is committed without its executable bit (a Windows-authored project), so Gradle never started (now run through `sh`); a shell that predates `rayx setup` has no `JAVA_HOME` and Gradle fell back to JDK 26, whose `jlink` cannot build the Android JDK image (the build now finds the pinned JDK itself and says which); the emulator launcher took the first AVD listed, a user AVD whose system image was not installed, and waited 3 minutes with the emulator's output discarded (it now prefers the `rayx-` AVD, reports an emulator that exits, and tries the next AVD). The emulator also starts with `-gpu host` first: macOS's `auto` gives only software Vulkan, which the RayX renderer rejects (the app starts and never opens a window). Examples Mobile then installs and renders on the Android 34 arm64 emulator. Follow-up: the setup probes were loose (any AVD satisfied the default-AVD check, any NDK satisfied the NDK pin), so `doctor` called a Mac with only a broken `Pixel_9_Pro_XL` and NDK 27.2 complete. Both now require the pinned item; after installing `ndk;28.0.12674087` the build reports and uses NDK 28.0 although 27.2 is still on disk |
 
 ### Changes for the siblings
 
@@ -61,6 +64,9 @@ These are committed and pushed (no pull request opened) in `../RayX` (branch `fi
 `fix/ios-simulator-rendering`), because they belong to those repositories; RayX's commits depend on
 the Gpux ones:
 
+- RayX, to run Gradle on Linux and macOS: the executable bit on the three `platform/android/gradle/gradlew`
+  files (they were committed as `100644`; staged, not yet committed). `rayx` also runs the wrapper
+  through `sh`, so a checkout without the bit still builds.
 - RayX, to run on iOS: the three iOS `project.yml` files (`outputFiles` on the Rust script phase
   and `DEAD_CODE_STRIPPING` in Release); the `main.m` of the Lab and `examples_mobile` (the display
   link starts always and looks the window up each frame, because the app callback is async and the
