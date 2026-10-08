@@ -40,8 +40,13 @@ pub fn run(
         );
     }
 
-    let simulator_id = first_available_ios_simulator()?;
-    run_process(Command::new("xcrun").args(["simctl", "boot", &simulator_id]))?;
+    let simulator = ios_simulator()?;
+    let simulator_id = simulator.id;
+    if !simulator.booted {
+        run_process(Command::new("xcrun").args(["simctl", "boot", &simulator_id]))?;
+    }
+    // Installing into a device that is still booting fails; wait until it is ready.
+    run_process(Command::new("xcrun").args(["simctl", "bootstatus", &simulator_id]))?;
     run_process(Command::new("open").args(["-a", "Simulator"]))?;
     run_process(
         Command::new("xcrun").args([
@@ -67,8 +72,8 @@ pub fn pack(
     profile: BuildProfile,
     args: Vec<String>,
 ) -> Result<()> {
-    ensure_empty(&args)?;
-    build_with_simulator(app, features, profile, true)?;
+    let simulator = pack_destination(args)?;
+    build_with_simulator(app, features, profile, simulator)?;
     let out_dir = app.artifact_root()?.join("ios").join(profile.name());
     fs::create_dir_all(&out_dir)?;
     println!(
@@ -253,6 +258,18 @@ fn relative_files(root: &Path) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+/// `pack ios` accepts the same destination selectors as `build ios`; without one it packs the
+/// Simulator build, as it always has.
+fn pack_destination(args: Vec<String>) -> Result<bool> {
+    let device = args.iter().any(|arg| arg == "--device");
+    let simulator = args.iter().any(|arg| arg == "--simulator");
+    if device && simulator {
+        bail!("Use only one iOS destination selector: --simulator or --device");
+    }
+    ios_simulator_arg(args)?;
+    Ok(!device)
+}
+
 fn ios_simulator_arg(mut args: Vec<String>) -> Result<bool> {
     let simulator = take_bool_flag(&mut args, "--simulator");
     let device = take_bool_flag(&mut args, "--device");
@@ -263,7 +280,46 @@ fn ios_simulator_arg(mut args: Vec<String>) -> Result<bool> {
     Ok(simulator)
 }
 
-fn first_available_ios_simulator() -> Result<String> {
+/// One iPhone line of `xcrun simctl list devices available`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Simulator {
+    id: String,
+    booted: bool,
+}
+
+/// The iPhone simulators of `xcrun simctl list devices`, in the order listed (runtimes oldest
+/// first). A device line ends with its id and its state: `    iPhone 17 Pro (<UDID>) (Shutdown)`.
+fn parse_iphone_simulators(listing: &str) -> Vec<Simulator> {
+    listing
+        .lines()
+        .filter(|line| line.trim_start().starts_with("iPhone"))
+        .filter_map(|line| {
+            let groups: Vec<&str> = line
+                .split('(')
+                .skip(1)
+                .filter_map(|part| part.split(')').next())
+                .collect();
+            let [.., id, state] = groups.as_slice() else {
+                return None;
+            };
+            let looks_like_id = id.len() == 36 && id.matches('-').count() == 4;
+            looks_like_id.then(|| Simulator {
+                id: (*id).to_string(),
+                booted: *state == "Booted",
+            })
+        })
+        .collect()
+}
+
+/// A booted iPhone when there is one, else the last available one (the newest runtime).
+fn pick_simulator(simulators: &[Simulator]) -> Option<&Simulator> {
+    simulators
+        .iter()
+        .find(|simulator| simulator.booted)
+        .or_else(|| simulators.last())
+}
+
+fn ios_simulator() -> Result<Simulator> {
     let output = Command::new("xcrun")
         .args(["simctl", "list", "devices", "available"])
         .output()
@@ -271,18 +327,10 @@ fn first_available_ios_simulator() -> Result<String> {
     if !output.status.success() {
         bail!("xcrun simctl list devices failed");
     }
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    for line in stdout.lines() {
-        if !line.contains("iPhone") {
-            continue;
-        }
-        if let Some(start) = line.rfind('(')
-            && let Some(end) = line[start + 1..].find(')')
-        {
-            return Ok(line[start + 1..start + 1 + end].to_string());
-        }
-    }
-    bail!("no available iOS simulator found")
+    let simulators = parse_iphone_simulators(&String::from_utf8_lossy(&output.stdout));
+    pick_simulator(&simulators)
+        .cloned()
+        .ok_or_else(|| anyhow!("no available iOS simulator found: run `rayx setup --ios`"))
 }
 
 fn ensure_macos(task: &str) -> Result<()> {
@@ -298,6 +346,57 @@ mod tests {
     use super::*;
     use std::path::PathBuf;
     use std::time::UNIX_EPOCH;
+
+    const SIMCTL_LIST: &str = "== Devices ==
+-- iOS 26.4 --
+    iPhone 17 Pro (683ABED6-E61B-48D2-B27C-1B618A55076A) (Shutdown) 
+    iPad Pro 13-inch (M5) (4D16A9ED-7D1A-4A4E-B6D8-1E1E21CFEDC8) (Shutdown) 
+-- iOS 26.5 --
+    iPhone 17 Pro (770A724B-DDCF-441A-99B5-5B173009D4B6) (Shutdown) 
+    iPhone Air (EC9F9598-F7B7-4060-8F32-F21BEE3CA827) (Booted) 
+-- tvOS 26.4 --
+    Apple TV (11111111-2222-3333-4444-555555555555) (Shutdown) 
+";
+
+    #[test]
+    fn simulator_ids_come_from_the_id_group_not_the_state() {
+        let simulators = parse_iphone_simulators(SIMCTL_LIST);
+        assert_eq!(
+            simulators.iter().map(|s| s.id.as_str()).collect::<Vec<_>>(),
+            [
+                "683ABED6-E61B-48D2-B27C-1B618A55076A",
+                "770A724B-DDCF-441A-99B5-5B173009D4B6",
+                "EC9F9598-F7B7-4060-8F32-F21BEE3CA827"
+            ],
+            "iPhones only, never the word `Shutdown`"
+        );
+        assert_eq!(
+            pick_simulator(&simulators).map(|s| s.id.as_str()),
+            Some("EC9F9598-F7B7-4060-8F32-F21BEE3CA827"),
+            "a booted iPhone is reused"
+        );
+    }
+
+    #[test]
+    fn without_a_booted_iphone_the_newest_listed_one_is_chosen() {
+        let simulators = parse_iphone_simulators(&SIMCTL_LIST.replace("(Booted)", "(Shutdown)"));
+        assert_eq!(
+            pick_simulator(&simulators).map(|s| s.id.as_str()),
+            Some("EC9F9598-F7B7-4060-8F32-F21BEE3CA827")
+        );
+        assert!(parse_iphone_simulators("== Devices ==\n").is_empty());
+        assert!(pick_simulator(&[]).is_none());
+    }
+
+    #[test]
+    fn pack_takes_the_build_destination_flags_and_defaults_to_the_simulator() {
+        let args = |list: &[&str]| list.iter().map(|a| a.to_string()).collect::<Vec<_>>();
+        assert!(pack_destination(args(&[])).unwrap());
+        assert!(pack_destination(args(&["--simulator"])).unwrap());
+        assert!(!pack_destination(args(&["--device"])).unwrap());
+        assert!(pack_destination(args(&["--simulator", "--device"])).is_err());
+        assert!(pack_destination(args(&["--bogus"])).is_err());
+    }
 
     #[test]
     fn ios_asset_staging_dir_targets_platform_resource_assets()
