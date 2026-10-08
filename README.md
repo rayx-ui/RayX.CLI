@@ -44,6 +44,12 @@ installs nothing. `rayx` never reads or stores a password or token, never relaun
 elevated, and accepts licenses only with `--yes`; what needs `sudo` or administrator rights asks
 for it once, in your console.
 
+Something that is installed but outdated or unusable (a Node older than the pin, a `wasm-bindgen`
+at the wrong version, a Homebrew too old to run on this macOS) is an update, not a first install:
+in a terminal `rayx setup` asks `… is outdated or unusable (…). Update it now? [y/N]` before it
+touches it. `--yes` updates without asking. Without a terminal and without `--yes` nothing is
+updated: the step is reported with the commands that would update it and `rayx setup` exits 1.
+
 | Flag | Installs |
 | --- | --- |
 | (none) | The base set: system packages (apt on Ubuntu and Debian, Visual Studio Build Tools, LLVM and the Windows SDK on Windows, the Command Line Tools and Homebrew on macOS), `rustup` and the project's Rust toolchain. Windows x64 and ARM64, Ubuntu and Debian x64 and ARM64, and macOS are supported. |

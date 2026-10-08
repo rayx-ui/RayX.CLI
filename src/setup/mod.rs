@@ -17,7 +17,7 @@ pub mod windows;
 pub mod wsl;
 
 use std::fmt;
-use std::io::{self, Write};
+use std::io::{self, BufRead, IsTerminal, Write};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::time::Duration;
@@ -114,6 +114,9 @@ pub struct Cx<'a> {
     /// Where macOS marks the on-demand Command Line Tools install; `None` is the system path.
     /// A test sets it to a temporary file, which is then really written even by a recording runner.
     pub clt_marker: Option<PathBuf>,
+    /// Asked before an outdated requirement is updated (not before a first install); `None` updates
+    /// without asking, as `--yes` does.
+    pub confirm_update: Option<&'a mut dyn FnMut(&str) -> bool>,
 }
 
 impl<'a> Cx<'a> {
@@ -131,7 +134,14 @@ impl<'a> Cx<'a> {
             path_changed: false,
             poll_interval: Duration::from_secs(5),
             clt_marker: None,
+            confirm_update: None,
         }
+    }
+
+    /// Asks `confirm` before updating an outdated requirement; `false` leaves it as it is.
+    pub fn with_update_prompt(mut self, confirm: &'a mut dyn FnMut(&str) -> bool) -> Self {
+        self.confirm_update = Some(confirm);
+        self
     }
 
     pub fn with_clt_marker(mut self, marker: impl Into<PathBuf>) -> Self {
@@ -164,6 +174,9 @@ pub struct Probed {
     /// The version found, when the probe reads one: `doctor` reports a present requirement
     /// with it, and an unmet one that has a version as a wrong version.
     pub found: Option<String>,
+    /// The requirement is installed but cannot be used as it is (an old Homebrew that crashes on
+    /// this macOS, say): `rayx setup` offers to update it before it does.
+    pub outdated: bool,
 }
 
 impl Probed {
@@ -180,7 +193,22 @@ impl Probed {
             missing: Vec::new(),
             detail: detail.into(),
             found: None,
+            outdated: false,
         }
+    }
+
+    /// Installed, but outdated or unusable: an update, not a first install.
+    pub fn outdated(detail: impl Into<String>) -> Self {
+        Self {
+            outdated: true,
+            ..Self::missing(detail)
+        }
+    }
+
+    /// An update rather than a first install: the requirement exists (it reports a version, or
+    /// the probe said so) but does not meet the pin.
+    pub fn is_outdated(&self) -> bool {
+        !self.satisfied && (self.outdated || self.found.is_some())
     }
 
     /// Records the version the probe found.
@@ -195,6 +223,7 @@ impl Probed {
             detail: items.join(", "),
             missing: items,
             found: None,
+            outdated: false,
         }
     }
 }
@@ -556,6 +585,8 @@ pub enum StepOutcome {
     Satisfied,
     Installed,
     Failed(String),
+    /// Outdated, and the user chose not to update it (or could not be asked).
+    Declined(String),
     /// Not attempted because an earlier step failed.
     NotRun,
 }
@@ -584,8 +615,19 @@ impl Report {
         })
     }
 
+    /// The updates that were offered and not taken.
+    pub fn declined(&self) -> Vec<&str> {
+        self.steps
+            .iter()
+            .filter_map(|(_, outcome)| match outcome {
+                StepOutcome::Declined(message) => Some(message.as_str()),
+                _ => None,
+            })
+            .collect()
+    }
+
     pub fn succeeded(&self) -> bool {
-        self.failure().is_none()
+        self.failure().is_none() && self.declined().is_empty()
     }
 }
 
@@ -610,6 +652,41 @@ pub fn execute(plan: &Plan, cx: &mut Cx, out: &mut dyn Write) -> Report {
     for (index, step) in plan.steps.iter().enumerate() {
         if outcomes[index] != StepOutcome::NotRun {
             continue;
+        }
+        let probed = &checked.probed[index];
+        if probed.is_outdated()
+            && !cx.env.yes
+            && let Some(confirm) = cx.confirm_update.as_mut()
+        {
+            let found = probed
+                .found
+                .as_deref()
+                .map(|version| format!(", found {version}"))
+                .unwrap_or_default();
+            let detail = if probed.detail.is_empty() {
+                String::new()
+            } else {
+                format!(": {}", probed.detail)
+            };
+            let question = format!(
+                "{} is outdated or unusable{detail}{found}. Update it now?",
+                step.title
+            );
+            if !confirm(&question) {
+                let commands = describe_actions(step, probed, &apt_batch(plan, &checked), cx);
+                let fix = if commands.is_empty() {
+                    "run `rayx setup --yes` to update it".to_string()
+                } else {
+                    format!(
+                        "update it with `rayx setup --yes` or by hand: {}",
+                        commands.join("; ")
+                    )
+                };
+                let _ = writeln!(out, "==> {}: {} (not updated)", step.set, step.title);
+                outcomes[index] =
+                    StepOutcome::Declined(format!("{} was not updated; {fix}", step.title));
+                continue;
+            }
         }
         let _ = writeln!(out, "==> {}: {}", step.set, step.title);
         let result = match &step.install {
@@ -782,14 +859,30 @@ pub fn run(args: &SetupArgs) -> u8 {
         }
     };
     let machine = SystemMachine;
-    run_with(
+    let interactive = io::stdin().is_terminal() && io::stdout().is_terminal();
+    // Without a terminal nobody can answer: an outdated requirement is left alone and reported,
+    // unless `--yes` said to update.
+    let mut confirm = move |question: &str| interactive && ask_on_terminal(question);
+    run_with_prompt(
         args,
         &env,
         &mut runner,
         &machine,
         &mut user_path,
         &mut io::stdout(),
+        Some(&mut confirm),
     )
+}
+
+/// Asks a yes/no question on the terminal; anything but `y` or `yes` is no.
+pub fn ask_on_terminal(question: &str) -> bool {
+    print!("{question} [y/N] ");
+    let _ = io::stdout().flush();
+    let mut answer = String::new();
+    if io::stdin().lock().read_line(&mut answer).is_err() {
+        return false;
+    }
+    matches!(answer.trim().to_ascii_lowercase().as_str(), "y" | "yes")
 }
 
 /// The body of `rayx setup`, over injectable collaborators.
@@ -801,6 +894,19 @@ pub fn run_with(
     user_path: &mut UserPath,
     out: &mut dyn Write,
 ) -> u8 {
+    run_with_prompt(args, env, runner, machine, user_path, out, None)
+}
+
+/// [`run_with`] that asks `confirm` before updating an outdated requirement.
+pub fn run_with_prompt(
+    args: &SetupArgs,
+    env: &PlanEnv,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    user_path: &mut UserPath,
+    out: &mut dyn Write,
+    confirm: Option<&mut dyn FnMut(&str) -> bool>,
+) -> u8 {
     let sets = selected_sets(args, &env.host);
     let plan = match plan(env, &sets) {
         Ok(plan) => plan,
@@ -810,6 +916,9 @@ pub fn run_with(
         }
     };
     let mut cx = Cx::new(env, runner, machine, user_path);
+    if let Some(confirm) = confirm {
+        cx = cx.with_update_prompt(confirm);
+    }
     run_plan(args, &plan, &mut cx, out)
 }
 
@@ -833,6 +942,17 @@ pub fn run_plan(args: &SetupArgs, plan: &Plan, cx: &mut Cx, out: &mut dyn Write)
     let report = execute(plan, cx, out);
     if let Some(message) = report.failure() {
         eprintln!("rayx: setup stopped: {message}");
+        return 1;
+    }
+    let declined = report.declined();
+    if !declined.is_empty() {
+        for message in &declined {
+            eprintln!("rayx: {message}");
+        }
+        eprintln!(
+            "rayx: setup incomplete: {} update(s) were not made",
+            declined.len()
+        );
         return 1;
     }
     let _ = if report.executed() == 0 {

@@ -153,13 +153,40 @@ fn homebrew_step(env: &PlanEnv) -> Step {
         "Homebrew",
         Privilege::None,
         |cx| {
-            if brew_program(cx).is_some() {
-                Probed::ok()
-            } else {
-                Probed::missing("brew not found")
+            let Some(brew) = brew_program(cx) else {
+                return Probed::missing("brew not found");
+            };
+            // `brew config` loads Homebrew's Ruby, which a Homebrew older than the macOS refuses to
+            // do (`unknown or unsupported macOS version`); `brew --version` is plain shell and
+            // passes either way.
+            let outcome = cx.query(&CommandSpec::new(brew.display().to_string()).arg("config"));
+            match outcome {
+                Some(outcome) if outcome.is_success() => Probed::ok(),
+                Some(outcome) => {
+                    let reason = outcome
+                        .stderr
+                        .lines()
+                        .chain(outcome.stdout.lines())
+                        .map(str::trim)
+                        .find(|line| !line.is_empty())
+                        .unwrap_or("brew config failed")
+                        .to_string();
+                    Probed::outdated(format!("brew does not run: {reason}"))
+                }
+                None => Probed::outdated("brew does not run"),
             }
         },
-        move |cx, _| {
+        move |cx, probed| {
+            if probed.outdated {
+                // An existing Homebrew is updated in place; the installer would not help.
+                let brew = brew_program(cx)
+                    .map_or_else(|| "brew".to_string(), |path| path.display().to_string());
+                return Ok(vec![Action::Run(
+                    CommandSpec::new(brew)
+                        .args(["update", "--force"])
+                        .interactive(),
+                )]);
+            }
             // The official installer runs in the user's console, so its `sudo` prompt reaches them.
             let mut installer = CommandSpec::new("/bin/bash")
                 .arg("-c")
