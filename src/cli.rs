@@ -96,9 +96,27 @@ pub struct DoctorArgs {
 #[derive(Debug, Subcommand)]
 pub enum WslCommand {
     /// Show the WSL distributions, their state and the disk space they use
-    Status,
+    Status {
+        /// Print the status as JSON
+        #[arg(long)]
+        json: bool,
+    },
     /// Remove build output on request, trim the file system and compact the virtual disk
-    Compact,
+    Compact(CompactArgs),
+}
+
+/// Flags of `rayx wsl compact`.
+#[derive(Debug, Default, Args)]
+pub struct CompactArgs {
+    /// The distribution to compact (default Ubuntu-24.04, else the first WSL 2 distribution)
+    #[arg(long)]
+    pub distro: Option<String>,
+    /// First offer to delete the build output under the cloned checkouts
+    #[arg(long)]
+    pub clean: bool,
+    /// Do not ask before deleting build output or shutting WSL down
+    #[arg(long)]
+    pub yes: bool,
 }
 
 /// Subcommands of `rayx self`.

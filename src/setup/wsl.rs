@@ -128,15 +128,19 @@ pub fn release_asset(arch: Arch) -> Option<&'static str> {
     }
 }
 
-/// The script that clones `source` (a `/mnt/...` path) into `target`, or fetches an existing clone.
+/// The script that clones `source` (a `/mnt/...` path) into `target`, or fetches an existing clone,
+/// and records `target` so `rayx wsl status` and `wsl compact --clean` find its build output.
 pub fn clone_script(source: &str, branch: Option<&str>, target: &str) -> Result<String, String> {
     if source.contains('\'') || branch.is_some_and(|b| b.contains('\'')) {
         return Err("the checkout path or branch contains a quote".to_string());
     }
     let branch_flag = branch.map_or(String::new(), |b| format!(" -b '{b}'"));
+    let clones = crate::wsl::CLONES_FILE;
     Ok(format!(
         "if [ -d \"{target}/.git\" ]; then git -C \"{target}\" fetch --all --prune; \
-         else git -c safe.directory='*' clone{branch_flag} '{source}' \"{target}\"; fi"
+         else git -c safe.directory='*' clone{branch_flag} '{source}' \"{target}\"; fi && \
+         mkdir -p \"$HOME/.config/rayx\" && {{ grep -qxF \"{target}\" \"{clones}\" 2>/dev/null || \
+         echo \"{target}\" >> \"{clones}\"; }}"
     ))
 }
 

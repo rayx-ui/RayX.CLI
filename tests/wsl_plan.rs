@@ -362,6 +362,10 @@ fn an_existing_clone_is_fetched_not_replaced() {
         script.contains("else git -c safe.directory='*' clone -b 'main' '/mnt/d/x' \"$HOME/x\"")
     );
     assert!(!script.contains("rm "), "never deletes a clone");
+    assert!(
+        script.contains("echo \"$HOME/x\" >> \"$HOME/.config/rayx/wsl-clones\""),
+        "the clone is recorded for wsl status: {script}"
+    );
 
     let detached = clone_script("/mnt/d/x", None, "$HOME/x").expect("script");
     assert!(!detached.contains(" -b "));

@@ -47,11 +47,11 @@ fn dispatch(cli: Cli) -> ExitCode {
         Command::Setup(args) => return ExitCode::from(setup::run(args)),
         Command::Doctor(args) => return ExitCode::from(doctor::run(args)),
         Command::Wsl {
-            command: WslCommand::Status,
-        } => "wsl status",
+            command: WslCommand::Status { json },
+        } => return ExitCode::from(wsl::run_status(*json)),
         Command::Wsl {
-            command: WslCommand::Compact,
-        } => "wsl compact",
+            command: WslCommand::Compact(args),
+        } => return ExitCode::from(wsl::run_compact(args)),
         Command::SelfCommand {
             command: SelfCommand::Update { .. },
         } => "self update",
