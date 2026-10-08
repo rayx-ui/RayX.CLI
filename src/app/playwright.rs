@@ -208,16 +208,89 @@ fn home_dir() -> Option<PathBuf> {
     std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" }).map(PathBuf::from)
 }
 
+/// The oldest Node Playwright runs on.
+const MIN_NODE_MAJOR: u32 = 18;
+
+/// Homebrew's keg directories (`opt/node@22/bin`, keg-only and so not on PATH).
+fn keg_roots() -> Vec<PathBuf> {
+    ["/opt/homebrew/opt", "/usr/local/opt"]
+        .into_iter()
+        .map(PathBuf::from)
+        .collect()
+}
+
+/// The directory of the first `node` that is new enough: those on PATH in order, then Homebrew's
+/// `node` and `node@<major>` kegs, newest name first. `None` when none is new enough, which leaves
+/// PATH as it is.
+fn supported_node_dir(
+    host: &HostFacts,
+    path_dirs: &[PathBuf],
+    keg_roots: &[PathBuf],
+) -> Option<PathBuf> {
+    let file = if host.os == Os::Windows {
+        "node.exe"
+    } else {
+        "node"
+    };
+    let mut dirs: Vec<PathBuf> = path_dirs
+        .iter()
+        .filter(|dir| !(host.wsl && dir.starts_with("/mnt")))
+        .cloned()
+        .collect();
+    for root in keg_roots {
+        let mut kegs: Vec<PathBuf> = fs::read_dir(root)
+            .into_iter()
+            .flatten()
+            .flatten()
+            .filter(|entry| {
+                let name = entry.file_name();
+                let name = name.to_string_lossy();
+                name == "node" || name.starts_with("node@")
+            })
+            .map(|entry| entry.path().join("bin"))
+            .collect();
+        kegs.sort();
+        kegs.reverse();
+        dirs.extend(kegs);
+    }
+    dirs.into_iter().find(|dir| {
+        let node = dir.join(file);
+        node.is_file() && node_major(&node).is_some_and(|major| major >= MIN_NODE_MAJOR)
+    })
+}
+
+fn node_major(node: &Path) -> Option<u32> {
+    let output = Command::new(node).arg("--version").output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    String::from_utf8_lossy(&output.stdout)
+        .trim()
+        .trim_start_matches('v')
+        .split('.')
+        .next()?
+        .parse()
+        .ok()
+}
+
 /// A `pnpm` command running in `dir`. Its `PATH` starts with the directory of the `pnpm` found and
 /// the user bin directory: the shim corepack writes starts `node` by name.
 pub fn pnpm_command(host: &HostFacts, dir: &Path) -> Command {
     let found = find_pnpm(host);
     let mut command = Command::new(found.as_deref().unwrap_or_else(|| Path::new("pnpm")));
     command.current_dir(dir);
-    let mut front: Vec<PathBuf> = found
-        .iter()
-        .filter_map(|pnpm| pnpm.parent().map(Path::to_path_buf))
+    let path_dirs: Vec<PathBuf> = std::env::var_os("PATH")
+        .map(|path| std::env::split_paths(&path).collect())
+        .unwrap_or_default();
+    // An old Node earlier on PATH (nvm's) must not run Playwright, which needs Node 18 or newer.
+    let mut front: Vec<PathBuf> = supported_node_dir(host, &path_dirs, &keg_roots())
+        .into_iter()
         .collect();
+    front.extend(
+        found
+            .iter()
+            .filter_map(|pnpm| pnpm.parent().map(Path::to_path_buf)),
+    );
     front.extend(home_dir().map(|home| home.join(".local").join("bin")));
     if !front.is_empty() {
         let rest = std::env::var_os("PATH")
@@ -586,6 +659,51 @@ mod tests {
             install_arguments(&package),
             ["install", "--frozen-lockfile", "--prefer-offline"]
         );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_old_node_on_path_does_not_hide_a_supported_homebrew_keg() {
+        use std::os::unix::fs::PermissionsExt;
+
+        fn fake_node(dir: &Path, version: &str) {
+            fs::create_dir_all(dir).unwrap();
+            let node = dir.join("node");
+            fs::write(&node, format!("#!/bin/sh\necho {version}\n")).unwrap();
+            fs::set_permissions(&node, fs::Permissions::from_mode(0o755)).unwrap();
+        }
+
+        let root = tempfile::tempdir().unwrap();
+        let nvm = root.path().join("nvm/bin");
+        let opt = root.path().join("opt");
+        let keg = opt.join("node@22/bin");
+        fake_node(&nvm, "v17.2.0");
+        fake_node(&keg, "v22.23.3");
+        let host = HostFacts {
+            os: Os::MacOs,
+            arch: crate::host::Arch::Arm64,
+            emulated: false,
+            wsl: false,
+            distro: None,
+        };
+
+        assert_eq!(
+            supported_node_dir(
+                &host,
+                std::slice::from_ref(&nvm),
+                std::slice::from_ref(&opt)
+            ),
+            Some(keg),
+            "the keg is chosen over the Node 17 earlier on PATH"
+        );
+        let new_on_path = root.path().join("new/bin");
+        fake_node(&new_on_path, "v20.1.0");
+        assert_eq!(
+            supported_node_dir(&host, &[nvm.clone(), new_on_path.clone()], &[opt]),
+            Some(new_on_path),
+            "PATH order decides between supported Nodes"
+        );
+        assert_eq!(supported_node_dir(&host, &[nvm], &[]), None);
     }
 
     #[test]
