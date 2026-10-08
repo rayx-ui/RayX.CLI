@@ -57,8 +57,9 @@ ones that belong to RayX or Gpux are listed under "Changes for the siblings".
 
 ### Changes for the siblings
 
-These are in the working trees of `../RayX` and `../Gpux`, uncommitted, because they belong to
-those repositories (paired commits for RayX, per CLAUDE.md):
+These are committed, unpushed, in `../RayX` (branch `fix/ios-simulator-run`) and `../Gpux` (branch
+`fix/ios-simulator-rendering`), because they belong to those repositories; RayX's commits depend on
+the Gpux ones:
 
 - RayX, to run on iOS: the three iOS `project.yml` files (`outputFiles` on the Rust script phase
   and `DEAD_CODE_STRIPPING` in Release); the `main.m` of the Lab and `examples_mobile` (the display

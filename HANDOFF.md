@@ -12,7 +12,7 @@ Last updated: 2026-10-08, branch `feature/initial-setup` (pushed to `origin`, pu
 [docs/manual-verification.md](docs/manual-verification.md#macos-and-ios-this-mac-2026-10-0809). The
 real RayX Lab and `examples_mobile` build, run and render on the iOS Simulator and the headed
 WebGPU spec passes against the current `RayX.Dtcg`. The changes that belong to `../RayX` and
-`../Gpux` are uncommitted in those working trees. Part 1 below is kept as the procedure to
+`../Gpux` are committed, unpushed, on `fix/ios-simulator-run` and `fix/ios-simulator-rendering`. Part 1 below is kept as the procedure to
 repeat.**
 
 ## Status
