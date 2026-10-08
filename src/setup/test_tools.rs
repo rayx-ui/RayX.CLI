@@ -57,7 +57,86 @@ fn known_dirs(cx: &Cx) -> Vec<PathBuf> {
 /// A Node tool (`node`, `corepack`, `pnpm`) by absolute path. PATH comes first, skipping the
 /// Windows programs WSL appends under `/mnt` (a Windows `pnpm` is never the one to use from
 /// Linux), then the places an install puts it.
-pub fn find_tool(cx: &Cx, name: &str) -> Option<PathBuf> {
+pub fn find_tool(cx: &mut Cx, name: &str) -> Option<PathBuf> {
+    match name {
+        "node" => return select_node(cx).map(|(node, _)| node),
+        // corepack ships with Node and its shim starts that Node: take the selected one's.
+        "corepack" => {
+            let beside = select_node(cx)
+                .and_then(|(node, _)| node.parent().map(Path::to_path_buf))
+                .and_then(|dir| find_in_dirs(cx, name, &[dir]));
+            if beside.is_some() {
+                return beside;
+            }
+        }
+        _ => {}
+    }
+    find_on_path_or_known(cx, name)
+}
+
+/// The Node to use and its major version when it runs. Every `node` on PATH and in the known
+/// directories is a candidate, because an old one earlier on PATH (nvm's, say) must not hide the
+/// pinned Homebrew `node@<major>`: the first candidate at the pinned major or newer wins, else the
+/// first one found.
+pub fn select_node(cx: &mut Cx) -> Option<(PathBuf, Option<u32>)> {
+    let major = node_major(cx.env);
+    let mut candidates: Vec<PathBuf> = cx
+        .machine
+        .which_all("node")
+        .into_iter()
+        .filter(|found| !(cx.env.host.wsl && found.starts_with("/mnt")))
+        .collect();
+    for dir in &known_dirs(cx) {
+        let candidate = dir.join(if cx.env.host.os == Os::Windows {
+            "node.exe"
+        } else {
+            "node"
+        });
+        if cx.machine.exists(&candidate) && !candidates.contains(&candidate) {
+            candidates.push(candidate);
+        }
+    }
+    let mut first = None;
+    for candidate in candidates {
+        let version = node_major_of(cx, &candidate);
+        if version.is_some_and(|found| found >= major) {
+            return Some((candidate, version));
+        }
+        first.get_or_insert((candidate, version));
+    }
+    first
+}
+
+/// The major version a Node binary reports, when it runs.
+pub fn node_major_of(cx: &mut Cx, node: &Path) -> Option<u32> {
+    let outcome = cx
+        .query(&CommandSpec::new(node.display().to_string()).arg("--version"))
+        .filter(|outcome| outcome.is_success())?;
+    outcome
+        .stdout
+        .trim()
+        .trim_start_matches('v')
+        .split('.')
+        .next()?
+        .parse()
+        .ok()
+}
+
+fn find_in_dirs(cx: &Cx, name: &str, dirs: &[PathBuf]) -> Option<PathBuf> {
+    let files: Vec<String> = if cx.env.host.os == Os::Windows {
+        vec![format!("{name}.cmd"), format!("{name}.exe")]
+    } else {
+        vec![name.to_string()]
+    };
+    dirs.iter().find_map(|dir| {
+        files
+            .iter()
+            .map(|file| dir.join(file))
+            .find(|candidate| cx.machine.exists(candidate))
+    })
+}
+
+fn find_on_path_or_known(cx: &Cx, name: &str) -> Option<PathBuf> {
     let from_path = cx
         .machine
         .which_all(name)
@@ -66,23 +145,13 @@ pub fn find_tool(cx: &Cx, name: &str) -> Option<PathBuf> {
     if from_path.is_some() {
         return from_path;
     }
-    let files: Vec<String> = if cx.env.host.os == Os::Windows {
-        vec![format!("{name}.cmd"), format!("{name}.exe")]
-    } else {
-        vec![name.to_string()]
-    };
-    known_dirs(cx).into_iter().find_map(|dir| {
-        files
-            .iter()
-            .map(|file| dir.join(file))
-            .find(|candidate| cx.machine.exists(candidate))
-    })
+    find_in_dirs(cx, name, &known_dirs(cx))
 }
 
 /// A command for a Node tool, by absolute path when it can be found. A `.cmd` shim started by
 /// its full path is handled by the standard library, so no `cmd /c` wrapper (which mishandles
 /// quoted paths with spaces) is needed.
-pub fn node_command(cx: &Cx, name: &str, args: &[&str]) -> CommandSpec {
+pub fn node_command(cx: &mut Cx, name: &str, args: &[&str]) -> CommandSpec {
     let program = find_tool(cx, name).map_or_else(|| name.to_string(), |p| p.display().to_string());
     with_node_path(cx, CommandSpec::new(program).args(args.iter().copied()))
 }
@@ -91,7 +160,7 @@ pub fn node_command(cx: &Cx, name: &str, args: &[&str]) -> CommandSpec {
 /// front of the command's `PATH`. The `pnpm` shim that corepack writes starts `node` by name
 /// (`#!/usr/bin/env node`, or a bare `node` in `pnpm.cmd`), and right after an install the running
 /// process's PATH still lacks the directory Node went to.
-pub fn with_node_path(cx: &Cx, spec: CommandSpec) -> CommandSpec {
+pub fn with_node_path(cx: &mut Cx, spec: CommandSpec) -> CommandSpec {
     let mut dirs: Vec<PathBuf> = find_tool(cx, "node")
         .and_then(|node| node.parent().map(Path::to_path_buf))
         .into_iter()
@@ -127,21 +196,9 @@ fn node_step(env: &PlanEnv) -> Step {
         format!("Node.js {major} or newer"),
         Privilege::None,
         move |cx| {
-            let Some(node) = find_tool(cx, "node") else {
+            let Some((_, found)) = select_node(cx) else {
                 return Probed::missing("node is not installed");
             };
-            let version = cx
-                .query(&CommandSpec::new(node.display().to_string()).arg("--version"))
-                .filter(|outcome| outcome.is_success())
-                .map(|outcome| outcome.stdout);
-            let found: Option<u32> = version.as_deref().and_then(|text| {
-                text.trim()
-                    .trim_start_matches('v')
-                    .split('.')
-                    .next()?
-                    .parse()
-                    .ok()
-            });
             match found {
                 Some(found) if found >= major => Probed::ok().with_found(found.to_string()),
                 Some(found) => Probed::missing(format!("Node.js {found} is installed"))
@@ -219,11 +276,12 @@ fn pnpm_step() -> Step {
             let Some(pnpm) = find_tool(cx, "pnpm") else {
                 return Probed::missing("pnpm is not installed");
             };
+            let command = with_node_path(
+                cx,
+                CommandSpec::new(pnpm.display().to_string()).arg("--version"),
+            );
             let version = cx
-                .query(&with_node_path(
-                    cx,
-                    CommandSpec::new(pnpm.display().to_string()).arg("--version"),
-                ))
+                .query(&command)
                 .filter(|outcome| outcome.is_success())
                 .map(|outcome| outcome.stdout.trim().to_string());
             match version {
