@@ -734,6 +734,10 @@ fn handle_connection(mut stream: TcpStream, root: &Path) -> Result<()> {
                 stream,
                 "HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
             )?;
+            // Close the way HTTP servers do: send FIN, then let the client finish before the
+            // socket goes away, or Windows turns the close into a reset that discards the answer.
+            stream.flush()?;
+            let _ = stream.shutdown(std::net::Shutdown::Write);
             return Ok(());
         }
         let file_path = root.join(relative);
