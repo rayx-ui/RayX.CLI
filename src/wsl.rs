@@ -280,7 +280,7 @@ pub fn parse_status(text: &str) -> (Option<u64>, Option<u64>, Vec<BuildOutput>) 
 
 fn in_distribution(name: &str, script: &str) -> CommandSpec {
     CommandSpec::new("wsl")
-        .args(["-d", name, "--", "bash", "-lc"])
+        .args(["-d", name, "--exec", "bash", "-lc"])
         .arg(script)
 }
 
@@ -637,7 +637,7 @@ pub fn compact_with(
     runner
         .run_checked(
             &CommandSpec::new("wsl")
-                .args(["-d", &name, "--", "sudo", "fstrim", "-av"])
+                .args(["-d", &name, "--exec", "sudo", "fstrim", "-av"])
                 .interactive(),
         )
         .map_err(|error| CompactError::Failed(format!("fstrim: {error}")))?;

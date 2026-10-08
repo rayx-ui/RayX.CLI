@@ -179,7 +179,7 @@ fn wsl_command(args: &[&str]) -> CommandSpec {
 
 /// A bash script run inside the distribution as the default user.
 fn in_distribution(script: &str) -> CommandSpec {
-    wsl_command(&["-d", DISTRIBUTION, "--", "bash", "-lc"]).arg(script)
+    wsl_command(&["-d", DISTRIBUTION, "--exec", "bash", "-lc"]).arg(script)
 }
 
 /// Runs `rayx setup --wsl` against the real machine and returns the process exit code.
