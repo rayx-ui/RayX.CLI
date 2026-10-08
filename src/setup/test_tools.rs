@@ -181,7 +181,9 @@ fn node_step(env: &PlanEnv) -> Step {
                         install = install
                             .args(["--accept-package-agreements", "--accept-source-agreements"]);
                     }
-                    vec![Action::Run(install.interactive())]
+                    vec![Action::Run(
+                        install.also_ok(super::WINGET_NOTHING_TO_DO).interactive(),
+                    )]
                 }
                 Os::MacOs => {
                     let brew = macos::brew_program(cx)

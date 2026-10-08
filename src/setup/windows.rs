@@ -48,7 +48,9 @@ fn winget_install(cx: &Cx, id: &str) -> CommandSpec {
     if cx.env.yes {
         spec = spec.args(["--accept-package-agreements", "--accept-source-agreements"]);
     }
-    spec.interactive()
+    // winget exits non-zero for a package that is already installed and has no newer version
+    // (APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE, PACKAGE_ALREADY_INSTALLED): that is success.
+    spec.also_ok(super::WINGET_NOTHING_TO_DO).interactive()
 }
 
 fn winget_step() -> Step {

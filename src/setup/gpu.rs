@@ -550,7 +550,9 @@ fn windows_driver_actions(cx: &Cx, vendor: Vendor, wsl: bool) -> Vec<Action> {
         if cx.env.yes {
             install = install.args(["--accept-package-agreements", "--accept-source-agreements"]);
         }
-        actions.push(Action::Run(install.interactive()));
+        actions.push(Action::Run(
+            install.also_ok(super::WINGET_NOTHING_TO_DO).interactive(),
+        ));
     }
     // Windows Update serves the driver for every vendor: scan, then open the optional updates.
     let (shell, flag) = if wsl {

@@ -404,3 +404,16 @@ mod fake_sudo {
         assert!(!log.exists(), "sudo was not invoked");
     }
 }
+
+#[test]
+fn run_checked_accepts_the_extra_exit_codes_a_command_names_and_no_others() {
+    let spec = CommandSpec::new("winget").also_ok([-1_978_335_189]);
+    let mut accepting = Runner::record().responder(|_| Some(Outcome::failure(-1_978_335_189)));
+    assert!(accepting.run_checked(&spec).is_ok());
+
+    let mut other = Runner::record().responder(|_| Some(Outcome::failure(7)));
+    assert!(other.run_checked(&spec).is_err());
+
+    let mut plain = Runner::record().responder(|_| Some(Outcome::failure(-1_978_335_189)));
+    assert!(plain.run_checked(&CommandSpec::new("winget")).is_err());
+}

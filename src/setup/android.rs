@@ -167,7 +167,7 @@ fn jdk_step(env: &PlanEnv) -> Step {
                         install = install
                             .args(["--accept-package-agreements", "--accept-source-agreements"]);
                     }
-                    install.interactive()
+                    install.also_ok(super::WINGET_NOTHING_TO_DO).interactive()
                 }
                 _ => {
                     let brew = super::macos::brew_program(cx)
@@ -295,7 +295,7 @@ fn studio_step(env: &PlanEnv) -> Step {
                         install = install
                             .args(["--accept-package-agreements", "--accept-source-agreements"]);
                     }
-                    install.interactive()
+                    install.also_ok(super::WINGET_NOTHING_TO_DO).interactive()
                 }
                 Os::MacOs => {
                     let brew = super::macos::brew_program(cx)

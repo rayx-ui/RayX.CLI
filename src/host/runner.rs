@@ -42,6 +42,8 @@ pub struct CommandSpec {
     /// Inherit the console so prompts (`sudo`, license questions) reach the user and output is
     /// shown as it happens. A non-interactive command has its output captured in [`Outcome`].
     pub interactive: bool,
+    /// Exit codes besides 0 that `run_checked` accepts (a package manager's "already installed").
+    pub ok_codes: Vec<i32>,
 }
 
 impl CommandSpec {
@@ -93,6 +95,12 @@ impl CommandSpec {
 
     pub fn interactive(mut self) -> Self {
         self.interactive = true;
+        self
+    }
+
+    /// Also treat these exit codes as success in [`Runner::run_checked`].
+    pub fn also_ok(mut self, codes: impl IntoIterator<Item = i32>) -> Self {
+        self.ok_codes.extend(codes);
         self
     }
 }
@@ -411,7 +419,11 @@ impl Runner {
     /// Like [`Runner::run`], but a command that exits unsuccessfully is an error.
     pub fn run_checked(&mut self, spec: &CommandSpec) -> Result<Outcome, RunError> {
         let outcome = self.run(spec)?;
-        if outcome.is_success() {
+        if outcome.is_success()
+            || outcome
+                .code
+                .is_some_and(|code| spec.ok_codes.contains(&code))
+        {
             Ok(outcome)
         } else {
             Err(RunError::Failed {
@@ -523,6 +535,7 @@ fn sudo_wrapped(spec: &CommandSpec, sudo: &str) -> CommandSpec {
         privilege: Privilege::None,
         stdin: spec.stdin.clone(),
         interactive: spec.interactive,
+        ok_codes: spec.ok_codes.clone(),
     }
 }
 

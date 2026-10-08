@@ -29,6 +29,10 @@ use crate::project::{Pins, Project};
 
 pub use machine::{FakeMachine, Machine, SystemMachine};
 
+/// winget exit codes for a package that is already installed with no newer version
+/// (`APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE`, `PACKAGE_ALREADY_INSTALLED`): success.
+pub const WINGET_NOTHING_TO_DO: [i32; 2] = [-1_978_335_189, -1_978_335_135];
+
 /// A group of requirements the user can ask for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Set {
