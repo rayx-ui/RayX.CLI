@@ -183,10 +183,13 @@ fn integration_tests_are_one_file_per_feature_group() {
                 path.display()
             );
         } else {
-            assert_eq!(
-                path.file_name().and_then(|n| n.to_str()),
-                Some("fixtures"),
-                "only tests/fixtures/ may be a directory, found {}",
+            // `fixtures` holds the fixture projects, `common` the helpers the groups share.
+            assert!(
+                matches!(
+                    path.file_name().and_then(|n| n.to_str()),
+                    Some("fixtures" | "common")
+                ),
+                "only tests/fixtures/ and tests/common/ may be directories, found {}",
                 path.display()
             );
         }

@@ -71,11 +71,10 @@ pub fn collect_files_named(path: &Path, name: &str, files: &mut Vec<PathBuf>) ->
     Ok(())
 }
 
-#[cfg(test)]
+#[cfg(all(test, windows))]
 mod tests {
     use super::*;
 
-    #[cfg(windows)]
     #[test]
     fn command_path_removes_windows_verbatim_disk_prefix() {
         let path = Path::new(r"\\?\C:\repo\apps\example\Cargo.toml");
@@ -86,7 +85,6 @@ mod tests {
         );
     }
 
-    #[cfg(windows)]
     #[test]
     fn command_path_removes_windows_verbatim_unc_prefix() {
         let path = Path::new(r"\\?\UNC\server\share\Cargo.toml");
