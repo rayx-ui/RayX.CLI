@@ -507,7 +507,8 @@ pub fn compact_script(vhdx: &Path) -> String {
     // typographic quotes too, and the registry value it comes from is writable without rights.
     let path = base64(vhdx.display().to_string().as_bytes());
     format!(
-        "$vhdx = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{path}'))\n\
+        "$ProgressPreference = 'SilentlyContinue'\n\
+         $vhdx = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{path}'))\n\
          $code = 0\n\
          $done = $false\n\
          if (Get-Command Optimize-VHD -ErrorAction SilentlyContinue) {{\n\
