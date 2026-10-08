@@ -1,12 +1,12 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 70,
-  "planRevision": 6,
+  "revision": 84,
+  "planRevision": 8,
   "specHashes": {
     "requirements": "fb6ec561011aef0e6d1b315abae02cfad23de7429469fc7864d9487150e5a538",
     "design": "bf10b0221d4688d0f4522567f1167fa4fba5b66f804e60a391a88f2dc8e9cbff",
-    "plan": "084f86369434b2936a0772ed72a6b8b81d650d28529e814a05ab530b1a5a34fa"
+    "plan": "9a29d0d8c92268c5887163ef35f0f26c317435b653db91cbb0d27baf8d30a3cb"
   },
   "tasks": {
     "t01-package-scaffold": {
@@ -106,22 +106,40 @@
       ]
     },
     "t17-move-app-pipeline": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t18-app-project-agnostic": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t19-app-wasm-tests": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t20-app-wasm-fixture": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t21-fmt": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t22-real-rayx-proof": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t23-wsl": {
       "status": "pending"
@@ -166,13 +184,22 @@
       ]
     },
     "t33-validation-environment": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t34-app-prereqs": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t35-playwright-template": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "a168031f-8fbd-4bc4-bfa3-053748a8444d"
+      ]
     },
     "t36-wsl-disk": {
       "status": "pending"
@@ -222,6 +249,17 @@
         }
       },
       "recordedAt": "2026-10-07T23:14:03Z"
+    },
+    "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74": {
+      "snapshot": {
+        "specHash": "9801e94f57935bfd00228ed9a74eee38a554be85614bb1649999ce27e7d2a328",
+        "repositories": {
+          "rayx-cli": "df4ad70cf8a6ffd491c709a8f8f0a28c0021029fba3c29895e16a54cbb01c92e",
+          "rayx": "c19c8472860734ffb1be8948f135775542d5f74acce7d3a3bf7af570595f86b0",
+          "gpux": "3398ecb8dca8c23047da86f58951329618b9da68493c277d932ccdec1a3a4bb6"
+        }
+      },
+      "recordedAt": "2026-10-08T01:21:47Z"
     }
   },
   "checkResults": {
@@ -712,6 +750,309 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s3-optional-sets-and-doctor-final-a439870fe634.log",
       "logSha256": "92e337ebfcaf33e0fd3ef2e9f54bb36ae43f310c7a67e1380684ab3d8b232476",
       "inputsHash": "1c9d17fd57244663553a3c46d53dabd93dface0689be1aeb98b1652e18702a38"
+    },
+    "s4-app-pipeline/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "32cee98ae43a6fe58272ad1411f4d72cab9a903874325bf1be89098d23713486",
+      "basisHash": "1818aeca260cd40036796fffc0e13d26d518d6b5864cbcb5a103b9fa39967f38",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.6264,
+      "recordedAt": "2026-10-08T01:14:47Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-9ae13ac452f1.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "49421f573a53f2509eeb448b3a72500688994e4954ac460c752080aa145facc6"
+    },
+    "s4-app-pipeline/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "67c592bba17b7b720efc70b7b5b11322e3bc7fcd8490722aede92373d72ba844",
+      "basisHash": "c3f8c136dd8d819fc79a522b71f30cfdeb6d6a8b4de780d5c4655acccb48ea02",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 2.6572,
+      "recordedAt": "2026-10-08T01:14:50Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-8d0e09538eee.log",
+      "logSha256": "f858941f20d113d10a7523bf1c15c69909a85600ef987bfee3142a253a921246",
+      "inputsHash": "6a640ea122d9f09d4081f6bfdad2d0313457de2550335cd266f8f7417918fb71"
+    },
+    "s4-app-pipeline/check-validation-env/final": {
+      "checkId": "check-validation-env",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "7e909260624d9f5a83091d84c61567b71e52a4f3f5d978cae2cb0bc6d0cbd0c5",
+      "basisHash": "c5216500ac722a1a75dee8658d4394f45258f1e82b6f359a1c379e2bcb6d8c89",
+      "status": "failed",
+      "exitCode": 1,
+      "testCount": 0,
+      "durationSeconds": 9.8094,
+      "recordedAt": "2026-10-08T01:14:59Z",
+      "messageMarkdown": "Unexpected exit code: 1",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-2f0237b880b0.log",
+      "logSha256": "f5042c14ea1f9b0b373515e97795a8c1862d2b92effdfb5cf6c66c288c3e5255"
+    },
+    "s4-app-pipeline/check-validation-desktop/final": {
+      "checkId": "check-validation-desktop",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "255c32a6119e085fa4782a0faa33a84bf8fe36c2ad0f9e70156fedbe47cbccca",
+      "basisHash": "335954c0fd681fee29501db5ae7f67fd0680c9b5dea5267e6fc783da76097a03",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 1.8526,
+      "recordedAt": "2026-10-08T01:15:01Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-4b2549bc22c9.log",
+      "logSha256": "ea7acdaa0b916524235de14b8b60f076ddbaafe78baebdd3fc5e2d85b6f4cd2a"
+    },
+    "s4-app-pipeline/check-validation-dist/final": {
+      "checkId": "check-validation-dist",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "3341acc5177d17c47279d083ea16c875114a7ca66d8a5909ebd6c2f5c6046106",
+      "basisHash": "1552a009b4492f02f46c19d03474d3fcb5f3c02c8f8917964612826823cb3e64",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.6043,
+      "recordedAt": "2026-10-08T01:15:02Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-a957107bc4f2.log",
+      "logSha256": "162fd2b08c0857f24e17a309ba806fabadcb05bf372cb0470fcfef1ea1f2e37f"
+    },
+    "s4-app-pipeline/check-app-unit/final": {
+      "checkId": "check-app-unit",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "82d69166acdc661978d7ad5aab74d0edaed997b5a90646360d247619fe1391dc",
+      "basisHash": "6fa224f0bb01f2fc352f34cda194784dfd8519b29b2e29ca5b039fba59afbfd4",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 102,
+      "durationSeconds": 4.3047,
+      "recordedAt": "2026-10-08T01:15:06Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-ea91a812e92d.log",
+      "logSha256": "5d1e830c09c869ca98ab4270e75d6c53c18cf6880cdcd4d56dc4b76d46d84d71",
+      "inputsHash": "508dc7a48e4c58d41972483b63906244866a5c27cd8332c3fdc22a91e2a511fc"
+    },
+    "s4-app-pipeline/check-app-project/final": {
+      "checkId": "check-app-project",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "ed89cfe2e77749a6281cc6759b948831a06fb97bd45984189c91e712f6b6a54a",
+      "basisHash": "4360a73d0aa3827734f8b346d98746042b6b16ccfef3f039226cce0f80a7dca7",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 2.3185,
+      "recordedAt": "2026-10-08T01:15:09Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-a07b25cb5022.log",
+      "logSha256": "421d8c5a24ed8234abed0a9678b16985d080b10aa258d188b150899b0087f871",
+      "inputsHash": "14882e543c86bd8270a8f84acd0781b20e0478fbab002084622af5cab3b41f79"
+    },
+    "s4-app-pipeline/check-app-prereqs/final": {
+      "checkId": "check-app-prereqs",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "1b16f0dd8cce34221a8774c203dc98aa6da6b495f1362e5b3879c35c8e77e2a0",
+      "basisHash": "aa0edc72eab93f8de9a15d4fd11e2ce745f134581c9b8c2ef555f26f3eefbe42",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 12,
+      "durationSeconds": 0.7067,
+      "recordedAt": "2026-10-08T01:15:09Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-05f04cbbbf1d.log",
+      "logSha256": "5b6abf6b6ce6b645b4aa588a756b93d7b17923cdae8856880704e3ea5539e639",
+      "inputsHash": "6331fdd8e8ece0c46df4705f4725a567dca952b7996823d1e35ed3b5c472522b"
+    },
+    "s4-app-pipeline/check-app-wasm-tests/final": {
+      "checkId": "check-app-wasm-tests",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "8c9321f7031e611ebb418a8e119403e94f24f035ef3f087a975cdd94565ce1bc",
+      "basisHash": "a51f5e836dd25797cba4f46c7b9bda352d3a191e2c3b31ce5170e3a63a79690c",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 15,
+      "durationSeconds": 1.5782,
+      "recordedAt": "2026-10-08T01:15:11Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-582cfb4aa454.log",
+      "logSha256": "25d956892d43e2faa465c178d764b608ac4cca970c4832c2ee799821eb547edc",
+      "inputsHash": "4dc04178e0acd7ecb267956042bcc696018c3b086e529181f7f4677faeb62956"
+    },
+    "s4-app-pipeline/check-app-playwright-template/final": {
+      "checkId": "check-app-playwright-template",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "345099ce521c140dc9532863e149b95c670463e154e5012eafe7b1266e149be5",
+      "basisHash": "b60a78ec73831d01a3fbb9ba8e06997dc84e89b94b7307350494e523a90ca30a",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 40.9727,
+      "recordedAt": "2026-10-08T01:15:52Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-2a6f2b33cb1f.log",
+      "logSha256": "b6ab1a145ef2162a2bba9a46fafebf4c83a1d3f001b9831ebc1e95cee996d46b",
+      "inputsHash": "c0ee09029188addc6dcf3f893fabb090d8880352cf7db01e8ff83c7e037ae272"
+    },
+    "s4-app-pipeline/check-app-wasm-fixture/final": {
+      "checkId": "check-app-wasm-fixture",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "178dd4d1ac7a91496c37faa574502554ad858dc8eba2b3212c4ebc189cdb3b0a",
+      "basisHash": "436a5156a36564784e37b5f56e4903443ffb8971c6493315815c7d8fa927b8dd",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 2,
+      "durationSeconds": 34.8469,
+      "recordedAt": "2026-10-08T01:16:27Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-186d15e8e6a8.log",
+      "logSha256": "64c161561531c96e1b382136904d207e1f0d08f93b75c345b755e2ee4e81dec2",
+      "inputsHash": "e1ed7ba1f8b8dc02cce43c81911253d2dd215f222222a318b5c088fcd73f0c23"
+    },
+    "s4-app-pipeline/check-fmt-command/final": {
+      "checkId": "check-fmt-command",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "201e168b21f2fdef22d6acf71f4db2fbbe97ab781c45a3f6d851b7df81d2ed24",
+      "basisHash": "2662ee97d58b5b20c8f955a27880c0860c5eb4e39118d24b0bfb11278013b624",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 7,
+      "durationSeconds": 1.647,
+      "recordedAt": "2026-10-08T01:16:28Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-1fa05854af38.log",
+      "logSha256": "fa6983e23c13829288ca64a188118e20d2e33a61cea20e6703639d5acd7459a3",
+      "inputsHash": "ec9bc10516ec119d7bc08213f748de3674e2811da5ec322d51bdb101e9225d1c"
+    },
+    "s4-app-pipeline/check-rayx-lab-wasm/final": {
+      "checkId": "check-rayx-lab-wasm",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "e64352498c807f5dab7af4901da686b72a03aeefd909e18e4aff6ba7b322a54a",
+      "basisHash": "6cf5b105c040a931a4668991f8f890554e93673fc0efd9421fa7089a0b371161",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 38.4275,
+      "recordedAt": "2026-10-08T01:17:09Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-54747db90217.log",
+      "logSha256": "6f888c3efc2c632005cf73cfdacc6868b27caaa55cca82351a8abbf4bde6e626",
+      "inputsHash": "76383f3b3103451158fb1cebd6d46154b3596ebd24e095eb7c6bfa6df0d0a032"
+    },
+    "s4-app-pipeline/check-rayx-test-suite-wasm/final": {
+      "checkId": "check-rayx-test-suite-wasm",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "59f31215a1f1d639a6ba363f46efcecee3d78dc8c5fa3634b7ffcd6db389ec68",
+      "basisHash": "f817787aba4e84e8856b80b64f63a1aedcbebb3c84ab8a1f11587026f5749aae",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 18.4057,
+      "recordedAt": "2026-10-08T01:17:27Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-e6999104b3a3.log",
+      "logSha256": "38924258a9db001901e482a5bc9ac5f8a877e5550e5524da69ac166ee24490ea",
+      "inputsHash": "76383f3b3103451158fb1cebd6d46154b3596ebd24e095eb7c6bfa6df0d0a032"
+    },
+    "s4-app-pipeline/check-rayx-lab-host/final": {
+      "checkId": "check-rayx-lab-host",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "2eb778481c684ce1bd6fd031d9001cc0317293f03c873acd59a9c4b92dc4b4ad",
+      "basisHash": "4b765d8659d8d94fea6656eb33f3ce6a7480a6e209805d04893c4db76a27b6d2",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 105.9532,
+      "recordedAt": "2026-10-08T01:19:13Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-64ca067d01d9.log",
+      "logSha256": "a7f3f7141926e79e0b2478012c69a59d501515a8bc673569826be3894eff4a74",
+      "inputsHash": "76383f3b3103451158fb1cebd6d46154b3596ebd24e095eb7c6bfa6df0d0a032"
+    },
+    "s4-app-pipeline/check-rayx-mobile-android/final": {
+      "checkId": "check-rayx-mobile-android",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "1720bfb7b2909694276ef1daf15fe3e3bed15732f17fb47400b0c15839426a42",
+      "basisHash": "de8bd6d77dc6c2e5b7a8c94e5d4ba65f31e22ffa5f2a9290279b6a3e6d4d25e8",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 38.4002,
+      "recordedAt": "2026-10-08T01:19:51Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-b03f8e0985f9.log",
+      "logSha256": "e00b1b5a64355d75591c4b3ee6136e9e9a3126f225a98759152e1a159ad6852d",
+      "inputsHash": "76383f3b3103451158fb1cebd6d46154b3596ebd24e095eb7c6bfa6df0d0a032"
+    },
+    "s4-app-pipeline/check-rayx-test-suite-spec/final": {
+      "checkId": "check-rayx-test-suite-spec",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "3e8096826351b46dcb6f749fe5982ecb89b016d903b79b5e95fab69f39bc5da5",
+      "basisHash": "22a7ac608a0b4c70d1fdcc4e97a90e3d8422e2da8c40b66d14a5c7b9b03367a8",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 2,
+      "durationSeconds": 109.3512,
+      "recordedAt": "2026-10-08T01:21:41Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-5f8af36dbcf3.log",
+      "logSha256": "7fa18a0de196a35f7a5419f7167911a89e0aebb35711524f4d45168f082dbb6f",
+      "inputsHash": "9879840ef8ec7f946af1bee70e500d9cac05288bc6aadae3929b88cdece2ad62"
+    },
+    "s4-app-pipeline/check-gpux-android-build/final": {
+      "checkId": "check-gpux-android-build",
+      "boundaryId": "s4-app-pipeline",
+      "phase": "final",
+      "batchId": "4829c50066f04b2c860b726534262904740bdea4a125d850c173c3540c62af74",
+      "definitionHash": "61ebcc411b0ab8e345cd58791fa68f20add849d835b80ad819ecde94d480c5c8",
+      "basisHash": "c38bc28bae86aab3ebb77b7366e753ea0e2722fe829377889074c9b5a0d32ba5",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 1,
+      "durationSeconds": 2.4264,
+      "recordedAt": "2026-10-08T01:21:44Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-foundation/s4-app-pipeline-final-35c7029afa63.log",
+      "logSha256": "04374c87199a57288a843c144d92ade0d62bbd4c7e1903a7305dbef3da8c502f",
+      "inputsHash": "c8abc198fb771fd4b7f832e0c043e7499fe2dfdb0a8ce0029e309b921c7f323f"
     }
   },
   "reviews": {
@@ -1915,7 +2256,7 @@
       ]
     }
   ],
-  "handoffMarkdown": "",
+  "handoffMarkdown": "cargo-dist 0.32.0 installed; setup --check passes for web, test, gpu and all of android except Android Studio; doctor reports hardwareAdapter and interactiveDesktop true. Android Studio: winget asks the owner to accept Google's license, so the install runs in the owner's Terminal tab (rayx setup --android) and waits for the answer; check-validation-env stays red until it finishes.",
   "protectedPaths": {
     "rayx-cli": {},
     "rayx": {

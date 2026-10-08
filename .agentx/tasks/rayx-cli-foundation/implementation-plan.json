@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-foundation",
-  "revision": 6,
+  "revision": 8,
   "title": "RayX CLI: machine setup, doctor, WSL, self update and the app pipeline for any RayX app",
   "validationMode": "sprint",
   "repositories": [
@@ -837,7 +837,9 @@
         "cargo",
         "test",
         "--test",
-        "app_playwright_template"
+        "app_playwright_template",
+        "--",
+        "--include-ignored"
       ],
       "expected": {
         "exitCode": 0,
@@ -865,7 +867,9 @@
         "cargo",
         "test",
         "--test",
-        "app_wasm_fixture"
+        "app_wasm_fixture",
+        "--",
+        "--include-ignored"
       ],
       "expected": {
         "exitCode": 0,
@@ -1056,23 +1060,8 @@
       ],
       "descriptionMarkdown": "Real RayX proof: one focused headed WebGPU Test Suite spec through `rayx app ... test wasm`.",
       "argv": [
-        "cargo",
-        "run",
-        "--release",
-        "--manifest-path",
-        "../RayX.CLI/Cargo.toml",
-        "--",
-        "app",
-        "apps/test_suite",
-        "test",
-        "wasm",
-        "--headed",
-        "--webgpu",
-        "--no-default-features",
-        "--features",
-        "rayx_diagnostics",
-        "--playwright-test",
-        "test_suite/rayx-collapsible-sizes.spec.ts"
+        "python",
+        "../RayX.CLI/scripts/prove-rayx-spec.py"
       ],
       "cwd": ".",
       "timeoutSeconds": 5400,
@@ -1085,6 +1074,7 @@
         "rayx-cli:Cargo.toml",
         "rayx-cli:Cargo.lock",
         "rayx-cli:src/**",
+        "rayx-cli:scripts/**",
         "Cargo.toml",
         "Cargo.lock",
         "apps/**",
