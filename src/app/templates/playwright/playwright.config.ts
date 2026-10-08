@@ -36,6 +36,7 @@ export default defineConfig({
   expect: { timeout: 30_000 },
   reporter: [["list"]],
   use: {
+    baseURL: process.env.RAYX_APP_URL ?? "http://127.0.0.1:7878/",
     ignoreHTTPSErrors: true,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",

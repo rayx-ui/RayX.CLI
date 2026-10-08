@@ -528,15 +528,17 @@ impl AppDescriptor {
             "devkit = []".to_string()
         };
         feature_lines.push(devkit_feature_line);
-        // The entry crate depends on `rayx` (and `rayx_devkit`) from the same source the app does.
+        // The entry crate depends on `rayx` (and `rayx_devkit`) from the same source the app does;
+        // an app that does not use RayX gets an entry crate without it.
         let package = self.package()?;
-        let rayx = package.dependency("rayx").ok_or_else(|| {
-            anyhow!(
-                "app {} does not depend on `rayx`, which its generated {target} entry crate needs",
-                self.root.display()
-            )
-        })?;
-        let rayx_dependency = dependency_toml(rayx, false)?;
+        let rayx_dependency_line = match package.dependency("rayx") {
+            Some(rayx) => format!(
+                "rayx = {}
+",
+                dependency_toml(rayx, false)?
+            ),
+            None => String::new(),
+        };
         let app_path = cargo_toml_path(&self.root);
         let generated_devkit_dependency_line = if generated_devkit_dependency {
             let devkit = package.dependency("rayx_devkit").ok_or_else(|| {
@@ -613,8 +615,7 @@ default = [{}]
 {}
 
 [dependencies]
-rayx = {}
-{}{}{}
+{}{}{}{}
 {}
 "#,
             self.slug,
@@ -627,7 +628,7 @@ rayx = {}
                 .collect::<Vec<_>>()
                 .join(", "),
             feature_lines.join("\n"),
-            rayx_dependency,
+            rayx_dependency_line,
             generated_devkit_dependency_line,
             generated_web_dependency_lines,
             app_dependency_line,
@@ -1149,7 +1150,7 @@ mod tests {
     }
 
     #[test]
-    fn an_app_without_a_rayx_dependency_names_the_missing_dependency() -> TestResult {
+    fn an_app_without_a_rayx_dependency_gets_an_entry_crate_without_it() -> TestResult {
         let workspace = FixtureWorkspace::new();
         rewrite_app_manifest(
             &workspace,
@@ -1157,13 +1158,10 @@ mod tests {
         )?;
         let app = workspace.app();
 
-        let error = app
-            .android_rust_manifest(&AppFeatureSelection::default())
-            .unwrap_err();
-        assert!(
-            error.to_string().contains("does not depend on `rayx`"),
-            "{error:#}"
-        );
+        let manifest = app.web_manifest(&AppFeatureSelection::default())?;
+        let text = std::fs::read_to_string(manifest)?;
+        assert!(!text.contains("rayx = "), "{text}");
+        assert!(text.contains("rayx_demo = { package = \"rayx_demo\""));
         Ok(())
     }
 

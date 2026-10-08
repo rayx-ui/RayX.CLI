@@ -138,7 +138,7 @@ pub fn test(
     if package.created {
         println!(
             "Created the Playwright package {} from the RayX template: commit it.",
-            package.dir.display()
+            crate::app::fs_util::command_path(&package.dir).display()
         );
     }
     let specs = playwright::select_specs(app, &package, &selectors)?;
@@ -352,15 +352,25 @@ fn copy_app_assets(
     out_dir: &Path,
 ) -> Result<PathBuf> {
     let destination = out_dir.join("assets");
-    // The fonts gpux's SVG renderer loads through the app's asset source (`fonts/...`).
-    let gpux_assets = app
+    // The fonts gpux's SVG renderer loads through the app's asset source (`fonts/...`); an app
+    // that does not use gpux has none.
+    let mut additional_roots = Vec::new();
+    if let Some(fonts) = app
         .context
-        .resolved_package_dir("gpux-fonts", &app.manifest())?
-        .join("assets");
-    if !gpux_assets.is_dir() {
-        bail!("gpux font assets are missing at {}", gpux_assets.display());
+        .find_resolved_package_dir("gpux-fonts", &app.manifest())?
+    {
+        let gpux_assets = fonts.join("assets");
+        if !gpux_assets.is_dir() {
+            bail!("gpux font assets are missing at {}", gpux_assets.display());
+        }
+        additional_roots.push(gpux_assets);
     }
-    assets::package_app_assets_with_additional_roots(app, features, &destination, &[gpux_assets])?;
+    assets::package_app_assets_with_additional_roots(
+        app,
+        features,
+        &destination,
+        &additional_roots,
+    )?;
     Ok(destination)
 }
 

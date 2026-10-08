@@ -70,6 +70,21 @@ impl ProjectContext {
     /// The manifest directory of a package in the app's resolved dependency graph, from
     /// `cargo metadata` of the app (for example the `gpux-fonts` package).
     pub fn resolved_package_dir(&self, package: &str, app_manifest: &Path) -> Result<PathBuf> {
+        self.find_resolved_package_dir(package, app_manifest)?
+            .ok_or_else(|| {
+                anyhow!(
+                    "the dependency graph of {} has no `{package}` package",
+                    app_manifest.display()
+                )
+            })
+    }
+
+    /// Like [`ProjectContext::resolved_package_dir`], `None` when the graph has no such package.
+    pub fn find_resolved_package_dir(
+        &self,
+        package: &str,
+        app_manifest: &Path,
+    ) -> Result<Option<PathBuf>> {
         let outcome = Runner::print()
             .query(
                 &CommandSpec::new("cargo")
@@ -87,19 +102,13 @@ impl ProjectContext {
         }
         let json: serde_json::Value =
             serde_json::from_str(&outcome.stdout).context("unexpected `cargo metadata` output")?;
-        json["packages"]
+        Ok(json["packages"]
             .as_array()
             .into_iter()
             .flatten()
             .find(|candidate| candidate["name"] == package)
             .and_then(|candidate| candidate["manifest_path"].as_str())
-            .and_then(|manifest| Path::new(manifest).parent().map(Path::to_path_buf))
-            .ok_or_else(|| {
-                anyhow!(
-                    "the dependency graph of {} has no `{package}` package",
-                    app_manifest.display()
-                )
-            })
+            .and_then(|manifest| Path::new(manifest).parent().map(Path::to_path_buf)))
     }
 }
 
