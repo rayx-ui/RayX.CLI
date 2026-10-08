@@ -1,8 +1,11 @@
 name: CI
 
+# Runs on pull requests only (opened, new commits, reopened), never on pushes: a branch with an open
+# pull request would run twice and a merge would run again on the base branch. `workflow_dispatch`
+# runs it by hand on any branch.
 on:
-  push:
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
