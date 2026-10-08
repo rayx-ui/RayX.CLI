@@ -57,7 +57,7 @@ ones that belong to RayX or Gpux are listed under "Changes for the siblings".
 
 ### Changes for the siblings
 
-These are committed, unpushed, in `../RayX` (branch `fix/ios-simulator-run`; its `Cargo.lock` is the one `RayX.SignalR` 0.2.0 resolves to) and `../Gpux` (branch
+These are committed and pushed (no pull request opened) in `../RayX` (branch `fix/ios-simulator-run`; its `Cargo.lock` is the one `RayX.SignalR` 0.2.0 resolves to) and `../Gpux` (branch
 `fix/ios-simulator-rendering`), because they belong to those repositories; RayX's commits depend on
 the Gpux ones:
 
@@ -93,7 +93,7 @@ the Gpux ones:
   branch RayX's lock was made against; cargo no longer rewrites RayX's lock on every run.
 - The Lab keeps its desktop shell on a phone: a two-pane layout and its own menu bar over the status
   bar. That is the Lab's UI design (no responsive or safe-area layout), not the pipeline.
-- Nothing is pushed in any repository.
+- No pull requests are open for `fix/ios-simulator-rendering` (Gpux) and `fix/ios-simulator-run` (RayX).
 - Homebrew's own remote URLs were SSH (`git@github.com:`) and the owner's global `url.insteadOf`
   sends HTTPS to SSH too, so `brew update` failed until Homebrew was updated with
   `GIT_CONFIG_GLOBAL=/dev/null git fetch` and `git checkout -B stable <tag>`.

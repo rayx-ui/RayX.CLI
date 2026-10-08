@@ -12,8 +12,9 @@ Last updated: 2026-10-08, branch `feature/initial-setup` (pushed to `origin`, pu
 [docs/manual-verification.md](docs/manual-verification.md#macos-and-ios-this-mac-2026-10-0809). The
 real RayX Lab and `examples_mobile` build, run and render on the iOS Simulator and the headed
 WebGPU spec passes against the current `RayX.Dtcg`. The changes that belong to `../RayX` and
-`../Gpux` are committed, unpushed, on `fix/ios-simulator-run` and `fix/ios-simulator-rendering`. Part 1 below is kept as the procedure to
-repeat.**
+`../Gpux` are pushed on `fix/ios-simulator-run` (RayX) and `fix/ios-simulator-rendering` (Gpux), with no pull
+requests opened yet. CI on `feature/initial-setup` is green on all jobs. Part 1 below is kept as the
+procedure to repeat.**
 
 **Scope of the Mac session.** It covers what Part 1 lists: the test suite, `doctor`, the setup sets,
 the fixture and real-app pipeline, and iOS build, run and pack. It does not cover the Lab's own UI:
