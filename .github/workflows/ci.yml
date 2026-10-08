@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-24.04]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Reads rust-toolchain.toml (1.95.0 with clippy and rustfmt) and caches the cargo registry
       # and target directory.
@@ -43,7 +43,7 @@ jobs:
     name: web tests (ubuntu-24.04)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -65,7 +65,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
