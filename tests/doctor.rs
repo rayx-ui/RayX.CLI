@@ -380,11 +380,7 @@ fn on_windows_doctor_reports_each_wsl_virtual_disk_with_its_size() {
         default_uid: Some(1000),
     };
     let vhdx = ubuntu.vhdx();
-    assert_eq!(
-        vhdx.file_name().and_then(|n| n.to_str()),
-        Some("ext4.vhdx"),
-        "{vhdx:?}"
-    );
+    assert!(vhdx.to_string_lossy().ends_with(r"\ext4.vhdx"), "{vhdx:?}");
     assert!(!vhdx.to_string_lossy().starts_with(r"\\?\"));
     let machine = FakeMachine::new()
         .with_wsl_distributions(vec![ubuntu])

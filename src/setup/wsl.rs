@@ -368,10 +368,13 @@ fn clone_checkout(
     let checkout = checkout.ok_or_else(|| {
         WslError::Failed("--clone needs a git checkout: run it from inside one".to_string())
     })?;
+    // A Windows path, split on both separators so the name is the same on every host.
     let name = checkout
         .root
-        .file_name()
-        .map(|name| name.to_string_lossy().into_owned())
+        .to_string_lossy()
+        .split(['/', '\\'])
+        .rfind(|part| !part.is_empty())
+        .map(str::to_string)
         .ok_or_else(|| WslError::Failed("the checkout has no directory name".to_string()))?;
     let target = if requested.is_empty() {
         linux_dir(&format!("~/{name}"))
