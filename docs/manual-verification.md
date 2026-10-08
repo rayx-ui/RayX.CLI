@@ -50,14 +50,14 @@ ones that belong to RayX or Gpux are listed under "Changes for the siblings".
 | Real RayX web | Lab and Test Suite `build wasm`, headed WebGPU spec | pass after a fix: the build scripts compiled C with Apple's clang, which has no wasm32 backend (`arborium-sysroot`); `rayx` now points `CC`, `CXX` and `AR` at Homebrew's LLVM. The headed WebGPU spec `rayx-collapsible-sizes.spec.ts` passes on the Mac's GPU (2 passed) in the real checkout against the current `RayX.Dtcg` `main`, once RayX opens its themes with the RayX value extensions (see below) |
 | Real RayX macOS | `rayx app apps/lab build host` | pass: release build in 3 min 30 s, `target/release/rayx_lab` |
 | iOS build | `rayx app apps/lab build ios --simulator` | pass after four fixes: the generated entry crate had no `Cargo.lock` and resolved `libc` 0.2.190, which `backtrace` 0.3.76 does not compile against for iOS (the entry crate now starts from the project's lock); the Xcode Rust phase did not declare its output (RayX `project.yml`); `io-surface` references macOS-only CGL symbols that `-force_load` made the linker resolve (RayX `project.yml`: dead-code stripping); 3226 packaged assets verified in the `.app` |
-| iOS run | `rayx app apps/lab run ios --simulator` | pass: the real RayX Lab renders in the iPhone 17 Simulator (gallery sidebar, themed content, `175 components · dark · cyan · desktop · v0.5.1`). Found and fixed on the way: `rayx` ran `simctl boot Shutdown` (the state word, not the device id); Gpux asked Vulkan and GL for an adapter and found none on iOS (black window); the asset service never looked inside the `.app` bundle on iOS; `main.m` read the window before the async app callback created it; and `RayX.Dtcg`'s strict 2025.10 validation rejected RayX's dimension line heights |
+| iOS run | `rayx app apps/lab run ios --simulator` | pass: the real RayX Lab renders in the iPhone 17 Simulator (gallery sidebar, icons, themed content, `175 components · dark · cyan · mobile · v0.5.1`, no errors in the log). Found and fixed on the way: `rayx` ran `simctl boot Shutdown` (the state word, not the device id); Gpux asked Vulkan and GL for an adapter and found none on iOS (black window); the asset service never looked inside the `.app` bundle on iOS; `main.m` read the window before the async app callback created it; `RayX.Dtcg`'s strict 2025.10 validation rejected RayX's dimension line heights; the iOS runner built the Gpux application without an asset source (no images or icons); and the platform theme context defaulted to `desktop` |
 | iOS pack | `rayx app apps/lab pack ios --simulator` | pass after a fix: `pack ios` rejected `--simulator`; it takes the same selectors as `build ios` now. It still only prepares the output directory and reports Xcode's build directory |
 | `examples_mobile` | `rayx app apps/examples_mobile run ios --simulator` | pass after Gpux fixes (36 `extern "C"` blocks that edition 2024 requires to be `unsafe`): the home screen with its cards and tab bar renders |
 | Smoke app | `rayx app apps/mobile_smoke run ios --simulator` | pass: a new RayX app with no theming and no SignalR draws four coloured stripes through Gpux's Metal backend on the iPhone 17 Simulator, built and launched by `rayx` alone |
 
 ### Changes for the siblings
 
-These are committed, unpushed, in `../RayX` (branch `fix/ios-simulator-run`) and `../Gpux` (branch
+These are committed, unpushed, in `../RayX` (branch `fix/ios-simulator-run`; its `Cargo.lock` is the one `RayX.SignalR` 0.2.0 resolves to) and `../Gpux` (branch
 `fix/ios-simulator-rendering`), because they belong to those repositories; RayX's commits depend on
 the Gpux ones:
 
@@ -68,6 +68,9 @@ the Gpux ones:
   iOS stderr logger first, so a startup error is not lost); `rayx_runtime`'s asset options, where
   `<app>.app/assets` is now the installed root on iOS (renamed `native_installed_public_root`);
   the new `apps/mobile_smoke`, a RayX app with no theming and no SignalR, and its workspace entry.
+- RayX and Gpux, for images and icons on iOS: `gpui_mobile::ios::ffi::set_app_assets` (Gpux) and
+  `register_built_app` calling it with the asset service (RayX); the Lab selects the `mobile`
+  platform context on iOS and Android.
 - RayX, for the `RayX.Dtcg` refactoring (the steps of Dtcg's `CHANGELOG.md` migration section):
   `rayx_theme` opens projects with `RuntimeOptions … ValueExtensions::rayx()` (the design system
   aliases dimension line heights and uses `dev.rayx.blur`, which strict DTCG 2025.10 rejects),
@@ -86,12 +89,11 @@ the Gpux ones:
 
 ### Open
 
-- `../RayX.SignalR` is checked out on `master` (0.1.0), while RayX's lock expects 0.2.0, so cargo
-  rewrites `../RayX/Cargo.lock` on every run. Check out `feat/production-grade-client` there, or
-  commit the regenerated lock.
-- The Lab shows the desktop layout on a phone (`dark · cyan · desktop`, the menu bar over the
-  status bar): the iOS platform context is not selected as `mobile`.
-- The Lab logs `Embedded resource not found: images/showcase.png` on iOS.
+- `../RayX.SignalR` was moved from `master` (0.1.0) to `feat/production-grade-client` (0.2.0), the
+  branch RayX's lock was made against; cargo no longer rewrites RayX's lock on every run.
+- The Lab keeps its desktop shell on a phone: a two-pane layout and its own menu bar over the status
+  bar. That is the Lab's UI design (no responsive or safe-area layout), not the pipeline.
+- Nothing is pushed in any repository.
 - Homebrew's own remote URLs were SSH (`git@github.com:`) and the owner's global `url.insteadOf`
   sends HTTPS to SSH too, so `brew update` failed until Homebrew was updated with
   `GIT_CONFIG_GLOBAL=/dev/null git fetch` and `git checkout -B stable <tag>`.
