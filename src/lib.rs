@@ -8,6 +8,7 @@ pub mod fmt;
 pub mod host;
 pub mod project;
 pub mod setup;
+pub mod update;
 pub mod wsl;
 
 use std::ffi::OsString;
@@ -43,27 +44,21 @@ where
 }
 
 fn dispatch(cli: Cli) -> ExitCode {
-    let name = match &cli.command {
-        Command::Setup(args) => return ExitCode::from(setup::run(args)),
-        Command::Doctor(args) => return ExitCode::from(doctor::run(args)),
+    match &cli.command {
+        Command::Setup(args) => ExitCode::from(setup::run(args)),
+        Command::Doctor(args) => ExitCode::from(doctor::run(args)),
         Command::Wsl {
             command: WslCommand::Status { json },
-        } => return ExitCode::from(wsl::run_status(*json)),
+        } => ExitCode::from(wsl::run_status(*json)),
         Command::Wsl {
             command: WslCommand::Compact(args),
-        } => return ExitCode::from(wsl::run_compact(args)),
+        } => ExitCode::from(wsl::run_compact(args)),
         Command::SelfCommand {
-            command: SelfCommand::Update { .. },
-        } => "self update",
-        Command::App(args) => return run_app(args.args.clone()),
-        Command::Fmt(args) => return run_fmt(args.args.clone()),
-    };
-    not_implemented(name)
-}
-
-fn not_implemented(command: &str) -> ExitCode {
-    eprintln!("rayx: `{command}` is not implemented in this build");
-    ExitCode::FAILURE
+            command: SelfCommand::Update { check },
+        } => ExitCode::from(update::run(*check)),
+        Command::App(args) => run_app(args.args.clone()),
+        Command::Fmt(args) => run_fmt(args.args.clone()),
+    }
 }
 
 /// Runs `rayx fmt` and turns its error into a message and an exit code.

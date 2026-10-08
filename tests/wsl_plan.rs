@@ -405,3 +405,42 @@ fn the_set_flags_reach_the_inner_setup_unchanged() {
     let none = SetupArgs::default();
     assert!(setup_flags(&none).is_empty());
 }
+
+#[test]
+fn path_dependencies_outside_the_checkout_are_never_cloned() {
+    // The manifest points at siblings; `--clone` copies the checkout only. Cargo resolves the
+    // project's dependencies inside WSL.
+    let checkout = tempfile::tempdir().expect("temp dir");
+    std::fs::write(
+        checkout.path().join("Cargo.toml"),
+        "[package]\nname = \"app\"\nversion = \"0.1.0\"\n[dependencies]\ngpux = { path = \"../Gpux/crates/gpui\" }\nrayx_reactive = { path = \"../RayX.Reactive/crates\" }\n",
+    )
+    .expect("manifest");
+    let machine = FakeMachine::new().with_wsl_distributions(vec![ubuntu(1000)]);
+    let mut runner = wsl2_runner();
+    let mut asked = request(&[]);
+    asked.clone = Some(String::new());
+    let root = std::fs::canonicalize(checkout.path()).expect("canonical");
+    let root = PathBuf::from(root.to_string_lossy().trim_start_matches(r"\?\"));
+    let checkout = Checkout {
+        root: PathBuf::from(r"C:\Work\app"),
+        branch: None,
+    };
+    assert!(root.join("Cargo.toml").is_file());
+
+    run(&asked, &windows(), &mut runner, &machine, Some(&checkout)).expect("sets up");
+
+    let scripts: Vec<String> = runner
+        .specs()
+        .iter()
+        .filter_map(|spec| spec.args.last().cloned())
+        .collect();
+    let clones: Vec<&String> = scripts.iter().filter(|s| s.contains(" clone")).collect();
+    assert_eq!(clones.len(), 1, "{scripts:?}");
+    assert!(clones[0].contains("'/mnt/c/Work/app'"), "{}", clones[0]);
+    for script in &scripts {
+        for sibling in ["Gpux", "RayX.Reactive", "gpui"] {
+            assert!(!script.contains(sibling), "{sibling} in {script}");
+        }
+    }
+}
