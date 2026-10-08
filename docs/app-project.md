@@ -63,6 +63,25 @@ when the app needs them (the IndexedDB storage crates).
 | `playwright_specs` | The spec files or directories `test wasm` runs. |
 | `playwright_projects` | The Playwright projects `test wasm` runs. |
 
+## Files the app owns
+
+`rayx` generates the Rust entry crates; the platform projects around them belong to the app, so a
+future `rayx new` can generate them.
+
+- **`rayx.assets.toml`** next to the app's `Cargo.toml` (and in every package that ships assets):
+  `version = 1`, `[assets] roots = [...]` (a path, or `{ path, mount }`), optional
+  `[package_assets] mode = "explicit"` with `include = [<asset package ids>]` to pull in the assets
+  of dependencies, and `[app_content] files = [...]` for bootstrap files such as
+  `app_settings.json` that sit beside the catalog rather than inside it. A package that ships assets
+  declares `[asset_package] id, kind, namespace` and names the file in
+  `[package.metadata.rayx.assets] manifest = "rayx.assets.toml"`.
+- **`platform/android/gradle/`**: a Gradle project with `gradlew` and an `app/build.gradle.kts` that
+  reads the native libraries from `build/generated/rustJniLibs` and the `-PrayxAndroid*` properties
+  `rayx` passes.
+- **`platform/ios/project.yml`** (and the generated `.xcodeproj` it names): an XcodeGen project that
+  builds the static library from `RAYX_IOS_RUST_MANIFEST` and copies the generated `assets` folder
+  into the bundle.
+
 ## Artifacts
 
 | Command | Output |
