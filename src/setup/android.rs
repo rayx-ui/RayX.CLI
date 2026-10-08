@@ -221,10 +221,12 @@ fn studio_step(env: &PlanEnv) -> Step {
         "android-studio",
         Set::Android,
         "Android Studio",
-        if os == Os::Linux {
-            Privilege::Root
-        } else {
-            Privilege::None
+        match os {
+            Os::Linux => Privilege::Root,
+            // The installer winget starts is silent (`/S`) and cannot elevate itself: run
+            // unelevated, it exits "successfully" and installs nothing.
+            Os::Windows => Privilege::Admin,
+            Os::MacOs => Privilege::None,
         },
         move |cx| {
             if wsl {
@@ -292,7 +294,7 @@ fn studio_step(env: &PlanEnv) -> Step {
                         install = install
                             .args(["--accept-package-agreements", "--accept-source-agreements"]);
                     }
-                    install.interactive()
+                    install.admin().interactive()
                 }
                 Os::MacOs => {
                     let brew = super::macos::brew_program(cx)
