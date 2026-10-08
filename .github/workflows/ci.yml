@@ -54,3 +54,38 @@ jobs:
 
       - name: Test
         run: cargo test --test app_wasm_fixture --test app_playwright_template -- --include-ignored
+
+  # `rayx setup` for real on each host family, then `--check` must find nothing missing: the
+  # installers (apt, Homebrew, winget) are only ever proven on a machine that lacks the tools.
+  setup:
+    name: setup (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          rustflags: ""
+
+      - name: Build rayx
+        run: cargo build --release
+
+      - name: Doctor before
+        run: ./target/release/rayx doctor
+        shell: bash
+
+      - name: Setup (base and web sets)
+        run: ./target/release/rayx setup --web --yes
+        shell: bash
+
+      - name: Setup finds nothing missing
+        run: ./target/release/rayx setup --check --web
+        shell: bash
+
+      - name: Doctor after
+        run: ./target/release/rayx doctor --json
+        shell: bash
