@@ -223,10 +223,10 @@ fn studio_step(env: &PlanEnv) -> Step {
         "Android Studio",
         match os {
             Os::Linux => Privilege::Root,
-            // The installer winget starts is silent (`/S`) and cannot elevate itself: run
-            // unelevated, it exits "successfully" and installs nothing.
-            Os::Windows => Privilege::Admin,
-            Os::MacOs => Privilege::None,
+            // winget's default is the installer's silent mode (`/S`), which cannot elevate itself:
+            // it exits "successfully" and installs nothing. `--interactive` runs the installer
+            // wizard, which asks for administrator rights through its own UAC prompt.
+            Os::Windows | Os::MacOs => Privilege::None,
         },
         move |cx| {
             if wsl {
@@ -289,12 +289,13 @@ fn studio_step(env: &PlanEnv) -> Step {
                         "--id",
                         "Google.AndroidStudio",
                         "--exact",
+                        "--interactive",
                     ]);
                     if cx.env.yes {
                         install = install
                             .args(["--accept-package-agreements", "--accept-source-agreements"]);
                     }
-                    install.admin().interactive()
+                    install.interactive()
                 }
                 Os::MacOs => {
                     let brew = super::macos::brew_program(cx)

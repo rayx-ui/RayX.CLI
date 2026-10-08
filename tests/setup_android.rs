@@ -232,7 +232,7 @@ fn android_studio_is_installed_on_desktops_and_skipped_under_wsl() {
         &mut runner(Os::Windows),
     );
     assert!(
-        windows.contains("winget install --id Google.AndroidStudio --exact"),
+        windows.contains("winget install --id Google.AndroidStudio --exact --interactive"),
         "{windows}"
     );
 
