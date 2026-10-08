@@ -641,6 +641,19 @@ default = [{}]
             fs::remove_file(&lockfile)
                 .with_context(|| format!("removing stale {}", lockfile.display()))?;
         }
+        // The iOS entry crate is a workspace of its own and would resolve the newest crates, which
+        // can break a native iOS build the project's lockfile avoids (`backtrace` 0.3.76 does not
+        // compile against `libc` 0.2.190 for iOS); it starts from the project's pins instead.
+        let workspace_lock = self.context.workspace_root().join("Cargo.lock");
+        if target == "ios" && workspace_lock.is_file() {
+            fs::copy(&workspace_lock, &lockfile).with_context(|| {
+                format!(
+                    "seeding {} from {}",
+                    lockfile.display(),
+                    workspace_lock.display()
+                )
+            })?;
+        }
 
         let main_path = cargo_toml_path(&self.root.join("src").join("main.rs"));
         let source = format!(
@@ -1061,6 +1074,32 @@ mod tests {
         assert_eq!(app.ios_scheme()?, "Demo");
         assert_eq!(app.ios_bundle_id()?, "dev.example.demo");
         assert_eq!(app.ios_app_name()?, "Demo");
+        Ok(())
+    }
+
+    #[test]
+    fn the_ios_entry_crate_starts_from_the_workspace_lockfile() -> TestResult {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+        let workspace_lock = app.context.workspace_root().join("Cargo.lock");
+        std::fs::write(&workspace_lock, "# the project's pins\nversion = 4\n")?;
+        let generated_root = app.temp_root()?.join("ios").join("rust");
+        std::fs::create_dir_all(&generated_root)?;
+        std::fs::write(generated_root.join("Cargo.lock"), "stale lock")?;
+
+        app.ios_rust_manifest(&AppFeatureSelection::default())?;
+        assert_eq!(
+            std::fs::read_to_string(generated_root.join("Cargo.lock"))?,
+            "# the project's pins\nversion = 4\n",
+            "the stale lock is replaced by the project's"
+        );
+
+        // The other generated crates still resolve on their own.
+        let android = app.temp_root()?.join("android").join("rust");
+        std::fs::create_dir_all(&android)?;
+        std::fs::write(android.join("Cargo.lock"), "stale lock")?;
+        app.android_rust_manifest(&AppFeatureSelection::default())?;
+        assert!(!android.join("Cargo.lock").exists());
         Ok(())
     }
 
