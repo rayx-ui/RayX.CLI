@@ -88,7 +88,8 @@ future `rayx new` can generate them.
 | --- | --- |
 | `build wasm` | `artifacts/apps/<slug>/wasm/<profile>/`: `index.html`, the wasm-bindgen output and `assets/`. |
 | `pack <desktop target>` | `artifacts/apps/<slug>/<target>/<profile>/`: the executable, `assets/` and the app content. |
-| `build android` | `artifacts/apps/<slug>/android/`: the APK. |
+| `build android` | `platform/android/gradle/app/build/outputs/apk/<profile>/`: the APK, whose path `build` prints. |
+| `pack android` | `artifacts/apps/<slug>/android/<profile>/`: a copy of the APK. |
 | generated files | `artifacts-temp/apps/<slug>/`. |
 
 `run wasm` serves the build with `Cross-Origin-Opener-Policy: same-origin` and

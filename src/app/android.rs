@@ -64,6 +64,8 @@ pub struct AndroidToolchain {
     sdk_dir: PathBuf,
     ndk_dir: PathBuf,
     adb: PathBuf,
+    /// A JDK of the pinned major, handed to Gradle as `JAVA_HOME` when one is found.
+    java_home: Option<PathBuf>,
 }
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -144,24 +146,39 @@ pub fn setup_android_machine(pins: &Pins) -> Result<AndroidToolchain> {
         &format!("platforms;{}", pins.android_platform.value),
     )?;
 
-    let ndk_dir = match find_android_ndk(&sdk_dir) {
+    let ndk_pin = &pins.android_ndk.value;
+    let ndk_dir = match find_android_ndk(&sdk_dir, ndk_pin) {
         Some(ndk_dir) => ndk_dir,
-        None => {
-            install_android_sdk_package(&sdk_dir, &format!("ndk;{}", pins.android_ndk.value))?;
-            find_android_ndk(&sdk_dir)
-                .ok_or_else(|| anyhow!("Android NDK was not found after sdkmanager install"))?
-        }
+        None => match install_android_sdk_package(&sdk_dir, &format!("ndk;{ndk_pin}")) {
+            Ok(()) => find_android_ndk(&sdk_dir, ndk_pin).ok_or_else(|| {
+                anyhow!("Android NDK {ndk_pin} was not found after sdkmanager install")
+            })?,
+            // Offline, or the pin is not published: an NDK that is already here still builds.
+            Err(error) => newest_android_ndk(&sdk_dir)
+                .inspect(|ndk| {
+                    println!(
+                        "Warning: could not install the pinned Android NDK {ndk_pin} ({error:#}); using {}",
+                        ndk.display()
+                    );
+                })
+                .ok_or(error)?,
+        },
     };
     let adb = find_android_adb(&sdk_dir)?;
 
     println!("Android SDK: {}", sdk_dir.display());
     println!("Android NDK: {}", ndk_dir.display());
     println!("Android adb: {}", adb.display());
+    let java_home = find_android_jdk(&pins.jdk.value);
+    if let Some(java_home) = &java_home {
+        println!("Android JDK: {}", java_home.display());
+    }
 
     Ok(AndroidToolchain {
         sdk_dir,
         ndk_dir,
         adb,
+        java_home,
     })
 }
 
@@ -260,7 +277,12 @@ fn build_android_app(
 ) -> Result<()> {
     let toolchain = setup_android_machine(&app.context.pins)?;
     let targets = select_android_build_targets(&toolchain, &options)?;
-    build_android_app_with_toolchain(app, features, profile, &options, &toolchain, &targets)
+    build_android_app_with_toolchain(app, features, profile, &options, &toolchain, &targets)?;
+    println!(
+        "Built Android APK at {}",
+        android_apk_path(app, profile)?.display()
+    );
+    Ok(())
 }
 
 fn build_android_app_with_toolchain(
@@ -329,8 +351,7 @@ fn build_android_app_with_toolchain(
     let android_content = android_content_staging_dir(app)?;
     stage_android_package_content(app, features, &android_content)?;
 
-    let gradle = gradle_command_path(&gradle_project_command_dir);
-    let mut gradle_cmd = Command::new(gradle);
+    let mut gradle_cmd = gradle_command(&gradle_project_command_dir);
     gradle_cmd
         .current_dir(&gradle_project_command_dir)
         .arg(profile.gradle_task())
@@ -709,7 +730,8 @@ fn sdkmanager_file_name() -> &'static str {
     }
 }
 
-fn find_android_ndk(sdk_dir: &Path) -> Option<PathBuf> {
+/// The NDK a build uses: the one the user chose through the environment, else the pinned one.
+fn find_android_ndk(sdk_dir: &Path, pin: &str) -> Option<PathBuf> {
     for variable in ["ANDROID_NDK_HOME", "ANDROID_NDK_ROOT", "NDK_HOME"] {
         if let Some(value) = non_empty_env(variable) {
             let path = PathBuf::from(value);
@@ -718,9 +740,18 @@ fn find_android_ndk(sdk_dir: &Path) -> Option<PathBuf> {
             }
         }
     }
+    pinned_android_ndk(sdk_dir, pin)
+}
 
-    let ndk_root = sdk_dir.join("ndk");
-    let mut candidates = fs::read_dir(ndk_root)
+/// The pinned NDK, when it is installed in the SDK.
+fn pinned_android_ndk(sdk_dir: &Path, pin: &str) -> Option<PathBuf> {
+    let pinned = sdk_dir.join("ndk").join(pin);
+    pinned.is_dir().then_some(pinned)
+}
+
+/// The newest NDK installed in the SDK, whatever its version.
+fn newest_android_ndk(sdk_dir: &Path) -> Option<PathBuf> {
+    let mut candidates = fs::read_dir(sdk_dir.join("ndk"))
         .ok()?
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
@@ -751,6 +782,65 @@ fn adb_file_name() -> &'static str {
 
 fn apply_android_env(command: &mut Command, toolchain: &AndroidToolchain) {
     apply_android_sdk_env(command, &toolchain.sdk_dir, Some(&toolchain.ndk_dir));
+    if let Some(java_home) = &toolchain.java_home {
+        command.env("JAVA_HOME", java_home);
+    }
+}
+
+/// The JDK Gradle should run on: `JAVA_HOME` when it is the pinned major, else the first JDK of
+/// that major in the usual install locations. `None` leaves the environment as it is, so the
+/// shell's own choice applies (which `rayx setup` points at the pinned JDK).
+fn find_android_jdk(pin: &str) -> Option<PathBuf> {
+    let major: u32 = pin.trim().parse().ok()?;
+    let is_pinned = |home: &Path| {
+        fs::read_to_string(home.join("release"))
+            .ok()
+            .and_then(|release| crate::setup::android::jdk_major_from_release(&release))
+            == Some(major)
+    };
+    if let Some(home) = std::env::var_os("JAVA_HOME").map(PathBuf::from)
+        && is_pinned(&home)
+    {
+        return Some(home);
+    }
+    if cfg!(target_os = "macos")
+        && let Ok(output) = Command::new("/usr/libexec/java_home")
+            .args(["-v", &major.to_string()])
+            .output()
+        && output.status.success()
+    {
+        let home = PathBuf::from(String::from_utf8_lossy(&output.stdout).trim());
+        if is_pinned(&home) {
+            return Some(home);
+        }
+    }
+    let roots: Vec<PathBuf> = if cfg!(target_os = "macos") {
+        vec![PathBuf::from("/Library/Java/JavaVirtualMachines")]
+    } else if cfg!(target_os = "windows") {
+        let program_files =
+            std::env::var_os("ProgramFiles").unwrap_or_else(|| r"C:\Program Files".into());
+        ["Microsoft", "Eclipse Adoptium", "Java"]
+            .iter()
+            .map(|vendor| Path::new(&program_files).join(vendor))
+            .collect()
+    } else {
+        vec![PathBuf::from("/usr/lib/jvm")]
+    };
+    roots.iter().find_map(|root| {
+        let mut entries: Vec<PathBuf> = fs::read_dir(root)
+            .ok()?
+            .filter_map(|entry| Some(entry.ok()?.path()))
+            .collect();
+        entries.sort();
+        entries.into_iter().find_map(|entry| {
+            let home = if cfg!(target_os = "macos") {
+                entry.join("Contents").join("Home")
+            } else {
+                entry
+            };
+            is_pinned(&home).then_some(home)
+        })
+    })
 }
 
 fn apply_android_sdk_env(command: &mut Command, sdk_dir: &Path, ndk_dir: Option<&Path>) {
@@ -922,11 +1012,10 @@ fn copy_android_cpp_runtime(
 }
 
 fn stop_android_gradle_daemon(project_dir: &Path, toolchain: &AndroidToolchain) {
-    let gradle = gradle_command_path(project_dir);
-    if !gradle.is_file() {
+    if !gradle_command_path(project_dir).is_file() {
         return;
     }
-    let mut command = Command::new(gradle);
+    let mut command = gradle_command(project_dir);
     command
         .current_dir(project_dir)
         .arg("--stop")
@@ -1300,7 +1389,7 @@ fn emulator_file_name() -> &'static str {
     }
 }
 
-fn first_android_avd(emulator: &Path, toolchain: &AndroidToolchain) -> Result<Option<String>> {
+fn android_avds(emulator: &Path, toolchain: &AndroidToolchain) -> Result<Vec<String>> {
     let mut command = Command::new(emulator);
     command.arg("-list-avds");
     apply_android_env(&mut command, toolchain);
@@ -1310,17 +1399,28 @@ fn first_android_avd(emulator: &Path, toolchain: &AndroidToolchain) -> Result<Op
     if !output.status.success() {
         bail!("Android emulator -list-avds failed");
     }
-    Ok(first_android_avd_name(&String::from_utf8_lossy(&output.stdout)).map(str::to_string))
+    Ok(order_android_avds(&String::from_utf8_lossy(&output.stdout)))
 }
 
-fn first_android_avd_name(output: &str) -> Option<&str> {
-    output.lines().map(str::trim).find(|line| {
-        !line.is_empty()
-            && !matches!(
-                line.split_once('|').map(|(prefix, _)| prefix.trim()),
-                Some("INFO" | "WARNING" | "ERROR" | "DEBUG")
-            )
-    })
+/// The AVD names in `emulator -list-avds` output, ignoring the `INFO |`, `WARNING |`, `ERROR |`
+/// and `DEBUG |` log lines the emulator can print on standard output. The AVDs `rayx setup`
+/// creates (`rayx-<platform>-<abi>`) come first: they are known to match the pinned system image,
+/// while another AVD on the machine can point at an image that is not installed.
+fn order_android_avds(output: &str) -> Vec<String> {
+    let mut names: Vec<String> = output
+        .lines()
+        .map(str::trim)
+        .filter(|line| {
+            !line.is_empty()
+                && !matches!(
+                    line.split_once('|').map(|(prefix, _)| prefix.trim()),
+                    Some("INFO" | "WARNING" | "ERROR" | "DEBUG")
+                )
+        })
+        .map(str::to_string)
+        .collect();
+    names.sort_by_key(|name| !name.starts_with("rayx-"));
+    names
 }
 
 fn start_android_emulator(toolchain: &AndroidToolchain) -> Result<String> {
@@ -1331,28 +1431,74 @@ fn start_android_emulator(toolchain: &AndroidToolchain) -> Result<String> {
             toolchain.sdk_dir.display()
         ),
     };
-    let avd = first_android_avd(&emulator, toolchain)?.ok_or_else(|| {
-        anyhow!("No Android device is connected and no Android AVD is configured")
-    })?;
+    let avds = android_avds(&emulator, toolchain)?;
+    if avds.is_empty() {
+        bail!(
+            "No Android device is connected and no Android AVD is configured; \
+             `rayx setup --android` creates one"
+        );
+    }
 
-    println!("No Android device found; starting emulator {avd}");
-    let mut command = Command::new(&emulator);
+    let mut failures = Vec::new();
+    for avd in &avds {
+        // The host GPU first: with the emulator's own `auto` choice some hosts (macOS) get only a
+        // software Vulkan adapter, which the RayX renderer rejects. A host with no usable GPU
+        // makes the emulator exit, and the AVD's own setting is the second try.
+        for gpu in [Some("host"), None] {
+            println!(
+                "No Android device found; starting emulator {avd}{}",
+                gpu.map(|mode| format!(" (-gpu {mode})"))
+                    .unwrap_or_default()
+            );
+            match boot_android_emulator(&emulator, avd, gpu, toolchain) {
+                Ok(device) => return Ok(device),
+                Err(error) => {
+                    println!("Android emulator {avd} did not start: {error:#}");
+                    failures.push(format!("{avd}: {error:#}"));
+                }
+            }
+        }
+    }
+    bail!(
+        "no Android AVD started:\n  {}\nCreate a working one with `rayx setup --android`, or start a device and run again",
+        failures.join("\n  ")
+    )
+}
+
+/// Starts the emulator for one AVD and waits for it to boot. If the emulator exits first (a
+/// missing system image, no acceleration), its own output is the error, not a timeout.
+fn boot_android_emulator(
+    emulator: &Path,
+    avd: &str,
+    gpu: Option<&str>,
+    toolchain: &AndroidToolchain,
+) -> Result<String> {
+    let log_path = std::env::temp_dir().join(format!("rayx-emulator-{avd}.log"));
+    let log = fs::File::create(&log_path)
+        .with_context(|| format!("failed to create {}", log_path.display()))?;
+    let mut command = Command::new(emulator);
     command
-        .args(["-avd", &avd, "-netdelay", "none", "-netspeed", "full"])
+        .args(["-avd", avd, "-netdelay", "none", "-netspeed", "full"])
+        .args(gpu.into_iter().flat_map(|mode| ["-gpu", mode]))
         .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
+        .stdout(log.try_clone()?)
+        .stderr(log);
     apply_android_env(&mut command, toolchain);
-    command
+    let mut child = command
         .spawn()
         .with_context(|| format!("failed to start Android emulator {}", emulator.display()))?;
 
-    wait_for_android_device(toolchain)
-}
-
-fn wait_for_android_device(toolchain: &AndroidToolchain) -> Result<String> {
-    let deadline = std::time::Instant::now() + Duration::from_secs(180);
-    while std::time::Instant::now() < deadline {
+    let deadline = Instant::now() + Duration::from_secs(180);
+    while Instant::now() < deadline {
+        if let Some(status) = child.try_wait()? {
+            let output = fs::read_to_string(&log_path).unwrap_or_default();
+            let tail: Vec<&str> = output.lines().rev().take(5).collect();
+            bail!(
+                "the emulator exited with {status}: {} (full log: {})",
+                tail.into_iter().rev().collect::<Vec<_>>().join(" | "),
+                log_path.display()
+            );
+        }
         for device in connected_android_devices(toolchain)? {
             if android_boot_completed(toolchain, &device)? {
                 println!("Android emulator is ready");
@@ -1361,7 +1507,10 @@ fn wait_for_android_device(toolchain: &AndroidToolchain) -> Result<String> {
         }
         thread::sleep(Duration::from_secs(2));
     }
-    bail!("Timed out waiting for Android emulator to boot")
+    bail!(
+        "timed out waiting for the emulator to boot (log: {})",
+        log_path.display()
+    )
 }
 
 fn wait_for_android_serial(toolchain: &AndroidToolchain, serial: &str) -> Result<()> {
@@ -1440,18 +1589,93 @@ fn gradle_command_path(project_dir: &Path) -> PathBuf {
     }
 }
 
+/// The Gradle wrapper as a command. On Unix the script runs through `sh`, so a wrapper committed
+/// without its executable bit (usual for a project authored on Windows) still starts.
+fn gradle_command(project_dir: &Path) -> Command {
+    let script = gradle_command_path(project_dir);
+    if cfg!(target_os = "windows") {
+        Command::new(script)
+    } else {
+        let mut command = Command::new("sh");
+        command.arg(script);
+        command
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::time::UNIX_EPOCH;
 
     #[test]
+    fn android_jdk_search_ignores_a_pin_that_is_not_a_number() {
+        assert_eq!(find_android_jdk("latest"), None);
+    }
+
+    #[test]
+    fn gradle_gets_the_pinned_jdk_as_java_home() {
+        let toolchain = AndroidToolchain {
+            sdk_dir: PathBuf::from("/sdk"),
+            ndk_dir: PathBuf::from("/ndk"),
+            adb: PathBuf::from("/adb"),
+            java_home: Some(PathBuf::from("/jdk21")),
+        };
+        let mut command = Command::new("gradle");
+
+        apply_android_env(&mut command, &toolchain);
+
+        let java_home = command
+            .get_envs()
+            .find(|(name, _)| *name == "JAVA_HOME")
+            .and_then(|(_, value)| value);
+        assert_eq!(java_home, Some(std::ffi::OsStr::new("/jdk21")));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn gradle_wrapper_runs_without_its_executable_bit() {
+        let command = gradle_command(Path::new("/project/gradle"));
+
+        assert_eq!(command.get_program(), "sh");
+        let args: Vec<_> = command.get_args().collect();
+        assert_eq!(args, ["/project/gradle/gradlew"]);
+    }
+
+    #[test]
     fn android_avd_discovery_ignores_emulator_diagnostics() {
         let output = "INFO    | Storing crashdata in: C:\\temp\\emu-crash.db\nrayx-test-suite-api35-x86_64\n";
 
+        assert_eq!(order_android_avds(output), ["rayx-test-suite-api35-x86_64"]);
+    }
+
+    #[test]
+    fn the_pinned_ndk_is_chosen_over_a_newer_one_and_a_missing_pin_is_not_substituted()
+    -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let sdk = temp_app_root("android-ndk-pin")?;
+        fs::create_dir_all(sdk.join("ndk/27.2.12479018"))?;
+        fs::create_dir_all(sdk.join("ndk/29.0.1"))?;
+
+        assert_eq!(pinned_android_ndk(&sdk, "28.0.12674087"), None);
         assert_eq!(
-            first_android_avd_name(output),
-            Some("rayx-test-suite-api35-x86_64")
+            newest_android_ndk(&sdk),
+            Some(sdk.join("ndk").join("29.0.1"))
+        );
+
+        fs::create_dir_all(sdk.join("ndk/28.0.12674087"))?;
+        assert_eq!(
+            pinned_android_ndk(&sdk, "28.0.12674087"),
+            Some(sdk.join("ndk").join("28.0.12674087"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn android_avds_put_the_rayx_default_before_other_avds() {
+        let output = "INFO | x\nPixel_9_Pro_XL\nrayx-android-34-arm64-v8a\nPixel_6\n";
+
+        assert_eq!(
+            order_android_avds(output),
+            ["rayx-android-34-arm64-v8a", "Pixel_9_Pro_XL", "Pixel_6"]
         );
     }
 
@@ -1490,6 +1714,7 @@ mod tests {
             sdk_dir: root.join("sdk"),
             ndk_dir: root.join("ndk"),
             adb: root.join("adb"),
+            java_home: None,
         };
 
         copy_android_cpp_runtime(
