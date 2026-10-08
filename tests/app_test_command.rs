@@ -278,3 +278,22 @@ fn android_and_ios_tests_say_they_are_not_supported_yet() {
         "nothing was built"
     );
 }
+
+#[test]
+fn flags_after_the_separator_belong_to_the_app() {
+    let workspace = Workspace::fixture("app-workspace");
+    workspace.write(
+        "apps/demo/src/main.rs",
+        "fn main() {}\n\n#[test]\nfn passes() {}\n",
+    );
+
+    // `--debug` and `--no-install` before `--` are rayx's; after it they reach the test binary,
+    // which does not know `--debug` and says so.
+    let error = run_app(&workspace, &["test", "host", "--", "--debug"]).expect_err("passed on");
+
+    assert!(format!("{error:#}").contains("failed"), "{error:#}");
+    assert!(
+        workspace.path("target/release").is_dir() && !workspace.path("target/debug").exists(),
+        "the build stayed a release build"
+    );
+}

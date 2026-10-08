@@ -150,7 +150,10 @@ pub fn test(
     )?;
     let (shutdown_tx, shutdown_rx) = mpsc::channel::<()>();
     let server_dir = out_dir.clone();
-    let server = thread::spawn(move || serve(&server_dir, port, Some(shutdown_rx)));
+    // Bind here, not in the server thread: a leftover server on the port must fail this run
+    // instead of being mistaken for the build that was just made.
+    let listener = bind_listener(port)?;
+    let server = thread::spawn(move || serve_on(listener, &server_dir, port, Some(shutdown_rx)));
     wait_for_server(port)?;
 
     let url = format!("http://127.0.0.1:{port}/");
@@ -638,8 +641,24 @@ fn wait_for_server(port: u16) -> Result<()> {
     }
 }
 
+fn bind_listener(port: u16) -> Result<TcpListener> {
+    TcpListener::bind(("127.0.0.1", port)).with_context(|| {
+        format!(
+            "port {port} is in use (an earlier `rayx app run wasm` still running?): pass --port"
+        )
+    })
+}
+
 fn serve(root: &Path, port: u16, shutdown: Option<mpsc::Receiver<()>>) -> Result<()> {
-    let listener = TcpListener::bind(("127.0.0.1", port))?;
+    serve_on(bind_listener(port)?, root, port, shutdown)
+}
+
+fn serve_on(
+    listener: TcpListener,
+    root: &Path,
+    port: u16,
+    shutdown: Option<mpsc::Receiver<()>>,
+) -> Result<()> {
     listener.set_nonblocking(true)?;
     let (connection_error_tx, connection_error_rx) = mpsc::channel();
     println!("Serving WASM at http://127.0.0.1:{port}/");
@@ -707,6 +726,16 @@ fn handle_connection(mut stream: TcpStream, root: &Path) -> Result<()> {
             .unwrap_or("/");
         let path = request_path(request_target);
         let relative = relative_file_path(path);
+        if relative
+            .split(['/', '\\'])
+            .any(|part| part == ".." || part.contains(':'))
+        {
+            write!(
+                stream,
+                "HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+            )?;
+            return Ok(());
+        }
         let file_path = root.join(relative);
         let (status, body, content_type) = match fs::read(&file_path) {
             Ok(body) => ("200 OK", body, content_type(&file_path)),
@@ -1184,6 +1213,45 @@ roots = [{ path = "assets/icons", mount = "icons" }]
 
         server.join().expect("WASM server test thread")?;
         fs::remove_dir_all(root).ok();
+        Ok(())
+    }
+
+    #[test]
+    fn the_server_refuses_paths_that_climb_out_of_the_output_directory() -> Result<()> {
+        let parent = std::env::temp_dir().join(format!(
+            "rayx-wasm-server-escape-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)?
+                .as_nanos()
+        ));
+        let root = parent.join("out");
+        fs::create_dir_all(&root)?;
+        fs::write(root.join("index.html"), "index")?;
+        fs::write(parent.join("secret.txt"), "secret")?;
+
+        let listener = TcpListener::bind(("127.0.0.1", 0))?;
+        let address = listener.local_addr()?;
+        let server_root = root.clone();
+        let server = thread::spawn(move || -> Result<()> {
+            let (stream, _) = listener.accept()?;
+            handle_connection(stream, &server_root)
+        });
+
+        let mut client = TcpStream::connect(address)?;
+        client.write_all(
+            b"GET /../secret.txt HTTP/1.1
+Host: localhost
+Connection: close
+
+",
+        )?;
+        let mut response = String::new();
+        std::io::Read::read_to_string(&mut client, &mut response)?;
+
+        assert!(response.starts_with("HTTP/1.1 400"), "{response}");
+        assert!(!response.contains("secret"), "{response}");
+        server.join().expect("WASM server test thread")?;
+        fs::remove_dir_all(parent).ok();
         Ok(())
     }
 

@@ -5,6 +5,7 @@ use crate::app::fs_util::{
 };
 use crate::app::process::{command_succeeds, run as run_process};
 use crate::app::{AppDescriptor, AppFeatureSelection, BuildProfile};
+use crate::project::Pins;
 use anyhow::{Context, Result, anyhow, bail};
 use std::fs;
 use std::io::{BufRead, BufReader, Write};
@@ -15,9 +16,6 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 const DEFAULT_ANDROID_ABI: &str = "arm64-v8a";
-const ANDROID_API_LEVEL: &str = "31";
-const ANDROID_COMPILE_SDK: &str = "34";
-const ANDROID_NDK_VERSION: &str = "28.0.12674087";
 const ANDROID_DEVKIT_PORT: u16 = 47123;
 const DEVKIT_PROTOCOL_VERSION: &str = "0.1.0";
 
@@ -113,7 +111,7 @@ pub fn pack(
 ) -> Result<()> {
     let options = take_android_build_options(&mut args, profile)?;
     ensure_empty(&args)?;
-    let toolchain = setup_android_machine()?;
+    let toolchain = setup_android_machine(&app.context.pins)?;
     let targets = select_android_build_targets(&toolchain, &options)?;
     build_android_app_with_toolchain(app, features, profile, &options, &toolchain, &targets)?;
     let apk_path = android_apk_path(app, profile)?;
@@ -129,7 +127,7 @@ pub fn pack(
     Ok(())
 }
 
-pub fn setup_android_machine() -> Result<AndroidToolchain> {
+pub fn setup_android_machine(pins: &Pins) -> Result<AndroidToolchain> {
     ensure_cargo_ndk()?;
 
     let sdk_dir = find_android_sdk()?;
@@ -141,15 +139,15 @@ pub fn setup_android_machine() -> Result<AndroidToolchain> {
     ensure_android_sdk_path(
         &sdk_dir,
         Path::new("platforms")
-            .join(format!("android-{ANDROID_COMPILE_SDK}"))
+            .join(&pins.android_platform.value)
             .join("android.jar"),
-        &format!("platforms;android-{ANDROID_COMPILE_SDK}"),
+        &format!("platforms;{}", pins.android_platform.value),
     )?;
 
     let ndk_dir = match find_android_ndk(&sdk_dir) {
         Some(ndk_dir) => ndk_dir,
         None => {
-            install_android_sdk_package(&sdk_dir, &format!("ndk;{ANDROID_NDK_VERSION}"))?;
+            install_android_sdk_package(&sdk_dir, &format!("ndk;{}", pins.android_ndk.value))?;
             find_android_ndk(&sdk_dir)
                 .ok_or_else(|| anyhow!("Android NDK was not found after sdkmanager install"))?
         }
@@ -260,7 +258,7 @@ fn build_android_app(
     profile: BuildProfile,
     options: AndroidBuildOptions,
 ) -> Result<()> {
-    let toolchain = setup_android_machine()?;
+    let toolchain = setup_android_machine(&app.context.pins)?;
     let targets = select_android_build_targets(&toolchain, &options)?;
     build_android_app_with_toolchain(app, features, profile, &options, &toolchain, &targets)
 }
@@ -280,6 +278,7 @@ fn build_android_app_with_toolchain(
 
     let gradle_project_dir = app.require_android_gradle_dir()?;
     let rust_manifest = app.android_rust_manifest(features)?;
+    let toolchain_api_level = app.context.pins.android_ndk_api.value.clone();
     let cargo_manifest = command_path(&rust_manifest);
     let rust_manifest_dir = rust_manifest.parent().ok_or_else(|| {
         anyhow!(
@@ -306,7 +305,7 @@ fn build_android_app_with_toolchain(
             .current_dir(&cargo_manifest_dir)
             .args(["ndk", "-t", target.abi, "-o"])
             .arg(&cargo_unstripped_jni_libs_dir)
-            .args(["--platform", ANDROID_API_LEVEL, "build"])
+            .args(["--platform", &toolchain_api_level, "build"])
             .arg("--manifest-path")
             .arg(&cargo_manifest);
         if let Some(profile_arg) = profile.cargo_arg() {
@@ -349,7 +348,7 @@ fn deploy_android_app(
     profile: BuildProfile,
     options: AndroidBuildOptions,
 ) -> Result<()> {
-    let toolchain = setup_android_machine()?;
+    let toolchain = setup_android_machine(&app.context.pins)?;
     let device = select_android_device(&toolchain, &options, true)?
         .ok_or_else(|| anyhow!("no Android device selected for deploy"))?;
     let apk_path = match options.apk_path.as_deref() {

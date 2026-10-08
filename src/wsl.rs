@@ -265,7 +265,7 @@ pub fn parse_status(text: &str) -> (Option<u64>, Option<u64>, Vec<BuildOutput>) 
             Some("OUT") => {
                 if let (Some(bytes), Some(path)) = (
                     fields.next().and_then(|v| v.trim().parse().ok()),
-                    fields.next(),
+                    fields.next().filter(|path| path.starts_with('/')),
                 ) {
                     outputs.push(BuildOutput {
                         path: path.to_string(),
@@ -501,12 +501,17 @@ pub fn compact_script(vhdx: &Path) -> String {
     let path = vhdx.display().to_string().replace('\'', "''");
     format!(
         "$vhdx = '{path}'\n\
+         $done = $false\n\
          if (Get-Command Optimize-VHD -ErrorAction SilentlyContinue) {{\n\
-         \x20 Optimize-VHD -Path $vhdx -Mode Full\n\
-         }} else {{\n\
-         \x20 $script = New-TemporaryFile\n\
-         \x20 Set-Content -Path $script -Value @('select vdisk file=\"' + $vhdx + '\"', 'attach vdisk readonly', 'compact vdisk', 'detach vdisk', 'exit')\n\
-         \x20 try {{ diskpart /s $script }} finally {{ Remove-Item $script -ErrorAction SilentlyContinue }}\n\
+         \x20 try {{ Optimize-VHD -Path $vhdx -Mode Full -ErrorAction Stop; $done = $true }} catch {{ Write-Warning ('Optimize-VHD failed, using diskpart: ' + $_) }}\n\
+         }}\n\
+         if (-not $done) {{\n\
+         \x20 $attach = New-TemporaryFile\n\
+         \x20 $detach = New-TemporaryFile\n\
+         \x20 $select = ('select vdisk file=\"' + $vhdx + '\"')\n\
+         \x20 Set-Content -Path $attach -Value @($select, 'attach vdisk readonly', 'compact vdisk', 'exit')\n\
+         \x20 Set-Content -Path $detach -Value @($select, 'detach vdisk', 'exit')\n\
+         \x20 try {{ diskpart /s $attach }} finally {{ diskpart /s $detach; Remove-Item $attach, $detach -ErrorAction SilentlyContinue }}\n\
          }}\n"
     )
 }
@@ -620,10 +625,16 @@ pub fn compact_with(
             let total: u64 = outputs.iter().map(|o| o.bytes).sum();
             if args.yes || confirm(&format!("Delete these ({})?", human(total))) {
                 for output in &outputs {
+                    if output.path.contains('\'') {
+                        return Err(CompactError::Failed(format!(
+                            "not deleting {}: its name contains a quote",
+                            output.path
+                        )));
+                    }
                     runner
                         .run_checked(&in_distribution(
                             &name,
-                            &format!("rm -rf -- '{}'", output.path.replace('\'', "")),
+                            &format!("rm -rf -- '{}'", output.path),
                         ))
                         .map_err(|error| {
                             CompactError::Failed(format!("deleting {}: {error}", output.path))

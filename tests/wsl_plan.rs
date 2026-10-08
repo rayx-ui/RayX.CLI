@@ -43,6 +43,7 @@ fn request(flags: &[&str]) -> WslRequest {
         clone: None,
         binary_override: None,
         version: "0.3.0".into(),
+        windows_gpu: None,
     }
 }
 
@@ -91,6 +92,70 @@ fn other_hosts_are_told_where_wsl_setup_runs() {
         assert!(error.to_string().contains("from Windows"));
         assert!(runner.lines().is_empty(), "nothing runs off Windows");
     }
+}
+
+#[test]
+fn a_localized_wsl_version_label_is_still_wsl_2() {
+    // German Windows prints `WSL-Version: 2.6.1.0`.
+    let machine = FakeMachine::new().with_wsl_distributions(vec![ubuntu(1000)]);
+    let mut runner = Runner::record().with_os(Os::Windows).respond(
+        |spec| spec.args == ["--version"],
+        Outcome::success().with_stdout(
+            "WSL-Version: 2.6.1.0
+Kernelversion: 6.6.87.2
+",
+        ),
+    );
+
+    run(&request(&[]), &windows(), &mut runner, &machine, None).expect("WSL 2 is there");
+
+    let mut old = Runner::record().with_os(Os::Windows).respond(
+        |spec| spec.args == ["--version"],
+        Outcome::success().with_stdout(
+            "Dieser Befehl ist nicht verfuegbar
+",
+        ),
+    );
+    let error = run(&request(&[]), &windows(), &mut old, &machine, None).expect_err("no version");
+    assert!(matches!(error, WslError::Wsl(_)));
+}
+
+#[test]
+fn clone_directories_must_be_absolute_or_under_home() {
+    for relative in ["work/rayx", "../rayx", "rayx"] {
+        let error = linux_dir(relative).expect_err(relative);
+        assert!(error.contains("absolute"), "{relative}: {error}");
+    }
+    assert!(linux_dir("/srv/rayx").is_ok());
+    assert!(linux_dir("~/rayx").is_ok());
+    assert!(
+        linux_dir("/home/o'brien/x").is_err(),
+        "a quote ends the quoting"
+    );
+}
+
+#[test]
+fn the_gpu_driver_is_installed_on_windows_before_the_distribution_is_touched() {
+    let machine = FakeMachine::new().with_wsl_distributions(vec![ubuntu(1000)]);
+    let mut runner = wsl2_runner();
+    let mut asked = request(&["--gpu", "--yes"]);
+    asked.windows_gpu = Some(rayx_cli::setup::wsl::WindowsGpu {
+        executable: PathBuf::from("C:/tools/rayx.exe"),
+        flags: vec!["--yes".into()],
+    });
+
+    run(&asked, &windows(), &mut runner, &machine, None).expect("sets up");
+
+    let all = lines(&runner);
+    let gpu = all
+        .iter()
+        .position(|l| l.contains("rayx.exe") && l.contains("setup --gpu --yes"))
+        .unwrap_or_else(|| panic!("a Windows-side gpu setup in {all:?}"));
+    let inside = all
+        .iter()
+        .position(|l| l.contains("-d Ubuntu-24.04"))
+        .expect("a command inside");
+    assert!(gpu < inside, "{all:?}");
 }
 
 #[test]

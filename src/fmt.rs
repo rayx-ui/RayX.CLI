@@ -55,7 +55,8 @@ pub fn run_in(cwd: &Path, args: Vec<String>, runner: &mut Runner) -> Result<()> 
         }
         match runner.run(&spec) {
             Ok(outcome) if outcome.is_success() => {}
-            _ => failed.push(member),
+            Ok(_) => failed.push(member.to_string()),
+            Err(error) => failed.push(format!("{member} ({error})")),
         }
     }
     if !failed.is_empty() {

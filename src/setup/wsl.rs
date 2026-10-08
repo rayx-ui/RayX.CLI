@@ -42,6 +42,17 @@ pub struct WslRequest {
     pub binary_override: Option<PathBuf>,
     /// The version of this `rayx`, which the Linux binary must match.
     pub version: String,
+    /// `--gpu` or `--all`: the GPU driver belongs to Windows, so Windows installs it first.
+    pub windows_gpu: Option<WindowsGpu>,
+}
+
+/// The Windows-side GPU setup that runs before the distribution's own.
+#[derive(Clone, Debug)]
+pub struct WindowsGpu {
+    /// This `rayx`, which runs `setup --gpu` on Windows.
+    pub executable: PathBuf,
+    /// `--yes` and `--check`, passed through.
+    pub flags: Vec<String>,
 }
 
 impl WslRequest {
@@ -52,6 +63,14 @@ impl WslRequest {
             clone: args.clone.clone(),
             binary_override,
             version: env!("CARGO_PKG_VERSION").to_string(),
+            windows_gpu: (args.gpu || args.all).then(|| WindowsGpu {
+                executable: std::env::current_exe().unwrap_or_else(|_| PathBuf::from("rayx")),
+                flags: [(args.yes, "--yes"), (args.check, "--check")]
+                    .into_iter()
+                    .filter(|(on, _)| *on)
+                    .map(|(_, flag)| flag.to_string())
+                    .collect(),
+            }),
         }
     }
 }
@@ -112,9 +131,16 @@ pub fn linux_dir(dir: &str) -> Result<String, String> {
     let body = expanded.strip_prefix("$HOME").unwrap_or(&expanded);
     if body
         .chars()
-        .any(|c| matches!(c, '"' | '`' | '$' | '\\' | '\n'))
+        .any(|c| matches!(c, '"' | '`' | '$' | '\\' | '\n' | '\''))
     {
         return Err(format!("{dir} is not a usable Linux directory name"));
+    }
+    // A relative path would land on the Windows directory `wsl.exe` starts in, and be recorded
+    // relative to wherever a later command runs.
+    if !expanded.starts_with('/') && !expanded.starts_with("$HOME") {
+        return Err(format!(
+            "{dir} is not an absolute Linux path: use /abs/dir or ~/dir"
+        ));
     }
     Ok(expanded)
 }
@@ -185,7 +211,10 @@ fn in_distribution(script: &str) -> CommandSpec {
 /// Runs `rayx setup --wsl` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
-    let binary = std::env::var_os("RAYX_WSL_BINARY").map(PathBuf::from);
+    let binary = std::env::var_os("RAYX_WSL_BINARY")
+        .map(PathBuf::from)
+        .map(|path| std::fs::canonicalize(&path).unwrap_or(path))
+        .map(|path| PathBuf::from(path.to_string_lossy().trim_start_matches(r"\?\")));
     let request = WslRequest::from_args(args, binary);
     let mut runner = if args.check {
         Runner::print()
@@ -239,6 +268,20 @@ pub fn run_with(
         return Err(WslError::NotWindows);
     }
     require_wsl2(runner)?;
+    if let Some(gpu) = &request.windows_gpu {
+        let _ = writeln!(
+            out,
+            "==> windows: rayx setup --gpu (the driver belongs to Windows)"
+        );
+        runner
+            .run_checked(
+                &CommandSpec::new(gpu.executable.display().to_string())
+                    .args(["setup", "--gpu"])
+                    .args(gpu.flags.iter().cloned())
+                    .interactive(),
+            )
+            .map_err(|error| WslError::Failed(format!("rayx setup --gpu on Windows: {error}")))?;
+    }
     ensure_distribution(runner, machine, out)?;
     ensure_linux_binary(request, host, runner, out)?;
     let directory = match &request.clone {
@@ -259,12 +302,22 @@ fn require_wsl2(runner: &mut Runner) -> Result<(), WslError> {
     let outcome = runner
         .query(&wsl_command(&["--version"]))
         .map_err(|_| missing())?;
-    // `wsl --version` exists only in the WSL 2 package; it prints `WSL version: <x>`.
-    if outcome.is_success() && wsl_text(&outcome).contains("WSL version") {
+    // `wsl --version` exists only in the WSL 2 package; its label is localized, so look for a
+    // dotted version number instead of the English words.
+    if outcome.is_success() && has_version_number(&wsl_text(&outcome)) {
         Ok(())
     } else {
         Err(missing())
     }
+}
+
+/// Whether `text` holds a dotted version such as `2.6.1` (the label around it is localized).
+fn has_version_number(text: &str) -> bool {
+    text.split(|c: char| !c.is_ascii_digit() && c != '.')
+        .any(|word| {
+            let parts: Vec<&str> = word.split('.').collect();
+            parts.len() >= 2 && parts.iter().all(|p| !p.is_empty())
+        })
 }
 
 fn ensure_distribution(

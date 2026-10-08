@@ -60,8 +60,8 @@ fn app_command(mut args: Vec<String>, check_prerequisites: bool) -> Result<()> {
     }
     let action = args.remove(0);
     let cwd = std::env::current_dir().context("reading the current directory")?;
-    let context = ProjectContext::discover(&cwd, Some(Path::new(&app_dir)))?;
-    let app = AppDescriptor::resolve(&context, &app_dir)?;
+    let mut context = ProjectContext::discover(&cwd, Some(Path::new(&app_dir)))?;
+    let mut app = AppDescriptor::resolve(&context, &app_dir)?;
     if action == "assets" {
         let features = AppFeatureSelection::take_from_args(&mut args)?;
         features.validate_for(&app.manifest())?;
@@ -72,13 +72,26 @@ fn app_command(mut args: Vec<String>, check_prerequisites: bool) -> Result<()> {
         bail!("app action {action} requires a target");
     }
     let target = normalize_target(&args.remove(0));
+    // Everything after `--` is the app's own: `rayx` flags are looked for before it only.
+    let app_args = args
+        .iter()
+        .position(|arg| arg == "--")
+        .map(|separator| args.split_off(separator))
+        .unwrap_or_default();
     let no_install = take_bool_flag(&mut args, "--no-install");
     let profile = take_profile(&mut args)?;
+    args.extend(app_args);
     let features = AppFeatureSelection::take_from_args(&mut args)?;
     features.validate_for(&app.manifest())?;
     validate_diagnostic_feature_policy(app.diagnostic_harness, &action, &features)?;
     if check_prerequisites && ACTIONS.contains(&action.as_str()) {
         prereqs::ensure_for_command(&context, &action, &target, no_install)?;
+        // Without cargo (or the pinned toolchain) discovery reads manifests only; with what the
+        // step installed, ask cargo, so inherited dependencies resolve.
+        if context.project.discovery == crate::project::Discovery::Files {
+            context = ProjectContext::discover(&cwd, Some(Path::new(&app_dir)))?;
+            app = AppDescriptor::resolve(&context, &app_dir)?;
+        }
     }
 
     match action.as_str() {

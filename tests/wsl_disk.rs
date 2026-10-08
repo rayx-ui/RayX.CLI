@@ -123,6 +123,41 @@ fn the_status_script_output_is_read_into_sizes() {
 }
 
 #[test]
+fn only_absolute_build_output_paths_are_ever_listed() {
+    let (_, _, outputs) = parse_status(
+        "OUT	5	work/rayx/target
+OUT	7	/home/dev/x/target
+",
+    );
+
+    assert_eq!(outputs.len(), 1);
+    assert_eq!(outputs[0].path, "/home/dev/x/target");
+}
+
+#[test]
+fn a_build_output_path_with_a_quote_is_never_deleted() {
+    let mut runner = Runner::record().with_os(Os::Windows).respond(
+        is_status_script,
+        Outcome::success().with_stdout(
+            "OUT	5	/home/o'brien/x/target
+",
+        ),
+    );
+    let result = compact_with(
+        &compact_args(true, true),
+        &windows(),
+        &mut runner,
+        &machine(),
+        &|_| Some(GIB),
+        &mut |_| true,
+        &mut Vec::new(),
+    );
+
+    assert!(result.expect_err("refused").to_string().contains("quote"));
+    assert!(!runner.lines().iter().any(|l| l.contains("rm -rf")));
+}
+
+#[test]
 fn status_lists_each_distribution_with_its_disk_and_build_output() {
     let machine = machine();
     let mut runner = Runner::record()
@@ -341,6 +376,13 @@ fn compaction_uses_optimize_vhd_with_a_diskpart_fallback_and_never_sets_sparse()
     ] {
         assert!(script.contains(step), "{step}");
     }
+    // `'a' + $b + 'c', 'd'` binds the comma first and collapses the array into one line: the
+    // select line is parenthesised so diskpart gets one command per line.
+    assert!(script.contains("$select = ('select vdisk file=\"' + $vhdx + '\"')"));
+    assert!(!script.contains("@('select vdisk"));
+    // The disk is detached even when compacting fails, and Optimize-VHD failing falls back.
+    assert!(script.contains("finally { diskpart /s $detach"));
+    assert!(script.contains("-ErrorAction Stop"));
     assert!(!script.contains("sparse"), "WSL 2.6 disabled sparse disks");
     assert!(script.contains(VHDX));
     let quoted = compact_script(&PathBuf::from(r"C:\o'brien\ext4.vhdx"));

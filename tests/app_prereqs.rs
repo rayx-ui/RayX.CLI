@@ -290,12 +290,14 @@ fn a_real_plan_on_a_bare_linux_machine_names_the_sets_to_install() {
 
     let text = format!("{error:#}");
     assert!(text.contains("rayx setup --web --test"), "{text}");
+    // `--no-install` only looks: nothing privileged or interactive ran.
     assert!(
-        runner.specs().is_empty()
-            || runner
-                .specs()
-                .iter()
-                .all(|s| !s.args.contains(&"install".to_string()))
+        runner
+            .specs()
+            .iter()
+            .all(|spec| !spec.interactive && spec.privilege == Privilege::None),
+        "{:?}",
+        runner.lines()
     );
 }
 
