@@ -15,6 +15,14 @@ WebGPU spec passes against the current `RayX.Dtcg`. The changes that belong to `
 `../Gpux` are committed, unpushed, on `fix/ios-simulator-run` and `fix/ios-simulator-rendering`. Part 1 below is kept as the procedure to
 repeat.**
 
+**Scope of the Mac session.** It covers what Part 1 lists: the test suite, `doctor`, the setup sets,
+the fixture and real-app pipeline, and iOS build, run and pack. It does not cover the Lab's own UI:
+the Lab keeps its desktop two-pane shell (and its in-app menu bar over the status bar) on a phone,
+which is RayX UI work that neither this handoff nor the epic asks for. Homebrew's SSH remotes plus the
+owner's global `url.insteadOf` are a property of this Mac's git configuration, recorded in
+[docs/manual-verification.md](docs/manual-verification.md) because they broke `brew update` once, not
+something `rayx` should change.
+
 ## Status
 
 `rayx` is the public RayX command-line tool: `setup`, `doctor`, `wsl`, `self update`, `app` and
