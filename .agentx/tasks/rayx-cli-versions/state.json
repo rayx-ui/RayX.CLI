@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-versions",
-  "revision": 13,
+  "revision": 22,
   "planRevision": 1,
   "specHashes": {
     "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
@@ -23,7 +23,10 @@
       ]
     },
     "t03-guest-release": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "claude-impl-91b31a6e"
+      ]
     },
     "t04-vm-names": {
       "status": "pending"
@@ -59,6 +62,15 @@
         }
       },
       "recordedAt": "2026-10-14T21:49:27Z"
+    },
+    "c79e9ac07946828c9f60c8bb46a74db76dabfbd141bda2f435da736ba97dbf9d": {
+      "snapshot": {
+        "specHash": "a7930166344d2989a94ba045ddd41a3a7e1ca24bfcdf317453ce3d97ab5bde02",
+        "repositories": {
+          "rayx-cli": "8680c702ea72d9aa46339c4868d3bf1c126f712fbf7793fbdd348bc0fbc7d970"
+        }
+      },
+      "recordedAt": "2026-10-14T22:01:44Z"
     }
   },
   "checkResults": {
@@ -95,6 +107,23 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-versions/s1-release-core-final-da6f1828393e.log",
       "logSha256": "2dba29f3cbaee5920da58d52a446ce58c5da6597f62510e00698156b8968a911",
       "inputsHash": "21ee2341f7cc65c3ba8209c309560dcef587fabacb1932c75bb4a4eacd8131b0"
+    },
+    "s2-guest-release/check-guest-release/final": {
+      "checkId": "check-guest-release",
+      "boundaryId": "s2-guest-release",
+      "phase": "final",
+      "batchId": "c79e9ac07946828c9f60c8bb46a74db76dabfbd141bda2f435da736ba97dbf9d",
+      "definitionHash": "831fd1767111d83c9255dd2bf930d0470991fb39f2f9fde31708186b4ac59817",
+      "basisHash": "15489100b3aea4cc5875ad961eead8ab7234d865e972ffabdb24abbc077f54dd",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 28,
+      "durationSeconds": 0.4945,
+      "recordedAt": "2026-10-14T22:01:44Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s2-guest-release-final-46ae4f41a38e.log",
+      "logSha256": "9baa044eaf83ba835d147b10466e865357df7d6df5b7b81da1d748cbe96f708d",
+      "inputsHash": "1d0daa630cc9333136f1450673f6fc3a15585e706e74881e75aa62f5c67d98ea"
     }
   },
   "reviews": {
@@ -181,6 +210,105 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "3277f06e422ec328e486d0dc69f2bf2c33883af09106873c15d9e226baf7a0c1"
       }
+    },
+    "s2-guest-release": {
+      "reviewerId": "reviewer-s2-independent-1",
+      "snapshotId": "c79e9ac07946828c9f60c8bb46a74db76dabfbd141bda2f435da736ba97dbf9d",
+      "criterionIds": [
+        "GR-1",
+        "GR-2",
+        "GR-3",
+        "GR-4"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-1",
+            "GR-4"
+          ],
+          "sha256": "72c10a5c13abb367d9a11b6a066e0ba4dea9e8f7d8ffc4fa11e3b9beb965d91a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-1",
+            "GR-2",
+            "GR-3"
+          ],
+          "sha256": "1dd76b69e7eb74cc33bc92482e6b0d464250d3d6270f8faab607cd9e8d4a79b9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-1",
+            "GR-2",
+            "GR-3"
+          ],
+          "sha256": "2b6c4783c35cf0b619a719ec104d03793f5a5c2598f796a028900039eb95d7df"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-1",
+            "GR-2",
+            "GR-3"
+          ],
+          "sha256": "bee709bf00ace48bb5e8911168fdfe4ecac2adfdf33b1f4b26e629168a78c620"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-2",
+            "GR-3",
+            "GR-4"
+          ],
+          "sha256": "ac0ce71dd0e08d752f65b7966122a8f0fe6f3708e914fca07e645c792cd92ae4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-2",
+            "GR-4"
+          ],
+          "sha256": "fedd318d1b608f6ea95f431768a380b0fb04464427be029b3f316f900df7f31f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "kind": "test",
+          "criterionIds": [
+            "GR-1",
+            "GR-2",
+            "GR-3",
+            "GR-4"
+          ],
+          "sha256": "cf519b91b72432aca09ed29b810ea1daf2fa02c885e1d6756eeccd34ae920a2e"
+        }
+      ],
+      "summaryMarkdown": "First review failed with F-s2-1..3; all three are repaired in 11ef2d2 and verified. Inspected `git show 11ef2d2` (src/setup/guest.rs, update.rs, wsl.rs, tests/guest_release.rs). F-s2-1: both messages in `confirm_downgrade` are single-spaced; the tests assert the full refusal text (Lima and WSL) and the full `--check` subject line. F-s2-2: `update::run` only builds the collaborators and calls the new injectable `update::run_with`, whose order is `plan_release` (with the override name), then `update_host`, then `refresh_guests`; `a_missing_release_stops_setup_update_before_the_host_part_runs` uses a machine with recorded host work, so moving or removing the early probe would make `update_host` print `==> setup --update: ...` and run commands, breaking both the empty-output and `programs == [curl]` assertions; the order test checks curl first and then limactl work, and the override test covers macOS and Windows. F-s2-3: `plan_release` now precedes `wsl_is_running`/`os_version` in `migrate_older_guest`, and the test asserts no recorded spec carries `-d`. No other source changed; nothing recorded, probes still read-only, all external programs still through Runner. GR-1..GR-4 hold as described in the first submission: clap rules, validation before anything runs, probe before any change on every path (Lima run_with, WSL run_with_prompter and migrate_older_guest, update::run_with, refresh_guests), override conflict, downgrade question in all modes, inner update skipped below MIN_REFRESH_RELEASE, nothing recorded, plain behaviour unchanged. Notes: from_args swallows a bad name (safe, every run validates first); on a Linux host --update --release probes and then ignores the release.",
+      "findingIds": [
+        "F-s2-1",
+        "F-s2-2",
+        "F-s2-3"
+      ],
+      "recordedAt": "2026-10-14T22:02:18Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "3277f06e422ec328e486d0dc69f2bf2c33883af09106873c15d9e226baf7a0c1"
+      }
     }
   },
   "checkpoints": {
@@ -191,6 +319,14 @@
       },
       "reviewHash": "97dc9e09203e31484513ab32f6ae52bf224559155be938adfb77c55122ad3633",
       "recordedAt": "2026-10-14T21:50:35Z"
+    },
+    "s2-guest-release": {
+      "snapshotId": "c79e9ac07946828c9f60c8bb46a74db76dabfbd141bda2f435da736ba97dbf9d",
+      "commits": {
+        "rayx-cli": "11ef2d25a85739ee54fcf0b2ebdeeb297a8a3c88"
+      },
+      "reviewHash": "be62c0c9c2ad6cf3aad299c9dfc8dc9fc77a7280c8f1bbba53ae2b4008126663",
+      "recordedAt": "2026-10-14T22:02:29Z"
     }
   },
   "findings": [
@@ -208,6 +344,77 @@
           "repositoryId": "rayx-cli",
           "path": "tests/self_update_release.rs",
           "symbol": "a_bad_release_name_is_refused_before_the_network_is_asked"
+        }
+      ]
+    },
+    {
+      "id": "F-s2-1",
+      "boundaryId": "s2-guest-release",
+      "criterionIds": [
+        "GR-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Downgrade messages single-spaced and asserted in full.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "yes_skips_the_downgrade_question_and_no_terminal_without_yes_refuses"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "check_still_probes_the_release_and_only_prints_the_downgrade_subject"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "wsl_asks_before_a_downgrade_and_refuses_without_an_answer"
+        }
+      ]
+    },
+    {
+      "id": "F-s2-2",
+      "boundaryId": "s2-guest-release",
+      "criterionIds": [
+        "GR-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "setup --update probes the release before the host part through the injectable update::run_with, covered by tests.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "a_missing_release_stops_setup_update_before_the_host_part_runs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "setup_update_probes_the_release_before_the_host_part_and_the_refresh_follows"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "setup_update_refuses_a_release_with_the_override_of_its_host_before_anything_runs"
+        }
+      ]
+    },
+    {
+      "id": "F-s2-3",
+      "boundaryId": "s2-guest-release",
+      "criterionIds": [
+        "GR-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "WSL migration probes the release before the old distribution is asked anything; the test asserts no wsl -d command.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "wsl_probes_the_release_before_an_older_distribution_is_replaced"
         }
       ]
     }
