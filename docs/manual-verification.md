@@ -27,6 +27,40 @@ Findings fixed while verifying:
   compaction itself is proven; the size gained depends on how much was freed inside.
 - The "installing the Linux rayx from" message prints a `\\?\D:\…` verbatim path (cosmetic).
 
+## Lima guests on this Mac (2026-10-14)
+
+macOS 26.6.2 on an Apple M5 (arm64, 10 cores, 24 GiB), Lima 2.2.1, branch `feat/lima-guests`
+(`rayx` built with `cargo build --release`). The owner's `gpux` VM (6 CPUs, 12 GiB) was running the
+whole time and was never started, stopped, edited or removed. Raw logs: `artifacts-temp/agentx/rayx-cli-guests/mac/`.
+
+| Check | Command | Result |
+|---|---|---|
+| Dry run | `rayx setup --lima --vm-cpus 2 --vm-memory 4 --web --clone --check` | pass: the create, start, installer, clone and inner `setup --web --check` lines were printed; nothing was created and no record was written |
+| MAN-1 create, customize prompt | `rayx setup --lima --vm-cpus 2 --vm-memory 4 --web --clone` in a pseudo-terminal | pass: `Create Lima VM rayx: 2 CPUs, 4 GiB memory, 100 GiB disk, home mounted read-only. Customize? [y/N]` answered `y`, then CPUs, memory, disk (Enter) and `Mount the home writable?` (`n`); the VM was created with `--vm-type=vz` from `template:ubuntu-24.04` and started, the Linux `rayx` installed with the release installer, the checkout cloned to `~/RayX.CLI` |
+| Inner setup | the same command, rerun with `--yes` | pass: the inner `rayx setup --web` installed 7 steps (apt packages, rustup, the project toolchain, the pinned nightly, `wasm-bindgen-cli`) in about 3 minutes; `guests.json` recorded kind, name, Ubuntu 24.04, `--web`, the clone and the VM settings |
+| Home is read-only | `touch /Users/dinko/work-private/should-not-exist` inside the VM | pass: `Read-only file system`; the file does not exist on the Mac |
+| MAN-1 second run | `rayx setup --lima --vm-cpus 2 --vm-memory 4 --web --clone --yes` | pass: no VM command beyond reads, the clone fetched, the inner setup printed `Nothing to do: everything is installed.` |
+| MAN-1 doctor | `rayx doctor` | pass: `lima rayx: running, 2 CPUs, 4 GiB memory, 100 GiB disk, home read-only, Ubuntu 24.04, current` under `Lima: limactl 2.2.1`; `gpux` is not listed (not recorded) |
+| MAN-1 edit | `rayx setup --lima --vm-cpus 3 --vm-memory 4 --web --yes` | pass: `changing the VM rayx: 2 -> 3 CPUs`, `limactl stop`, `limactl edit --tty=false rayx --cpus=3`, `limactl start`; `limactl list` shows 3 CPUs |
+| MAN-2 refresh | Linux `rayx` built inside the VM (`cargo build --release`, 1m47s) and used through `RAYX_LIMA_BINARY`; `rayx setup --update --check`, then `--yes` | pass: `--check` printed the guest's `rayx` and Ubuntu versions, the install and the apt commands and started nothing; `--yes` installed the binary, ran `sudo apt-get update && sudo apt-get upgrade -y` and the inner `rayx setup --update --yes` (`==> setup --update: /home/dinko.guest/RayX.CLI`, `Nothing to do`); the guest's own `setup.json` recorded `base`, `web` and the clone |
+| MAN-2 migration | a local build with the pin temporarily `26.04` (not committed): `rayx setup --lima --web` in a pseudo-terminal | pass: `Create rayx with Ubuntu 26.04 next to rayx-24.04? [y/N]` answered `y`; `limactl stop`, `limactl rename --tty=false rayx rayx-24.04`, `limactl create ... template:ubuntu-26.04` with the old 3 CPUs, 4 GiB, 100 GiB and the read-only home, start, the Linux `rayx` from `RAYX_LIMA_BINARY`, the clone re-cloned from the Mac checkout, `rayx setup --web` inside it; the new VM reports `VERSION_ID=26.04`; `guests.json` held `rayx-24.04` retired (24.04) and `rayx` current (26.04) with the clone and VM settings; `rayx lima remove rayx-24.04` was printed |
+| MAN-2 removal | `rayx lima remove rayx-24.04`, `rayx lima remove gpux --yes`, `rayx lima remove rayx` | pass: each removal asked `Remove <name> and everything in it? [y/N]` (answered `y`); `gpux` was refused (`gpux was not created by rayx; remove it with limactl delete yourself`, exit 1) and kept running; the current guest's removal said `rayx setup --lima` creates it again; the record ended empty and `limactl list` showed only `gpux` |
+
+Findings fixed while verifying:
+
+- `limactl rename` asks `Do you want to start the instance now? (Y/n)` when it has a terminal, so
+  the migration waited on it forever. The rename (and the rollback rename) now pass `--tty=false`,
+  and `tests/guest_migration.rs` checks the arguments. The interrupted run had renamed the VM before
+  the record was written; the VM was renamed back by hand.
+- The inner `rayx setup` asks apt's `Do you want to continue? [Y/n]` unless `--yes` is given (apt
+  gets `-y` only with `--yes`), so an unattended first run needs `--yes`; this is the documented
+  behaviour, not a defect.
+- A transient 404 for one package (`u-boot-tools`) on the Ubuntu ports mirror made `apt-get upgrade`
+  fail inside the guest; `rayx` reported the guest as failed and exited 1, and the refresh passed
+  after `apt-mark hold u-boot-tools` in the test VM.
+- Without `--clone`, the inner `rayx setup --web` runs in the guest's home, outside any project, so
+  it installs a `stable` toolchain and its wasm target; run with `--clone` to set up the project.
+
 ## Linux (hosted CI)
 
 `rayx setup --web --test --yes` and the ignored heavy groups run on `ubuntu-latest`; `rayx setup
