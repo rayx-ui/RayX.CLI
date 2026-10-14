@@ -1,0 +1,1080 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-guests",
+  "revision": 5,
+  "title": "Linux guests: the Lima VM on macOS (setup --lima), shared guest layer with WSL, setup --update and the refresh after self update, side-by-side Ubuntu migration and guest removal",
+  "validationMode": "sprint",
+  "repositories": [
+    {
+      "id": "rayx-cli",
+      "path": ".",
+      "role": "execution"
+    }
+  ],
+  "boundaries": {
+    "repositoryIds": [
+      "rayx-cli"
+    ],
+    "forbiddenPaths": [
+      ".agentx/tasks/rayx-cli-foundation/**",
+      ".agentx/tasks/rayx-cli-releases/**",
+      ".github/workflows/release.yml",
+      "dist-workspace.toml"
+    ]
+  },
+  "recordPaths": [
+    "docs/manual-verification.md"
+  ],
+  "checks": [
+    {
+      "id": "check-guest-layer",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PIN-1",
+        "GST-1"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_layer.rs`: the Ubuntu pin and its derived names, each guest operation's command lines for WSL and Lima, unsafe directory refusal, the WSL sequence, the guest-neutral and legacy clones files.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_layer"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_layer.rs"
+      ]
+    },
+    {
+      "id": "check-setup-lima",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "LIMA-1",
+        "LIMA-2",
+        "LIMA-3",
+        "LIMA-4"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_lima.rs`: CLI acceptance and rejections, the host checks and Lima install/upgrade, create/start idempotency with exact arguments, `--check`, the guest steps through `limactl shell`, the clone outside-home refusal, another instance untouched.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_lima"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 12
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_lima.rs"
+      ]
+    },
+    {
+      "id": "check-lima-sizing",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "LIMA-5",
+        "LIMA-6"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_lima_sizing.rs`: caps and notes on 8/16/24 GiB and 8/10-core hosts, flag validation, free-space checks, running-VM warning, the customize prompt answered by a scripted prompter.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_lima_sizing"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 10
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_lima_sizing.rs"
+      ]
+    },
+    {
+      "id": "check-lima-edit",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "LIMA-7"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_lima_edit.rs`: flags against an existing VM (running and stopped), the update question, stop/edit/start arguments, shrink refusal, equal flags change nothing.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_lima_edit"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_lima_edit.rs"
+      ]
+    },
+    {
+      "id": "check-guest-records",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REC-1",
+        "DOC-1"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_records.rs`: `guests.json` written, merged and tolerant of missing/unparsable files; doctor text and JSON for running, stopped, retired and missing guests and missing Lima.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_records"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_records.rs"
+      ]
+    },
+    {
+      "id": "check-setup-update",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REC-2",
+        "UPD-1"
+      ],
+      "descriptionMarkdown": "New group `tests/setup_update.rs`: `setup.json` recording, `--update` per project root with each root's pins, vanished root, nothing recorded, no `apt-get upgrade` on a native Linux host, CLI conflicts.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_update"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 7
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_update.rs"
+      ]
+    },
+    {
+      "id": "check-guest-refresh",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "UPD-2"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_refresh.rs`: per-guest question, `--yes`, no terminal, Lima start/stop around the refresh, Linux `rayx`, apt update/upgrade with and without `-y`, inner `setup --update`, a failing guest not stopping the next, `--check` without starting a VM.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_refresh"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 7
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_refresh.rs"
+      ]
+    },
+    {
+      "id": "check-self-update-refresh",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SUR-1"
+      ],
+      "descriptionMarkdown": "New group `tests/self_update_refresh.rs`: refresh offered after an install only when records exist; yes, `--yes`, no, no terminal; exit code propagation; executable captured before the install; `--check`/up to date/failed install never refresh.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "self_update_refresh"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/self_update_refresh.rs"
+      ]
+    },
+    {
+      "id": "check-guest-migration",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "MIG-1",
+        "MIG-2",
+        "MIG-3"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_migration.rs`: version comparison, dirty-clone listing, declined/unanswerable, newer-than-pin, Lima rename/create/clone/setup sequence with the record after each step and resume, WSL side-by-side install with first-user stop and resume.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_migration"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_migration.rs"
+      ]
+    },
+    {
+      "id": "check-guest-remove",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "RM-1",
+        "RM-2"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_remove.rs`: `lima remove` and `wsl remove` command lines and record update, unrecorded names refused, wrong OS, dirty-clone warning, declined, no terminal, `--yes`, current-guest message.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_remove"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 7
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_remove.rs"
+      ]
+    },
+    {
+      "id": "check-readme-guests",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "DOCS-1"
+      ],
+      "descriptionMarkdown": "New group `tests/readme_guests.rs`: README sections for every new flag and command, and `--help` output of `setup`, `self update`, `lima remove`, `wsl remove`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "readme_guests"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/readme_guests.rs",
+        "README.md"
+      ]
+    },
+    {
+      "id": "final-fmt",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "GST-1",
+        "LIMA-3",
+        "UPD-1",
+        "MIG-2"
+      ],
+      "descriptionMarkdown": "`cargo fmt --check` for the package.",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "final-clippy",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "GST-1",
+        "LIMA-3",
+        "UPD-1",
+        "MIG-2"
+      ],
+      "descriptionMarkdown": "`cargo clippy --all-targets -- -D warnings`, as CI runs it: the new modules and test groups must be warning-free.",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "final-touched-tests",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "GST-1",
+        "LIMA-1",
+        "REC-2",
+        "DOC-1",
+        "UPD-1",
+        "SUR-1",
+        "RM-1",
+        "DOCS-1"
+      ],
+      "descriptionMarkdown": "Every group the epic adds plus the existing groups that exercise touched code: `wsl_plan`, `wsl_install`, `wsl_disk` (WSL moved onto the guest layer, clones file), `doctor` (guest section), `self_update` (update flow), `cli_surface` (new flags and commands), `setup_engine` and `setup_update_prompt` (run_plan recording, prompter), `project_pins` (new pin), `setup_macos` (`brew_program` reuse). Not the whole suite: the app pipeline, fmt and release configuration are untouched.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_layer",
+        "--test",
+        "setup_lima",
+        "--test",
+        "setup_lima_sizing",
+        "--test",
+        "setup_lima_edit",
+        "--test",
+        "guest_records",
+        "--test",
+        "setup_update",
+        "--test",
+        "guest_refresh",
+        "--test",
+        "self_update_refresh",
+        "--test",
+        "guest_migration",
+        "--test",
+        "guest_remove",
+        "--test",
+        "readme_guests",
+        "--test",
+        "wsl_plan",
+        "--test",
+        "wsl_install",
+        "--test",
+        "wsl_disk",
+        "--test",
+        "doctor",
+        "--test",
+        "self_update",
+        "--test",
+        "cli_surface",
+        "--test",
+        "setup_engine",
+        "--test",
+        "setup_update_prompt",
+        "--test",
+        "project_pins",
+        "--test",
+        "setup_macos",
+        "--test",
+        "guest_repairs_flow",
+        "--test",
+        "guest_repairs_safety"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 120
+      }
+    },
+    {
+      "id": "check-repairs-flow",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REP-1",
+        "REP-2",
+        "REP-3"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_repairs_flow.rs`: flags with a migration, early recording and a failed first run, the refresh after a migration.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_repairs_flow"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_repairs_flow.rs"
+      ]
+    },
+    {
+      "id": "check-repairs-safety",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REP-4",
+        "REP-5",
+        "REP-6"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_repairs_safety.rs`: failed reads versus missing guests, `--check` without prompts or starts, honest record reads, clone de-duplication.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_repairs_safety"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_repairs_safety.rs"
+      ]
+    }
+  ],
+  "finalCheckIds": [
+    "final-fmt",
+    "final-clippy",
+    "final-touched-tests"
+  ],
+  "sprints": [
+    {
+      "id": "s1-guest-layer-lima",
+      "title": "Ubuntu pin, shared guest layer, and the Lima VM flow",
+      "dependsOn": [],
+      "memoryScopes": [
+        "setup",
+        "project"
+      ],
+      "checkIds": [
+        "check-guest-layer",
+        "check-setup-lima"
+      ],
+      "tasks": [
+        {
+          "id": "t01-guest-layer",
+          "title": "Ubuntu pin and the guest layer, with WSL moved onto it",
+          "descriptionMarkdown": "Add the Ubuntu pin to `project::pins` (built-in only) and `Pins`, and show it in doctor's pin list. Create `src/setup/guest.rs` (`Guest`, `GuestKind`, the script command, `ensure_linux_binary`, `clone_checkout`/`clone_script`, `run_setup_inside`, `os_version`, `dirty_clones`) by moving the operations out of `src/setup/wsl.rs`; make `setup::wsl` use them with `Ubuntu-<pin>`. Rename the in-guest clones file to `$HOME/.config/rayx/clones` and make `src/wsl.rs` read it plus the legacy `wsl-clones`. Keep `wsl_plan`/`wsl_install`/`wsl_disk` passing (adjust only expectations this task changes on purpose: the clones file name). Write `tests/guest_layer.rs`.",
+          "criterionIds": [
+            "PIN-1",
+            "GST-1"
+          ],
+          "designIds": [
+            "d-ubuntu-pin",
+            "d-guest-layer"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-guest-layer"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/project/pins.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/wsl.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/wsl.rs",
+              "symbol": "CLONES_FILE"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/doctor.rs",
+              "symbol": "pin_list"
+            }
+          ]
+        },
+        {
+          "id": "t02-setup-lima",
+          "title": "rayx setup --lima: host checks, Lima, VM create/start, guest steps",
+          "descriptionMarkdown": "CLI: `--lima`, the `--vm-*` flags (parsed, validated in t03), `--clone` requiring `--wsl` or `--lima` (an `ArgGroup`), conflicts. Create `src/setup/lima.rs`: macOS version, Homebrew, `limactl --version` with install/upgrade under the outdated rule, `limactl list --json` parsing (one object per line), create/start with the exact arguments from LIMA-3 using `VmSettings` defaults (sizing caps and prompts arrive in t03), `RAYX_LIMA_BINARY`, clone source under the home, inner setup through the guest layer, and `--check`. Dispatch from `setup::run`. Write `tests/setup_lima.rs` with `Runner::record()` responders for `sw_vers`, `brew`, `limactl`.",
+          "criterionIds": [
+            "LIMA-1",
+            "LIMA-2",
+            "LIMA-3",
+            "LIMA-4"
+          ],
+          "designIds": [
+            "d-lima-vm",
+            "d-guest-layer"
+          ],
+          "dependsOn": [
+            "t01-guest-layer"
+          ],
+          "checkIds": [
+            "check-setup-lima"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/cli.rs",
+              "symbol": "SetupArgs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/mod.rs",
+              "symbol": "run"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/macos.rs",
+              "symbol": "brew_program"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/host/runner.rs",
+              "symbol": "responder"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2-sizing-records-doctor",
+      "title": "VM sizing and customization, existing-VM changes, guest records and doctor",
+      "dependsOn": [
+        "s1-guest-layer-lima"
+      ],
+      "memoryScopes": [
+        "setup"
+      ],
+      "checkIds": [
+        "check-lima-sizing",
+        "check-lima-edit",
+        "check-guest-records"
+      ],
+      "tasks": [
+        {
+          "id": "t03-lima-sizing",
+          "title": "Host capacity caps, flag validation and the customize prompt",
+          "descriptionMarkdown": "`HostCapacity` from `sysctl -n hw.ncpu hw.memsize` and `df -k`, `VmSettings::effective` with caps, notes and validation, the running-VM memory warning, a `Prompter` trait (terminal + scripted) and the `Customize? [y/N]` flow on creation only (terminal, no `--yes`). Wire into `setup::lima` before create. Write `tests/setup_lima_sizing.rs`.",
+          "criterionIds": [
+            "LIMA-5",
+            "LIMA-6"
+          ],
+          "designIds": [
+            "d-lima-sizing"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-lima-sizing"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/mod.rs",
+              "symbol": "ask_on_terminal"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/mod.rs",
+              "symbol": "Cx"
+            }
+          ]
+        },
+        {
+          "id": "t04-lima-edit",
+          "title": "Explicit flags change an existing VM through stop, edit, start",
+          "descriptionMarkdown": "Read the existing VM's CPUs, memory, disk (`limactl list --json`) and home writability (`<dir>/lima.yaml` mounts); compare with explicit `--vm-*` flags; ask as an update; `limactl stop` (when running), `limactl edit --tty=false rayx <changed flags>`, `limactl start`; refuse a smaller disk. Write `tests/setup_lima_edit.rs`.",
+          "criterionIds": [
+            "LIMA-7"
+          ],
+          "designIds": [
+            "d-lima-sizing",
+            "d-lima-vm"
+          ],
+          "dependsOn": [
+            "t03-lima-sizing"
+          ],
+          "checkIds": [
+            "check-lima-edit"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/mod.rs",
+              "symbol": "execute"
+            }
+          ]
+        },
+        {
+          "id": "t05-records-doctor",
+          "title": "guests.json and doctor's guest report",
+          "descriptionMarkdown": "`src/setup/records.rs`: config directory rule, `GuestRecord`/`GuestsFile` serde types (version 1), read/merge/atomic write (skipped in dry runs). `setup --wsl` and `--lima` record their guest on success (Ubuntu version read through the guest layer). Doctor: Lima version, recorded guests joined with `limactl list --json` (macOS) or the WSL registry view (Windows), text and `guests` JSON, removal hints. Write `tests/guest_records.rs`.",
+          "criterionIds": [
+            "REC-1",
+            "DOC-1"
+          ],
+          "designIds": [
+            "d-records-doctor",
+            "d-guest-layer"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-guest-records"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/doctor.rs",
+              "symbol": "inspect"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/doctor.rs",
+              "symbol": "to_json"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/wsl.rs",
+              "symbol": "registry_distributions"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3-update-refresh",
+      "title": "setup --update for the host and guests, and the refresh after self update",
+      "dependsOn": [
+        "s2-sizing-records-doctor"
+      ],
+      "memoryScopes": [
+        "setup",
+        "distribution"
+      ],
+      "checkIds": [
+        "check-setup-update",
+        "check-guest-refresh",
+        "check-self-update-refresh"
+      ],
+      "tasks": [
+        {
+          "id": "t06-setup-update",
+          "title": "setup.json and rayx setup --update on the host",
+          "descriptionMarkdown": "Record sets and the project root in `setup.json` from `run_plan` after a successful non-check run. Add `--update` (conflicts per UPD-1) and the host part: per recorded root, `Project::discover`, `environment_for`, plan the recorded sets, `run_plan`; vanished roots dropped and reported; nothing recorded message. Confirm no `apt-get upgrade` reaches a native host. Write `tests/setup_update.rs`.",
+          "criterionIds": [
+            "REC-2",
+            "UPD-1"
+          ],
+          "designIds": [
+            "d-setup-update"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-setup-update"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/mod.rs",
+              "symbol": "run_plan"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/mod.rs",
+              "symbol": "environment_for"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/cli.rs",
+              "symbol": "SetupArgs"
+            }
+          ]
+        },
+        {
+          "id": "t07-guest-refresh",
+          "title": "Refresh of current guests in setup --update",
+          "descriptionMarkdown": "For each current guest of this OS in `guests.json`: question (prompter, `--yes`, no terminal), Lima start/stop around it, Ubuntu version check hook (migration lands in t09: here an older guest is reported outdated and skipped), Linux `rayx`, `sudo apt-get update` + `sudo apt-get upgrade [-y]` inside, inner `rayx setup --update [--yes]`; continue after a failing guest; `--check` per UPD-2. Write `tests/guest_refresh.rs`.",
+          "criterionIds": [
+            "UPD-2"
+          ],
+          "designIds": [
+            "d-setup-update",
+            "d-guest-layer"
+          ],
+          "dependsOn": [
+            "t06-setup-update"
+          ],
+          "checkIds": [
+            "check-guest-refresh"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/wsl.rs",
+              "symbol": "run_with"
+            }
+          ]
+        },
+        {
+          "id": "t08-self-update-refresh",
+          "title": "rayx self update offers the refresh with the new binary",
+          "descriptionMarkdown": "`self update --yes`; capture the executable before `install()`; after a successful install, when records exist, the question / `--yes` / no-terminal message, and the refresh seam that runs `<exe> setup --update [--yes]` through `Runner`, propagating its exit code. Write `tests/self_update_refresh.rs` with the fake backend.",
+          "criterionIds": [
+            "SUR-1"
+          ],
+          "designIds": [
+            "d-self-update-refresh"
+          ],
+          "dependsOn": [
+            "t06-setup-update"
+          ],
+          "checkIds": [
+            "check-self-update-refresh"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/update.rs",
+              "symbol": "run_with"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/update.rs",
+              "symbol": "Backend"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/cli.rs",
+              "symbol": "SelfCommand"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4-migration-removal",
+      "title": "Side-by-side Ubuntu migration and guest removal commands",
+      "dependsOn": [
+        "s3-update-refresh"
+      ],
+      "memoryScopes": [
+        "setup"
+      ],
+      "checkIds": [
+        "check-guest-migration",
+        "check-guest-remove"
+      ],
+      "tasks": [
+        {
+          "id": "t09-guest-migration",
+          "title": "Side-by-side migration for Lima and WSL",
+          "descriptionMarkdown": "Replace t07's skip with MIG: dirty-clone listing and the question; Lima stop/rename/record/create-with-old-settings/start/rayx/re-clone/setup-per-clone/record; WSL install of `Ubuntu-<pin>`, first-user stop and resume, rayx, re-clone, setup, retire the old entry; removal command printed; resume from the record. Also reached from `setup --wsl`/`--lima` when the current guest is older than the pin. Write `tests/guest_migration.rs`.",
+          "criterionIds": [
+            "MIG-1",
+            "MIG-2",
+            "MIG-3"
+          ],
+          "designIds": [
+            "d-guest-migration",
+            "d-guest-layer"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-guest-migration"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/wsl.rs",
+              "symbol": "ensure_distribution"
+            }
+          ]
+        },
+        {
+          "id": "t10-guest-remove",
+          "title": "rayx lima remove and rayx wsl remove",
+          "descriptionMarkdown": "New `lima` command group with `remove <name> [--yes]`; `remove <name> [--yes]` in `WslCommand`; dispatch in `src/lib.rs`. Resolve in `guests.json`, refuse unrecorded names and the wrong OS, list dirty clones when inspectable, confirm, run `limactl delete --force` / `wsl --unregister`, drop the record entry. Write `tests/guest_remove.rs`.",
+          "criterionIds": [
+            "RM-1",
+            "RM-2"
+          ],
+          "designIds": [
+            "d-guest-remove"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-guest-remove"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/cli.rs",
+              "symbol": "WslCommand"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/lib.rs",
+              "symbol": "run_from"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s5-docs-mac-proof",
+      "title": "Documentation and real-Lima verification on this Mac",
+      "dependsOn": [
+        "s4-migration-removal"
+      ],
+      "memoryScopes": [
+        "setup"
+      ],
+      "checkIds": [
+        "check-readme-guests"
+      ],
+      "tasks": [
+        {
+          "id": "t11-docs",
+          "title": "README and help text",
+          "descriptionMarkdown": "Document everything DOCS-1 lists in `README.md` (the `rayx setup`, `rayx doctor` and `rayx wsl` sections, plus a `rayx lima` section) and make every new flag and subcommand's help text precise. Write `tests/readme_guests.rs`.",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "designIds": [
+            "d-lima-vm",
+            "d-setup-update",
+            "d-guest-remove"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-readme-guests"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "README.md"
+            }
+          ]
+        },
+        {
+          "id": "t12-mac-proof",
+          "title": "Real Lima on this Mac: create, customize, edit, update, migrate, remove",
+          "descriptionMarkdown": "On this Mac, leaving the owner's `gpux` VM running and untouched: build a Linux aarch64 `rayx` inside a guest or with a cross toolchain for `RAYX_LIMA_BINARY`, run MAN-1 and MAN-2 (the 26.04 pin only in an uncommitted local build), remove both test VMs at the end, and record each step with date and result in `docs/manual-verification.md`. Raw logs go to `artifacts-temp/agentx/rayx-cli-guests/`. Any defect found is a finding repaired in the owning task's code with its test group extended.",
+          "criterionIds": [
+            "MAN-1",
+            "MAN-2"
+          ],
+          "designIds": [
+            "d-lima-vm",
+            "d-lima-sizing",
+            "d-guest-migration",
+            "d-guest-remove"
+          ],
+          "dependsOn": [
+            "t11-docs"
+          ],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/manual-verification.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s7-integration-repairs",
+      "title": "Integration repairs from the advisory epic review",
+      "dependsOn": [
+        "s5-docs-mac-proof"
+      ],
+      "memoryScopes": [
+        "setup"
+      ],
+      "checkIds": [
+        "check-repairs-flow",
+        "check-repairs-safety"
+      ],
+      "tasks": [
+        {
+          "id": "t15-flow-repairs",
+          "title": "Flags with migration, early recording, refresh after migration",
+          "descriptionMarkdown": "Honour `--vm-*` flags when a migration replaces the VM (no edit of the old VM; effective settings overlaid on the old ones; resumed migrations too), record a guest right after it is created, and make the refresh stop only the VM it started. Write `tests/guest_repairs_flow.rs`.",
+          "criterionIds": [
+            "REP-1",
+            "REP-2",
+            "REP-3"
+          ],
+          "designIds": [
+            "d-integration-repairs"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-repairs-flow"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/lima/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/migrate.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/refresh.rs"
+            }
+          ]
+        },
+        {
+          "id": "t16-honest-reads",
+          "title": "Failed reads, --check without prompts or starts, honest records",
+          "descriptionMarkdown": "Tell a failed `limactl list` from a missing guest, keep `--check` from prompting and from starting a WSL distribution, read records honestly (only NotFound is empty, one reader, unique temp names), de-duplicate clone directories and report an unusable `RAYX_WSL_BINARY`. Write `tests/guest_repairs_safety.rs`.",
+          "criterionIds": [
+            "REP-4",
+            "REP-5",
+            "REP-6"
+          ],
+          "designIds": [
+            "d-integration-repairs"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-repairs-safety"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/refresh.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/remove.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/records.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/wsl.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s6-owner-hosts",
+      "title": "Owner-run: WSL on the Windows PC and self update after the release",
+      "dependsOn": [
+        "s7-integration-repairs"
+      ],
+      "memoryScopes": [
+        "setup",
+        "distribution"
+      ],
+      "tasks": [
+        {
+          "id": "t13-wsl-proof",
+          "title": "WSL guest layer, records and refresh on the owner's Windows PC",
+          "descriptionMarkdown": "Owner-run: MAN-3 on the Windows PC with a local Windows build and `RAYX_WSL_BINARY`; results recorded in `docs/manual-verification.md`.",
+          "criterionIds": [
+            "MAN-3"
+          ],
+          "designIds": [
+            "d-guest-layer",
+            "d-setup-update"
+          ],
+          "dependsOn": [],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/manual-verification.md"
+            }
+          ]
+        },
+        {
+          "id": "t14-release-proof",
+          "title": "self update refresh from a real release",
+          "descriptionMarkdown": "Owner-run after release-plz and dist publish the first release containing this epic: MAN-4 on the Mac (and on Windows), recorded in `docs/manual-verification.md`. If the release is not out when the rest of the epic is done, the owner decides whether MAN-4 is deferred to a follow-up.",
+          "criterionIds": [
+            "MAN-4"
+          ],
+          "designIds": [
+            "d-self-update-refresh"
+          ],
+          "dependsOn": [
+            "t13-wsl-proof"
+          ],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/manual-verification.md"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

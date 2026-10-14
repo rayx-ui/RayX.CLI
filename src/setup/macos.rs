@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use crate::host::{Arch, CommandSpec, Privilege};
 
-use super::{Action, Cx, PlanEnv, Probed, Set, SetupError, Step, rust};
+use super::{Action, Cx, Machine, PlanEnv, Probed, Set, SetupError, Step, rust};
 
 /// While this file exists, `softwareupdate --list` offers the Command Line Tools.
 pub const CLT_MARKER: &str = "/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress";
@@ -136,11 +136,16 @@ fn clt_step() -> Step {
 
 /// The `brew` binary: on PATH, else in the Apple silicon or Intel default prefix.
 pub fn brew_program(cx: &Cx) -> Option<PathBuf> {
-    cx.machine.which("brew").or_else(|| {
+    brew_in(cx.machine)
+}
+
+/// [`brew_program`] over a machine alone, for the commands that run outside a setup plan.
+pub fn brew_in(machine: &dyn Machine) -> Option<PathBuf> {
+    machine.which("brew").or_else(|| {
         ["/opt/homebrew/bin/brew", "/usr/local/bin/brew"]
             .into_iter()
             .map(Path::new)
-            .find(|path| cx.machine.exists(path))
+            .find(|path| machine.exists(path))
             .map(Path::to_path_buf)
     })
 }

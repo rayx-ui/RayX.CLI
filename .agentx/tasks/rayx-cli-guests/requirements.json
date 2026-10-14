@@ -1,0 +1,374 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-guests",
+  "scopeMarkdown": "Give `rayx` Linux guests it creates, keeps current and removes: a **Lima Ubuntu VM on macOS** (`rayx setup --lima`), next to the existing WSL distribution on Windows (`rayx setup --wsl`), and a **refresh** that keeps both guests and the host current when `rayx` updates.\n\n## In scope\n\n- **Ubuntu pin.** One Ubuntu version for every guest, `24.04`, in the built-in pins table. The WSL distribution name (`Ubuntu-24.04`) and the Lima template (`template:ubuntu-24.04`) derive from it. Lima's `template:ubuntu`/`ubuntu-lts` resolve to 26.04 in Lima 2.2.1, so the template is always named with the version.\n- **Shared guest layer.** The WSL orchestration in `src/setup/wsl.rs` (install the matching Linux `rayx` with the release installer, clone the current checkout, run `rayx setup <flags>` inside) becomes guest-generic; WSL and Lima differ only in how a script runs inside (`wsl -d <name> --exec bash -lc` / `limactl shell --workdir / <name> -- bash -lc`) and how the guest is created.\n- **`rayx setup --lima [--clone [<dir>]] [set flags]`** (macOS only): Lima through Homebrew, the VM `rayx` (vz, Ubuntu 24.04, defaults 6 CPUs, 12 GiB memory, 100 GiB disk, the macOS home mounted read-only, containerd off), the Linux `rayx` of the same version inside, the optional clone, and the same `rayx setup` inside.\n- **VM sizing.** Defaults capped to what the Mac can spare, a `Customize? [y/N]` prompt on creation in a terminal, flags `--vm-cpus`, `--vm-memory`, `--vm-disk`, `--vm-home-writable` for unattended runs, and an offered stop, `limactl edit`, start when flags change an existing VM.\n- **Records.** Every `rayx setup` run records its sets and project roots on the machine it ran on; `setup --wsl`/`--lima` record the guests they manage on the host.\n- **`rayx doctor`** reports the rayx-managed guests (Lima VMs on macOS, WSL distributions on Windows): state, resources, home mount, Ubuntu version, current or retired, and the removal command for retired ones.\n- **`rayx setup --update`** re-runs setup for the recorded sets on the host (no `apt-get upgrade` on a native Linux host) and refreshes every current guest: the matching Linux `rayx`, `apt-get update && apt-get upgrade`, and `rayx setup --update` inside.\n- **`rayx self update`** offers that refresh with the new binary after it installs a newer release.\n- **Side-by-side Ubuntu migration.** A guest older than the pin is replaced by a new guest from the pinned image (Lima: the old VM is renamed `rayx-<old version>`; WSL: `Ubuntu-<pin>` next to the old distribution), its clones and flags are restored, and the old guest is kept, retired, until the owner removes it.\n- **Removal commands** `rayx lima remove <name>` and `rayx wsl remove <name>` for rayx-managed guests only, always confirmed.\n- README and CLI help, and a manual verification on this Mac recorded in `docs/manual-verification.md`.\n\n## Owner decisions (2026-10-14)\n\n`--lima` as the flag; the VM is named `rayx`; defaults are capped on small Macs; one `Customize? [y/N]` prompt, then per-value prompts; offer stop, edit, start for an existing VM; `rayx doctor` reports the VM in v1; Ubuntu pinned to 24.04; side-by-side migration with commands to remove specific guests; guests run `apt-get upgrade`; the host is refreshed too, without `apt-get upgrade` on a native Linux host; `rayx setup --update` exists on its own and `rayx self update` calls it.\n\n## Assumptions\n\n- `--all` does not include `--lima` (a VM and a 620 MB image are not a host requirement); `--lima` is never implied.\n- An existing VM is changed only by explicit `--vm-*` flags; a re-run without them asks nothing and executes nothing for the VM.\n- Instances and distributions `rayx` did not create (for example the owner's `gpux` VM) are never started, stopped, edited, updated or removed.\n- The guest's sudo: Lima configures passwordless sudo for the guest user; WSL asks in the console as today.\n\n## Out of scope\n\n- A `rayx lima status` command (doctor reports the VM), Lima on Linux hosts, QEMU or Rosetta options, GPU acceleration inside the VM (the guest uses lavapipe like WSL), snapshots, port forwards.\n- Changing the RayX repository.\n- In-place `do-release-upgrade`.\n",
+  "constraintsMarkdown": "- `CLAUDE.md`/`AGENTS.md` rules hold: every external program through `host::Runner`; `rayx` never reads, stores or forwards a password or token and never relaunches itself elevated (`limactl` refuses root anyway); licenses only with `--yes` (Lima has none); `--check` executes, creates, records and downloads nothing.\n- Existing setup rules hold inside and outside guests: probe before installing, a second run executes nothing, an outdated item is asked about (`--yes` updates without asking, no terminal and no `--yes` leaves it and exits 1), a first install is never asked about.\n- WSL behaviour stays as it is except where a criterion here changes it (the pin-derived distribution name, the guest-neutral clones file, records, refresh, migration, removal).\n- Nothing deletes a guest, a clone or build output without an explicit command and confirmation (or `--yes`); guests `rayx` did not create are never touched.\n- GitHub's macOS runners cannot run VMs: automated tests drive `limactl`, `wsl` and `sysctl` through a recording runner with scripted responses; real-VM proof is manual.\n- Tests are new feature groups in `tests/<feature>.rs`; while iterating run only the touched group. Conventional Commits with scopes, no co-author lines.\n",
+  "requirements": [
+    {
+      "id": "PIN",
+      "title": "Ubuntu pin for guests",
+      "descriptionMarkdown": "One Ubuntu version for every Linux guest, kept with the other built-in defaults.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "symbol": "DISTRIBUTION"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "PIN-1",
+          "descriptionMarkdown": "The built-in defaults table in `project::pins` holds the guest Ubuntu version `24.04` (source reported as built-in; a project cannot override it, since guests serve every project on the machine). No other module hard-codes an Ubuntu version: the WSL distribution name is `Ubuntu-<pin>` (`Ubuntu-24.04`) and the Lima template is `template:ubuntu-<pin>` (`template:ubuntu-24.04`), both computed from the pin. `rayx doctor` lists the pin with the other pins.\n\nVerified by the new group `tests/guest_layer.rs` (pin value and source, both derived names, a changed pin in a test `Pins` value changing both names).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "GST",
+      "title": "Shared guest layer",
+      "descriptionMarkdown": "WSL and Lima share one implementation of what happens inside a Linux guest.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs",
+          "symbol": "CLONES_FILE"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "GST-1",
+          "descriptionMarkdown": "A guest-generic layer (`setup::guest`) owns, for a guest given by kind (WSL distribution or Lima instance) and name:\n\n- running a bash script inside it as the default user: WSL `wsl -d <name> --exec bash -lc <script>`, Lima `limactl shell --workdir / <name> -- bash -lc <script>` (one argument, quoting preserved);\n- installing the Linux `rayx` of the running version with that release's `rayx-cli-installer.sh` when `$HOME/.rayx/bin/rayx --version` does not print `rayx <version>`, or copying an override binary (`RAYX_WSL_BINARY` for WSL, `RAYX_LIMA_BINARY` for Lima: a Linux binary path readable inside the guest);\n- cloning the current checkout (`--clone [<dir>]`, default `~/<checkout name>`, absolute or `~` targets only, existing clone fetched) and recording the clone directory in the guest-neutral file `$HOME/.config/rayx/clones`; `rayx wsl status` and `wsl compact --clean` read it and still read the legacy `wsl-clones` file;\n- running `$HOME/.rayx/bin/rayx setup <same flags>` inside (in the clone directory when one was made) with inherited stdio.\n\n`setup --wsl` produces the same command sequence as before for the same inputs, apart from the clones file name. An architecture without a Linux release fails before any download; `--check` prints the commands and runs none of them.\n\nVerified by the new group `tests/guest_layer.rs` (both kinds' command lines for each operation, quoting refusal for unsafe directories, the WSL sequence, the legacy clones file read); the existing groups `wsl_plan`, `wsl_install` and `wsl_disk` keep passing at epic end.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "LIMA",
+      "title": "rayx setup --lima",
+      "descriptionMarkdown": "From macOS, create and start the Lima VM `rayx` and set it up like a WSL distribution.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "symbol": "SetupArgs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "symbol": "run"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/macos.rs",
+          "symbol": "brew_program"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "LIMA-1",
+          "descriptionMarkdown": "`rayx setup` accepts `--lima` (help: set up the Lima VM `rayx` with Ubuntu <pin> on macOS and run the same setup inside it). `--lima` conflicts with `--wsl` and `--update`; `--clone [<dir>]` requires `--wsl` or `--lima`; `--vm-cpus <n>`, `--vm-memory <GiB>`, `--vm-disk <GiB>` (positive integers) and `--vm-home-writable` require `--lima`. On Windows or Linux, `setup --lima` exits 1 with `` `rayx setup --lima` creates a Lima VM on macOS `` and runs nothing; `setup --wsl` off Windows keeps its message. `--all` does not imply `--lima`.\n\nVerified by the new group `tests/setup_lima.rs` (clap acceptance and rejections, the non-macOS error with no recorded command).",
+          "verification": "automated"
+        },
+        {
+          "id": "LIMA-2",
+          "descriptionMarkdown": "Before touching a VM, `setup --lima` checks the Mac:\n\n- macOS 13 or later (`sw_vers -productVersion`), else exit 1 naming the requirement;\n- Homebrew present (the base set's `brew` lookup), else exit 1 with `run \\`rayx setup\\` first to install Homebrew`;\n- `limactl --version` reports 2.0 or later. Missing: `brew install lima` runs without asking (a first install). Older: an update, asked about per the outdated rule, then `brew upgrade lima`; declined or unanswerable leaves it, reports the command and exits 1.\n\nNo step needs `sudo`. Verified by `tests/setup_lima.rs` with scripted `sw_vers`, `brew` and `limactl` responses.",
+          "verification": "automated"
+        },
+        {
+          "id": "LIMA-3",
+          "descriptionMarkdown": "The VM is created only when `limactl list --json` has no instance `rayx` (output is one JSON object per line; memory and disk are bytes):\n\n`limactl create --tty=false --name=rayx --vm-type=vz --cpus=<n> --memory=<GiB> --disk=<GiB> --mount-only=<home>[:w] --containerd=none template:ubuntu-<pin>`, then `limactl start --tty=false rayx`, which waits until the VM is ready. `<home>` is the macOS home; `:w` only with a writable choice.\n\nAn existing stopped `rayx` is started; a running one is left alone. A second `setup --lima` without `--vm-*` flags runs no `limactl` command that changes anything (only `list`, version and probes). `--check` prints every command that would run, including the create line, and runs only read-only queries. Instances with other names are never started, stopped or edited.\n\nVerified by `tests/setup_lima.rs` (absent, stopped and running instance; exact create arguments; read-only home default; `--check` records only queries; another instance untouched).",
+          "verification": "automated"
+        },
+        {
+          "id": "LIMA-4",
+          "descriptionMarkdown": "Through the guest layer, `setup --lima` then installs the Linux `rayx` of the same version in the VM (release installer, or `RAYX_LIMA_BINARY`), clones the current checkout with `--clone [<dir>]` and runs `rayx setup <set flags, --check, --yes>` inside, in the clone when one was made.\n\nThe clone source is the host checkout path, which the VM mounts at the same path; a checkout outside the macOS home exits 1 with `--clone needs a checkout under <home>, which the VM mounts`. Default target `~/<checkout name>` in the guest home.\n\nVerified by `tests/setup_lima.rs` (the script commands through `limactl shell --workdir / rayx -- bash -lc`, inner flags, the clone script, the outside-home refusal).",
+          "verification": "automated"
+        },
+        {
+          "id": "LIMA-5",
+          "descriptionMarkdown": "Sizing defaults are 6 CPUs, 12 GiB memory, 100 GiB disk and the home read-only. The host is read with `sysctl -n hw.ncpu hw.memsize` and `df -k` on the Lima home volume:\n\n- CPU cap: `max(1, ncpu - 2)`; memory cap: `max(2, floor(total GiB / 2))`. A default above its cap is lowered to the cap and a note names the host (`this Mac has 16 GiB memory: the VM gets 8 GiB`).\n- Explicit values (flags or prompts) above the cap, CPUs below 1, memory below 2 GiB or disk below 30 GiB are refused with the allowed range: a flag exits 1 before any `limactl` command; a prompt asks again.\n- Fewer than 10 GiB free on the Lima home volume exits 1; free space below the chosen disk size prints a note (the disk image is sparse).\n- When running Lima VMs (any name) plus the new VM would exceed three quarters of the host memory, a warning names them.\n\nVerified by the new group `tests/setup_lima_sizing.rs` with hosts of 8, 16 and 24 GiB and 8 and 10 cores.",
+          "verification": "automated"
+        },
+        {
+          "id": "LIMA-6",
+          "descriptionMarkdown": "When the VM is about to be created, in a terminal and without `--yes`, `rayx` prints the effective settings (defaults after caps, then flags) and asks once: `Create Lima VM rayx: <n> CPUs, <m> GiB memory, <d> GiB disk, home mounted read-only. Customize? [y/N]`. `y` asks for CPUs, memory and disk (Enter keeps the shown value, invalid input asks again with the range) and `Mount the home writable? [y/N]`. Without a terminal, or with `--yes`, nothing is asked and the effective settings are used. Prompts go through an injectable prompter so tests script the answers.\n\nVerified by `tests/setup_lima_sizing.rs` (no, yes with each value changed, invalid then valid input, `--yes`, no terminal).",
+          "verification": "automated"
+        },
+        {
+          "id": "LIMA-7",
+          "descriptionMarkdown": "`--vm-*` flags on an existing `rayx` that differ from it (CPUs, memory, disk from `limactl list --json`; home writability from its `lima.yaml` mounts) are an update: listed (`4 -> 6 CPUs`), asked about per the outdated rule (`--yes` applies without asking; no terminal and no `--yes` reports and exits 1), and applied as `limactl stop rayx` (only when running), `limactl edit --tty=false rayx <changed flags>` (`--mount-only=<home>[:w]` for the home), `limactl start --tty=false rayx`. A smaller disk is refused (Lima cannot shrink a disk) and nothing runs. Flags equal to the VM change nothing.\n\nVerified by the new group `tests/setup_lima_edit.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "REC",
+      "title": "Setup and guest records",
+      "descriptionMarkdown": "What `rayx setup` did is recorded, so a later refresh, doctor and removal know it.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "symbol": "run_plan"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "symbol": "run_with"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "REC-1",
+          "descriptionMarkdown": "A successful `rayx setup --wsl` or `--lima` (not `--check`) records the guest on the host in `<config>/rayx/guests.json` (`<config>`: `$XDG_CONFIG_HOME` or `~/.config` on Unix, `%LOCALAPPDATA%` on Windows): a versioned document with, per guest, `kind` (`wsl`/`lima`), `name`, `ubuntu` (the guest's `VERSION_ID`), the set flags it was set up with (union over runs), its clones (`source`, `branch`, `target`), for Lima the settings it was created with, and `retired` (false). A rerun updates the entry instead of adding one. A missing or unreadable file is an empty record; an unparsable one is reported and left untouched. The record holds no secrets.\n\nVerified by the new group `tests/guest_records.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "REC-2",
+          "descriptionMarkdown": "A successful `rayx setup` run that installs or checks a plan (not `--check`, not `--wsl`/`--lima` on the outer side) records on the machine it ran on, in `<config>/rayx/setup.json`, the union of the sets it ran and the project workspace root it ran in (when there was one). A setup inside a guest records in the guest. `--check` records nothing.\n\nVerified by the new group `tests/setup_update.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "DOC",
+      "title": "Doctor reports guests",
+      "descriptionMarkdown": "`rayx doctor` shows the rayx-managed guests of this host.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor.rs",
+          "symbol": "inspect"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "DOC-1",
+          "descriptionMarkdown": "On macOS `rayx doctor` reports Lima (`limactl` version or missing with `rayx setup --lima`) and every Lima guest in `guests.json` joined with `limactl list --json`: name, status (running, stopped, missing), CPUs, memory, disk, home read-only or writable, Ubuntu version, current or retired, and for a retired or missing guest the command that removes it (`rayx lima remove <name>`). On Windows the recorded WSL guests are reported the same way (`rayx wsl remove <name>`). `--json` adds a `guests` array with the same fields. Doctor never starts a VM, and its exit code stays 0 whenever the host could be inspected.\n\nVerified by `tests/guest_records.rs` (text and JSON for running, stopped, retired and missing guests; Lima missing).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "UPD",
+      "title": "rayx setup --update",
+      "descriptionMarkdown": "Bring the host and every current guest up to the running `rayx` and its pins.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "symbol": "execute"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/linux.rs",
+          "symbol": "probe_packages"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "UPD-1",
+          "descriptionMarkdown": "`rayx setup --update [--yes] [--check]` (conflicts with set flags, `--wsl`, `--lima`, `--clone`, `--vm-*`) re-runs the setup plan for the recorded sets once per recorded project root that still exists (in that root, so the project's pins apply; a vanished root is reported and dropped from the record), or once without a project when none is recorded. Outdated items follow the outdated rule. On a native Linux host it runs no `apt-get upgrade` (missing packages are still installed). With nothing recorded it prints `nothing recorded: run \\`rayx setup\\` first` and exits 0.\n\nVerified by `tests/setup_update.rs` (two project roots with different pins, a vanished root, no record, no `apt-get upgrade` on Linux).",
+          "verification": "automated"
+        },
+        {
+          "id": "UPD-2",
+          "descriptionMarkdown": "`setup --update` then refreshes every current (not retired) guest in `guests.json` that belongs to this host OS (WSL on Windows, Lima on macOS). Per guest it asks `Update <kind> guest <name>? [y/N]` (not with `--yes`; without a terminal and without `--yes` it reports the guest as not updated and the exit code is 1), then:\n\n1. Lima: starts a stopped VM (and stops it again at the end);\n2. checks the guest's Ubuntu version against the pin (MIG);\n3. installs the Linux `rayx` of the running version (guest layer);\n4. runs `sudo apt-get update` and `sudo apt-get upgrade` (`-y` only with `--yes`) inside, interactively;\n5. runs `$HOME/.rayx/bin/rayx setup --update [--yes]` inside.\n\nA failing guest is reported and the next guest still runs; the exit code is 1 when any guest failed or was declined. `--check` prints, per guest, the guest's `rayx` version against this one, its Ubuntu version against the pin, the apt commands, and the output of `rayx setup --update --check` inside a running guest (a stopped Lima VM is reported as not inspected and is not started).\n\nVerified by the new group `tests/guest_refresh.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "SUR",
+      "title": "Self update refreshes",
+      "descriptionMarkdown": "A `rayx` update is followed by the refresh it makes possible.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs",
+          "symbol": "run_with"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "symbol": "SelfCommand"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "SUR-1",
+          "descriptionMarkdown": "`rayx self update` gains `--yes`. After it installed a newer release, and only when `setup.json` or `guests.json` exists: in a terminal without `--yes` it asks `Refresh this machine's setup and guests with rayx <new>? [y/N]`; yes, or `--yes`, runs the executable at the path `rayx` was started from (captured before the install, so Windows' renamed old binary is never used) as `setup --update [--yes]` with inherited stdio, and its exit code becomes the command's. No, or no terminal and no `--yes`, prints `run \\`rayx setup --update\\` to refresh the setup and guests` and exits 0. `--check`, an up-to-date `rayx` and a failed install never refresh.\n\nVerified by the new group `tests/self_update_refresh.rs` with the fake update backend.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "MIG",
+      "title": "Side-by-side Ubuntu migration",
+      "descriptionMarkdown": "When the pin moves to a newer Ubuntu, a guest is replaced by a new one next to it, never upgraded in place.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "symbol": "ensure_distribution"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "MIG-1",
+          "descriptionMarkdown": "`setup --update`, `setup --wsl` and `setup --lima` read the current guest's `VERSION_ID`. Below the pin, the guest is outdated: `rayx` lists the clones in it that hold uncommitted changes or commits on no remote (`git status --porcelain`, `git log --branches --not --remotes`), says the old guest is kept, and asks `Create <new guest> with Ubuntu <pin> next to <old guest>? [y/N]` per the outdated rule. Declined or unanswerable: nothing changes and the guest is reported outdated (exit 1). A guest newer than the pin is reported and left alone. No `do-release-upgrade` ever runs.\n\nVerified by the new group `tests/guest_migration.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "MIG-2",
+          "descriptionMarkdown": "Lima migration: `limactl stop rayx`, `limactl rename rayx rayx-<old version>` (the record is updated right away: renamed and retired), then the new `rayx` is created from `template:ubuntu-<pin>` with the old VM's CPUs, memory, disk and home mount (no customize prompt), started, given the Linux `rayx`, the recorded clones (re-cloned from their host sources) and `rayx setup <recorded flags>` per clone, and recorded as current. A rerun after an interruption resumes from the record (a renamed old VM is not renamed again). Completion prints `rayx lima remove rayx-<old version>`.\n\nVerified by `tests/guest_migration.rs` (command sequence, record after each step, resume after a failed create).",
+          "verification": "automated"
+        },
+        {
+          "id": "MIG-3",
+          "descriptionMarkdown": "WSL migration: `wsl --install -d Ubuntu-<pin>` next to the old distribution (which stays registered and is recorded as retired once the new one is set up); the new distribution's first-user stop works as today and a rerun continues; then the Linux `rayx`, the recorded clones from their Windows sources and `rayx setup <recorded flags>` per clone. Completion prints `rayx wsl remove <old name>`.\n\nVerified by `tests/guest_migration.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "RM",
+      "title": "Guest removal",
+      "descriptionMarkdown": "Commands that remove one specific rayx-managed guest.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "symbol": "WslCommand"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/lib.rs",
+          "symbol": "run_from"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "RM-1",
+          "descriptionMarkdown": "`rayx lima remove <name> [--yes]` (macOS) runs `limactl delete --force <name>`; `rayx wsl remove <name> [--yes]` (Windows) runs `wsl --unregister <name>`. Both drop the guest from `guests.json` after the command succeeded and report what was removed. Removing the current guest says that `rayx setup --lima`/`--wsl` creates it again.\n\nVerified by the new group `tests/guest_remove.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "RM-2",
+          "descriptionMarkdown": "Removal is refused (exit 1, nothing runs) for a name not in `guests.json` (`<name> was not created by rayx; remove it with limactl delete / wsl --unregister yourself`) and on the wrong OS. Before removing, `rayx` lists clones in the guest with uncommitted or unpushed work (when the guest can be inspected without starting it) and asks `Remove <name> and everything in it? [y/N]`; without a terminal and without `--yes` it refuses and exits 1. `--yes` removes without asking.\n\nVerified by `tests/guest_remove.rs` (unrecorded name, the owner's `gpux` shape untouched, declined, no terminal, `--yes`).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "DOCS",
+      "title": "Documentation",
+      "descriptionMarkdown": "The README and CLI help describe the new commands.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "DOCS-1",
+          "descriptionMarkdown": "`README.md` documents `setup --lima` (what it creates, defaults and caps, the customize prompt, `--vm-*` flags, read-only home and why `--clone` is how a checkout is built in the VM, existing-VM changes), the records, `setup --update`, the refresh after `self update`, side-by-side migration, `rayx lima remove` and `rayx wsl remove`, and doctor's guest report. Every new flag and subcommand has help text.\n\nVerified by the new group `tests/readme_guests.rs` (README sections and `--help` output of `setup`, `self update`, `lima remove`, `wsl remove`).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "MAN",
+      "title": "Real hosts",
+      "descriptionMarkdown": "The flows work against real Lima and WSL, recorded in `docs/manual-verification.md`.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "MAN-1",
+          "descriptionMarkdown": "On this Mac (Apple silicon, Lima 2.2.1, the owner's `gpux` VM running and untouched): `rayx setup --lima --vm-cpus 2 --vm-memory 4 --web --clone` from a checkout under the home creates `rayx` (vz, Ubuntu 24.04, home read-only: a write under the mounted home fails inside), installs the Linux `rayx` from `RAYX_LIMA_BINARY`, clones, and the inner setup finishes; a second run prints nothing to do for the VM; the customize prompt is exercised once interactively; `rayx doctor` shows the VM; `--vm-cpus 3` on the existing VM goes through stop, edit, start. Recorded with date and results.",
+          "verification": "manual"
+        },
+        {
+          "id": "MAN-2",
+          "descriptionMarkdown": "On this Mac with local builds: `rayx setup --update` refreshes the host and `rayx` (apt upgrade, inner `setup --update`); a local build whose pin is temporarily `26.04` (not committed) migrates side by side (`rayx-24.04` retired and kept, new `rayx` on 26.04 with the clone restored); `rayx lima remove rayx-24.04` and finally `rayx lima remove rayx` remove both after confirmation while `gpux` keeps running. Recorded with date and results.",
+          "verification": "manual"
+        },
+        {
+          "id": "MAN-3",
+          "descriptionMarkdown": "Owner-run on the Windows PC: `rayx setup --wsl --web --clone` still works with the guest layer, `guests.json` lists `Ubuntu-24.04`, `rayx setup --update` refreshes it (apt upgrade, inner update), and `rayx doctor` reports it. Recorded with date and results.",
+          "verification": "manual"
+        },
+        {
+          "id": "MAN-4",
+          "descriptionMarkdown": "Owner-run after the first release that contains this epic: `rayx self update` from the previous release on the Mac (and on Windows) installs it and offers the refresh, which updates the guest. Recorded with date, versions and results.",
+          "verification": "manual"
+        }
+      ]
+    },
+    {
+      "id": "REP",
+      "title": "Integration repairs found by the advisory epic review",
+      "descriptionMarkdown": "Cross-sprint defects found by an advisory read of the whole integrated change (2026-10-14): lost flags, unrecorded VMs, misleading failures and read-only promises that `--check` did not keep.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "REP-1",
+          "verification": "automated",
+          "descriptionMarkdown": "`--vm-*` flags given together with a migration are honoured: when the running `rayx` VM is older than the pin, no `limactl edit` (and no stop/start for the sake of an edit) runs on the old VM, and the new VM is created with the effective settings (the old VM's CPUs, memory, disk and home mount overlaid with the validated `--vm-*` flags, the disk too: a new VM may have a smaller disk than the old one, since nothing is shrunk in place). A resumed migration applies the same flags to the VM it creates. The record holds the settings actually used.\n\nVerified by the new group `tests/guest_repairs_flow.rs`."
+        },
+        {
+          "id": "REP-2",
+          "verification": "automated",
+          "descriptionMarkdown": "A guest `rayx` creates is recorded in `guests.json` as soon as it exists, so a first run whose Linux `rayx` install, clone or inner setup fails leaves a guest that `rayx doctor`, `rayx setup --update` and `rayx lima remove`/`rayx wsl remove` know about: Lima right after `limactl create` succeeds (name, Ubuntu version of the pin, VM settings), WSL once `Ubuntu-<pin>` is registered. A rerun updates that entry. `--check` records nothing.\n\nVerified by `tests/guest_repairs_flow.rs`."
+        },
+        {
+          "id": "REP-3",
+          "verification": "automated",
+          "descriptionMarkdown": "When `setup --update` migrates a guest it started only for the refresh, it does not stop the new VM by accident: the refresh stops only the VM it started itself, and after a migration the new VM keeps the state the owner had before (stopped stays stopped by an explicit, reported stop; running stays running).\n\nVerified by `tests/guest_repairs_flow.rs`."
+        },
+        {
+          "id": "REP-4",
+          "verification": "automated",
+          "descriptionMarkdown": "A failed `limactl list` is reported as such (`cannot read Lima: ...`), never as a missing guest: `rayx doctor` shows the guests as `unknown` with the problem named and no removal hint, the refresh does not tell the owner to drop the record, and `rayx lima remove` stops without asking or dropping the record. An empty list still means the guest is missing.\n\nVerified by the new group `tests/guest_repairs_safety.rs`."
+        },
+        {
+          "id": "REP-5",
+          "verification": "automated",
+          "descriptionMarkdown": "`--check` never prompts and never starts anything: `setup --lima --check` with an old Lima prints the `brew upgrade lima` command and continues; `setup --wsl --check` and the `--check` path of a migration query a WSL distribution only when `wsl --list --running` shows it running (a stopped distribution is reported as not inspected).\n\nVerified by `tests/guest_repairs_safety.rs`."
+        },
+        {
+          "id": "REP-6",
+          "verification": "automated",
+          "descriptionMarkdown": "Records and clones are read honestly: only a missing file is an empty record (any other read error is reported and the file left untouched; one reader serves the machine-based and the file-based paths, and a file that cannot be read as text (non-UTF-8, a directory, no permission) is reported as unreadable in both and left untouched); the record temporary file name is unique per process; `wsl status` and `wsl compact --clean` count a clone directory once even when it is in both the guest-neutral and the legacy clones file; a `RAYX_WSL_BINARY` outside a Windows drive is reported by the refresh instead of silently ignored.\n\nVerified by `tests/guest_repairs_safety.rs`."
+        }
+      ]
+    }
+  ]
+}

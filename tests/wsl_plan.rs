@@ -8,7 +8,7 @@ use rayx_cli::cli::{Cli, Command, SetupArgs};
 use rayx_cli::host::{Arch, HostFacts, Os, Outcome, Runner};
 use rayx_cli::setup::FakeMachine;
 use rayx_cli::setup::wsl::{
-    Checkout, DISTRIBUTION, WslError, WslRequest, clone_script, linux_dir, release_asset, run_with,
+    Checkout, WslError, WslRequest, clone_script, distribution, linux_dir, release_asset, run_with,
     setup_flags, to_wsl_path,
 };
 use rayx_cli::wsl::Distribution;
@@ -30,7 +30,7 @@ fn windows() -> HostFacts {
 fn ubuntu(uid: u32) -> Distribution {
     Distribution {
         id: "{abc}".into(),
-        name: DISTRIBUTION.into(),
+        name: distribution(),
         base_path: PathBuf::from(r"C:\Users\dev\AppData\Local\wsl\ubuntu"),
         version: Some(2),
         default_uid: Some(uid),
@@ -429,7 +429,7 @@ fn an_existing_clone_is_fetched_not_replaced() {
     );
     assert!(!script.contains("rm "), "never deletes a clone");
     assert!(
-        script.contains("echo \"$HOME/x\" >> \"$HOME/.config/rayx/wsl-clones\""),
+        script.contains("echo \"$HOME/x\" >> \"$HOME/.config/rayx/clones\""),
         "the clone is recorded for wsl status: {script}"
     );
 

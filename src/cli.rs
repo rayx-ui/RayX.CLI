@@ -3,7 +3,7 @@
 //! `app` keeps its own grammar (moved from RayX xtask), so it captures the raw trailing values and
 //! leaves them to the app parser.
 
-use clap::{Args, Parser, Subcommand};
+use clap::{ArgGroup, Args, Parser, Subcommand};
 
 /// The `rayx` command line.
 #[derive(Debug, Parser)]
@@ -31,6 +31,11 @@ pub enum Command {
         #[command(subcommand)]
         command: WslCommand,
     },
+    /// Remove Lima VMs rayx created (macOS)
+    Lima {
+        #[command(subcommand)]
+        command: LimaCommand,
+    },
     /// Update rayx to the latest release (`rayx self update`)
     #[command(name = "self")]
     SelfCommand {
@@ -45,6 +50,7 @@ pub enum Command {
 
 /// Flags of `rayx setup`.
 #[derive(Debug, Default, Args)]
+#[command(group(ArgGroup::new("guest").args(["wsl", "lima"])))]
 pub struct SetupArgs {
     /// Also install the web set: wasm target, wasm-bindgen and the browser tooling
     #[arg(long)]
@@ -67,21 +73,45 @@ pub struct SetupArgs {
     /// Report what is missing without installing anything
     #[arg(long)]
     pub check: bool,
-    /// Accept licenses and agreements the installers ask for
+    /// Accept licenses and agreements the installers ask for, update outdated tools and guests without asking
     #[arg(long)]
     pub yes: bool,
-    /// Set up WSL 2 with Ubuntu-24.04 and run the same setup inside it (Windows only)
+    /// Set up WSL 2 with the pinned Ubuntu and run the same setup inside it (Windows only)
     #[arg(long)]
     pub wsl: bool,
-    /// With --wsl: clone the current checkout into the distribution (default `~/<checkout name>`)
+    /// Set up the Lima VM `rayx` with the pinned Ubuntu and run the same setup inside it (macOS only; never part of --all)
+    #[arg(long)]
+    pub lima: bool,
+    /// Re-run setup for the sets and projects recorded on this machine, then refresh every current guest (apt upgrade and setup --update inside)
     #[arg(
         long,
-        requires = "wsl",
+        conflicts_with_all = [
+            "web", "test", "android", "ios", "gpu", "all", "wsl", "lima", "clone", "vm_cpus",
+            "vm_memory", "vm_disk", "vm_home_writable"
+        ]
+    )]
+    pub update: bool,
+    /// With --wsl or --lima: clone the current checkout into the guest (default `~/<checkout name>`)
+    #[arg(
+        long,
+        requires = "guest",
         num_args = 0..=1,
         default_missing_value = "",
         value_name = "LINUX_DIR"
     )]
     pub clone: Option<String>,
+    /// With --lima: CPUs of the VM (default 6, at most all but two of this Mac's; changes an existing VM after asking)
+    #[arg(long, requires = "lima", conflicts_with = "wsl", value_name = "N", value_parser = clap::value_parser!(u32).range(1..))]
+    pub vm_cpus: Option<u32>,
+    /// With --lima: memory of the VM in GiB (default 12, 2 up to half of this Mac's; changes an existing VM after asking)
+    #[arg(long, requires = "lima", conflicts_with = "wsl", value_name = "GIB", value_parser = clap::value_parser!(u32).range(1..))]
+    pub vm_memory: Option<u32>,
+    /// With --lima: disk of the VM in GiB (default 100, at least 30; an existing VM's disk can only grow)
+    #[arg(long, requires = "lima", conflicts_with = "wsl", value_name = "GIB", value_parser = clap::value_parser!(u32).range(1..))]
+    pub vm_disk: Option<u32>,
+    /// With --lima: mount the macOS home in the VM writable instead of read-only (changes an existing VM after asking)
+    #[arg(long, requires = "lima", conflicts_with = "wsl")]
+    pub vm_home_writable: bool,
 }
 
 /// Flags of `rayx doctor`.
@@ -103,12 +133,31 @@ pub enum WslCommand {
     },
     /// Remove build output on request, trim the file system and compact the virtual disk
     Compact(CompactArgs),
+    /// Unregister a WSL distribution rayx created, and everything in it
+    Remove(RemoveArgs),
+}
+
+/// Subcommands of `rayx lima`.
+#[derive(Debug, Subcommand)]
+pub enum LimaCommand {
+    /// Delete a Lima VM rayx created, and everything in it
+    Remove(RemoveArgs),
+}
+
+/// Arguments of `rayx lima remove` and `rayx wsl remove`.
+#[derive(Debug, Args)]
+pub struct RemoveArgs {
+    /// The guest to remove: a name `rayx doctor` lists
+    pub name: String,
+    /// Do not ask before removing
+    #[arg(long)]
+    pub yes: bool,
 }
 
 /// Flags of `rayx wsl compact`.
 #[derive(Debug, Default, Args)]
 pub struct CompactArgs {
-    /// The distribution to compact (default Ubuntu-24.04, else the first WSL 2 distribution)
+    /// The distribution to compact (default the pinned Ubuntu, else the first WSL 2 distribution)
     #[arg(long)]
     pub distro: Option<String>,
     /// First offer to delete the build output under the cloned checkouts
@@ -127,6 +176,9 @@ pub enum SelfCommand {
         /// Report whether a newer release exists without installing it
         #[arg(long)]
         check: bool,
+        /// After installing, refresh this machine's setup and guests with the new rayx without asking
+        #[arg(long, conflicts_with = "check")]
+        yes: bool,
     },
 }
 

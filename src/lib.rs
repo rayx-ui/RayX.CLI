@@ -16,7 +16,7 @@ use std::process::ExitCode;
 
 use clap::Parser;
 
-use crate::cli::{Cli, Command, SelfCommand, WslCommand};
+use crate::cli::{Cli, Command, LimaCommand, SelfCommand, WslCommand};
 
 /// Runs the command line of this process and returns the process exit code.
 pub fn run() -> ExitCode {
@@ -53,9 +53,15 @@ fn dispatch(cli: Cli) -> ExitCode {
         Command::Wsl {
             command: WslCommand::Compact(args),
         } => ExitCode::from(wsl::run_compact(args)),
+        Command::Wsl {
+            command: WslCommand::Remove(args),
+        } => ExitCode::from(setup::remove::run(setup::guest::GuestKind::Wsl, args)),
+        Command::Lima {
+            command: LimaCommand::Remove(args),
+        } => ExitCode::from(setup::remove::run(setup::guest::GuestKind::Lima, args)),
         Command::SelfCommand {
-            command: SelfCommand::Update { check },
-        } => ExitCode::from(update::run(*check)),
+            command: SelfCommand::Update { check, yes },
+        } => ExitCode::from(update::run(*check, *yes)),
         Command::App(args) => run_app(args.args.clone()),
         Command::Fmt(args) => run_fmt(args.args.clone()),
     }

@@ -99,7 +99,7 @@ fn changelog_groups_commit_types_and_drops_housekeeping() {
 }
 
 #[test]
-fn the_tag_form_agrees_with_dist_and_the_wsl_installer() {
+fn the_tag_form_agrees_with_dist_and_the_guest_installer() {
     let config = release_plz();
     let tag = config["workspace"]["git_tag_name"].as_str().expect("tag");
     assert_eq!(tag, "v{{ version }}");
@@ -108,10 +108,10 @@ fn the_tag_form_agrees_with_dist_and_the_wsl_installer() {
     let release = read(".github/workflows/release.yml");
     assert!(release.contains("- '**[0-9]+.[0-9]+.[0-9]+*'"));
 
-    // The WSL installer builds its URLs from the same `v<version>` tag.
+    // The guest installer (WSL and Lima share it) builds its URLs from the same `v<version>` tag.
     assert!(
-        read("src/setup/wsl.rs").contains("{RELEASES}/v{version}/"),
-        "src/setup/wsl.rs downloads from releases/download/v<version>/"
+        read("src/setup/guest.rs").contains("{RELEASES}/v{version}/"),
+        "src/setup/guest.rs downloads from releases/download/v<version>/"
     );
 }
 

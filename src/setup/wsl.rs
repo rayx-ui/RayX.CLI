@@ -1,4 +1,4 @@
-//! `rayx setup --wsl [--clone [<dir>]]`: from Windows, make `Ubuntu-24.04` on WSL 2 ready, put the
+//! `rayx setup --wsl [--clone [<dir>]]`: from Windows, make the pinned Ubuntu on WSL 2 ready, put the
 //! Linux `rayx` of the same version in it, optionally clone the current checkout into it, and run
 //! `rayx setup` with the same flags inside it, in this console, so `sudo` prompts reach the user.
 //!
@@ -9,27 +9,22 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use crate::cli::SetupArgs;
-use crate::host::{Arch, CommandSpec, HostFacts, Os, Outcome, Runner};
+use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 
 use super::Machine;
+use super::guest::{self, CloneSource, Guest, LinuxBinary};
+use super::migrate::{self, Migration, WslMigration};
+use super::records::{self, CloneRecord};
+use super::refresh::RefreshOptions;
 
-/// The distribution `--wsl` sets up.
-pub const DISTRIBUTION: &str = "Ubuntu-24.04";
+pub use super::guest::{
+    Checkout, LINUX_BINARY, RELEASES, clone_script, detect_checkout, linux_dir, release_asset,
+    setup_flags,
+};
 
-/// Where the Linux `rayx` goes inside the distribution: the release installer's own location, so
-/// the install receipt next to it lets `rayx self update` work there.
-pub const LINUX_BINARY: &str = "$HOME/.rayx/bin/rayx";
-
-/// The repository releases are published from.
-pub const RELEASES: &str = "https://github.com/rayx-ui/RayX.CLI/releases/download";
-
-/// The Windows checkout `--clone` copies.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Checkout {
-    /// The checkout's top-level directory.
-    pub root: PathBuf,
-    /// The checked-out branch; `None` for a detached HEAD.
-    pub branch: Option<String>,
+/// The distribution `--wsl` sets up: `Ubuntu-<pin>`.
+pub fn distribution() -> String {
+    guest::wsl_distribution(guest::pinned_ubuntu())
 }
 
 /// What `rayx setup --wsl` was asked to do.
@@ -76,24 +71,6 @@ impl WslRequest {
     }
 }
 
-/// The flags `rayx setup` runs with inside the distribution: the set flags, `--check` and `--yes`.
-pub fn setup_flags(args: &SetupArgs) -> Vec<String> {
-    [
-        (args.web, "--web"),
-        (args.test, "--test"),
-        (args.android, "--android"),
-        (args.ios, "--ios"),
-        (args.gpu, "--gpu"),
-        (args.all, "--all"),
-        (args.check, "--check"),
-        (args.yes, "--yes"),
-    ]
-    .into_iter()
-    .filter(|(enabled, _)| *enabled)
-    .map(|(_, flag)| flag.to_string())
-    .collect()
-}
-
 /// The path of a Windows directory as WSL mounts it: `C:\Users\dev\app` is `/mnt/c/Users/dev/app`.
 pub fn to_wsl_path(path: &Path) -> Result<String, String> {
     let text = path.to_string_lossy();
@@ -117,60 +94,6 @@ pub fn to_wsl_path(path: &Path) -> Result<String, String> {
             path.display()
         )),
     }
-}
-
-/// A Linux directory for use inside double quotes in a script: a leading `~` becomes `$HOME`, and
-/// characters that could end the quoting are refused.
-pub fn linux_dir(dir: &str) -> Result<String, String> {
-    let expanded = match dir {
-        "~" => "$HOME".to_string(),
-        _ => match dir.strip_prefix("~/") {
-            Some(rest) => format!("$HOME/{rest}"),
-            None => dir.to_string(),
-        },
-    };
-    let body = expanded.strip_prefix("$HOME").unwrap_or(&expanded);
-    if body
-        .chars()
-        .any(|c| matches!(c, '"' | '`' | '$' | '\\' | '\'') || c.is_control())
-    {
-        return Err(format!("{dir} is not a usable Linux directory name"));
-    }
-    // A relative path would land on the Windows directory `wsl.exe` starts in, and be recorded
-    // relative to wherever a later command runs.
-    if !expanded.starts_with('/') && !expanded.starts_with("$HOME") {
-        return Err(format!(
-            "{dir} is not an absolute Linux path: use /abs/dir or ~/dir"
-        ));
-    }
-    Ok(expanded)
-}
-
-/// The release asset that holds the Linux `rayx` for a host: the static musl build. The installer
-/// picks it by itself; `None` marks an architecture with no Linux release, which fails before any
-/// download.
-pub fn release_asset(arch: Arch) -> Option<&'static str> {
-    match arch {
-        Arch::X64 => Some("x86_64-unknown-linux-musl"),
-        Arch::Arm64 => Some("aarch64-unknown-linux-musl"),
-        Arch::Other => None,
-    }
-}
-
-/// The script that clones `source` (a `/mnt/...` path) into `target`, or fetches an existing clone,
-/// and records `target` so `rayx wsl status` and `wsl compact --clean` find its build output.
-pub fn clone_script(source: &str, branch: Option<&str>, target: &str) -> Result<String, String> {
-    if source.contains('\'') || branch.is_some_and(|b| b.contains('\'')) {
-        return Err("the checkout path or branch contains a quote".to_string());
-    }
-    let branch_flag = branch.map_or(String::new(), |b| format!(" -b '{b}'"));
-    let clones = crate::wsl::CLONES_FILE;
-    Ok(format!(
-        "if [ -d \"{target}/.git\" ]; then git -C \"{target}\" fetch --all --prune; \
-         else git -c safe.directory='*' clone{branch_flag} '{source}' \"{target}\"; fi && \
-         mkdir -p \"$HOME/.config/rayx\" && {{ grep -qxF \"{target}\" \"{clones}\" 2>/dev/null || \
-         echo \"{target}\" >> \"{clones}\"; }}"
-    ))
 }
 
 /// What stopped `--wsl`.
@@ -206,25 +129,45 @@ fn wsl_command(args: &[&str]) -> CommandSpec {
     CommandSpec::new("wsl").args(args.iter().copied())
 }
 
-/// A bash script run inside the distribution as the default user.
-fn in_distribution(script: &str) -> CommandSpec {
-    wsl_command(&["-d", DISTRIBUTION, "--exec", "bash", "-lc"]).arg(script)
+/// `RAYX_WSL_BINARY`: a Linux `rayx` built on this machine, as a Windows path.
+pub fn binary_override_from_env() -> Option<PathBuf> {
+    std::env::var_os("RAYX_WSL_BINARY")
+        .map(PathBuf::from)
+        .map(|path| std::fs::canonicalize(&path).unwrap_or(path))
+        .map(|path| PathBuf::from(path.to_string_lossy().trim_start_matches(r"\?\")))
 }
 
 /// Runs `rayx setup --wsl` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
-    let binary = std::env::var_os("RAYX_WSL_BINARY")
-        .map(PathBuf::from)
-        .map(|path| std::fs::canonicalize(&path).unwrap_or(path))
-        .map(|path| PathBuf::from(path.to_string_lossy().trim_start_matches(r"\?\")));
-    let request = WslRequest::from_args(args, binary);
+    let request = WslRequest::from_args(args, binary_override_from_env());
     let mut runner = if args.check {
         Runner::print()
     } else {
         Runner::execute()
     };
     let machine = super::SystemMachine;
+    let mut prompter = super::lima::sizing::TerminalPrompter {
+        terminal: std::io::IsTerminal::is_terminal(&std::io::stdin())
+            && std::io::IsTerminal::is_terminal(&std::io::stdout()),
+    };
+    if let Err(error) = migrate_older_guest(
+        &request,
+        args.check,
+        args.yes,
+        &host,
+        &mut runner,
+        &machine,
+        Some(&mut prompter),
+        &mut std::io::stdout(),
+    ) {
+        eprintln!("rayx: {error}");
+        return 1;
+    }
+    let existed_before = machine
+        .wsl_distributions()
+        .iter()
+        .any(|d| d.name == distribution());
     let checkout = detect_checkout(&mut runner);
     match run_with(
         &request,
@@ -234,28 +177,151 @@ pub fn run(args: &SetupArgs) -> u8 {
         checkout.as_ref(),
         &mut std::io::stdout(),
     ) {
-        Ok(()) => 0,
+        Ok(()) => {
+            record_outcome(
+                &request,
+                args.check,
+                &host,
+                &machine,
+                &mut runner,
+                checkout.as_ref(),
+            );
+            0
+        }
         Err(error) => {
+            record_failed_first_run(args.check, &host, &machine, existed_before);
             eprintln!("rayx: {error}");
             1
         }
     }
 }
 
-/// The git checkout around the current directory, when there is one.
-pub fn detect_checkout(runner: &mut Runner) -> Option<Checkout> {
-    let top = runner
-        .query(&CommandSpec::new("git").args(["rev-parse", "--show-toplevel"]))
-        .ok()
-        .filter(Outcome::is_success)?;
-    let root = PathBuf::from(top.stdout.trim());
-    let branch = runner
-        .query(&CommandSpec::new("git").args(["rev-parse", "--abbrev-ref", "HEAD"]))
-        .ok()
-        .filter(Outcome::is_success)
-        .map(|outcome| outcome.stdout.trim().to_string())
-        .filter(|branch| !branch.is_empty() && branch != "HEAD");
-    Some(Checkout { root, branch })
+/// Records the distribution on this host after a successful run; `--check` records nothing.
+pub fn record_outcome(
+    request: &WslRequest,
+    check: bool,
+    host: &HostFacts,
+    machine: &dyn Machine,
+    runner: &mut Runner,
+    checkout: Option<&Checkout>,
+) {
+    if check {
+        return;
+    }
+    let guest = Guest::wsl(distribution());
+    guest::record_run(
+        machine,
+        host.os,
+        &guest,
+        &request.flags,
+        clone_record(request, checkout),
+        None,
+        runner,
+    );
+}
+
+/// A first run that registered the distribution and then failed (the first user, the Linux
+/// `rayx`, the clone or the inner setup) still leaves a guest `rayx` manages: it is recorded so
+/// doctor, `setup --update` and `rayx wsl remove` know it. `--check` records nothing.
+pub fn record_failed_first_run(
+    check: bool,
+    host: &HostFacts,
+    machine: &dyn Machine,
+    existed_before: bool,
+) {
+    let name = distribution();
+    if check || existed_before || !machine.wsl_distributions().iter().any(|d| d.name == name) {
+        return;
+    }
+    let update = records::GuestUpdate {
+        kind: records::WSL,
+        name,
+        ubuntu: super::guest::pinned_ubuntu().to_string(),
+        flags: Vec::new(),
+        clone: None,
+        vm: None,
+    };
+    if let Err(error) = records::record_guest(machine, host.os, &update, false) {
+        eprintln!("rayx: {error}");
+    }
+}
+
+/// The clone `--clone` made, as the guest record keeps it.
+fn clone_record(request: &WslRequest, checkout: Option<&Checkout>) -> Option<CloneRecord> {
+    let (requested, checkout) = (request.clone.as_deref()?, checkout?);
+    let source = CloneSource {
+        name: guest::checkout_name(&checkout.root)?,
+        path: to_wsl_path(&checkout.root).ok()?,
+        branch: checkout.branch.clone(),
+    };
+    Some(CloneRecord {
+        source: checkout.root.display().to_string(),
+        branch: checkout.branch.clone(),
+        target: guest::clone_target(requested, &source).ok()?,
+    })
+}
+
+/// A recorded distribution older than the pin is replaced side by side by `Ubuntu-<pin>` before
+/// the normal `--wsl` flow runs; `Err` carries what stopped it (declined, unanswerable, failed).
+#[allow(clippy::too_many_arguments)]
+pub fn migrate_older_guest(
+    request: &WslRequest,
+    check: bool,
+    yes: bool,
+    host: &HostFacts,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    mut prompter: Option<&mut dyn super::lima::sizing::Prompter>,
+    out: &mut dyn Write,
+) -> Result<(), String> {
+    let Ok(file) = records::read_guests(machine, host.os) else {
+        return Ok(());
+    };
+    for guest in file
+        .guests
+        .iter()
+        .filter(|g| g.kind == records::WSL && !g.retired && migrate::newer_than_pin(&g.ubuntu))
+    {
+        let _ = writeln!(
+            out,
+            "{} runs Ubuntu {}, newer than the pinned {}: rayx leaves its release alone",
+            guest.name,
+            guest.ubuntu,
+            super::guest::pinned_ubuntu()
+        );
+    }
+    let Some(old) = migrate::outdated_wsl(&file) else {
+        return Ok(());
+    };
+    // The record can be stale: the guest's own version decides. `--check` never starts a
+    // distribution to ask it.
+    let inspectable = !check || guest::wsl_is_running(&old.name, runner);
+    let live = inspectable
+        .then(|| guest::os_version(&Guest::wsl(&old.name), runner))
+        .flatten();
+    if live.as_deref().is_some_and(|v| !migrate::older_than_pin(v)) {
+        return Ok(());
+    }
+    let options = RefreshOptions {
+        version: request.version.clone(),
+        yes,
+        check,
+        lima_binary: None,
+        wsl_binary: request
+            .binary_override
+            .as_deref()
+            .and_then(|path| to_wsl_path(path).ok()),
+    };
+    let migration = WslMigration {
+        options: &options,
+        host,
+        machine,
+    };
+    let version = live.unwrap_or_else(|| old.ubuntu.clone());
+    match migrate::migrate_wsl(&migration, runner, &mut prompter, out, &old, &version)? {
+        Migration::Declined(why) => Err(why),
+        Migration::Done { .. } | Migration::Planned => Ok(()),
+    }
 }
 
 /// The body of `rayx setup --wsl` over injectable collaborators.
@@ -286,12 +352,15 @@ pub fn run_with(
             .map_err(|error| WslError::Failed(format!("rayx setup --gpu on Windows: {error}")))?;
     }
     ensure_distribution(runner, machine, out)?;
-    ensure_linux_binary(request, host, runner, out)?;
+    let guest = Guest::wsl(distribution());
+    guest::ensure_linux_binary(&guest, &linux_binary(request, host)?, runner, out)
+        .map_err(WslError::Failed)?;
     let directory = match &request.clone {
-        Some(requested) => Some(clone_checkout(requested, checkout, runner, out)?),
+        Some(requested) => Some(clone_checkout(&guest, requested, checkout, runner, out)?),
         None => None,
     };
-    run_setup_inside(request, directory.as_deref(), runner, out)
+    guest::run_setup_inside(&guest, &request.flags, directory.as_deref(), runner, out)
+        .map_err(WslError::Failed)
 }
 
 fn require_wsl2(runner: &mut Runner) -> Result<(), WslError> {
@@ -323,103 +392,56 @@ fn has_version_number(text: &str) -> bool {
         })
 }
 
-fn ensure_distribution(
+pub(crate) fn ensure_distribution(
     runner: &mut Runner,
     machine: &dyn Machine,
     out: &mut dyn Write,
 ) -> Result<(), WslError> {
+    let name = distribution();
     let find = |machine: &dyn Machine| {
         machine
             .wsl_distributions()
             .into_iter()
-            .find(|d| d.name == DISTRIBUTION)
+            .find(|d| d.name == name)
     };
-    let mut distribution = find(machine);
-    if distribution.is_none() {
-        let _ = writeln!(out, "==> wsl: installing {DISTRIBUTION}");
+    let mut found = find(machine);
+    if found.is_none() {
+        let _ = writeln!(out, "==> wsl: installing {name}");
         runner
-            .run_checked(&wsl_command(&["--install", "-d", DISTRIBUTION]).interactive())
-            .map_err(|error| WslError::Failed(format!("installing {DISTRIBUTION}: {error}")))?;
-        distribution = find(machine);
+            .run_checked(&wsl_command(&["--install", "-d", &name]).interactive())
+            .map_err(|error| WslError::Failed(format!("installing {name}: {error}")))?;
+        found = find(machine);
     }
-    let has_user = distribution
+    let has_user = found
         .as_ref()
         .is_some_and(|d| d.default_uid.is_some_and(|uid| uid != 0));
     if has_user {
         return Ok(());
     }
     Err(WslError::NeedsUser(format!(
-        "{DISTRIBUTION} has no user yet: open Ubuntu once from the Start menu, create the user, \
+        "{name} has no user yet: open Ubuntu once from the Start menu, create the user, \
          then run `rayx setup --wsl` again"
     )))
 }
 
-fn ensure_linux_binary(
-    request: &WslRequest,
-    host: &HostFacts,
-    runner: &mut Runner,
-    out: &mut dyn Write,
-) -> Result<(), WslError> {
-    if let Some(binary) = &request.binary_override {
-        let source = to_wsl_path(binary).map_err(WslError::Failed)?;
-        if source.contains('"') {
-            return Err(WslError::Failed(format!(
-                "{} is not a usable path",
-                binary.display()
-            )));
-        }
-        let _ = writeln!(
-            out,
-            "==> wsl: installing the Linux rayx from {}",
-            binary.display()
-        );
-        let script = format!(
-            "mkdir -p \"$HOME/.rayx/bin\" && cp \"{source}\" \"{LINUX_BINARY}\" && chmod 755 \"{LINUX_BINARY}\""
-        );
-        return run_inside(runner, &script, "copying the Linux rayx");
-    }
-    let version_script = format!("\"{LINUX_BINARY}\" --version");
-    let installed = runner
-        .query(&in_distribution(&version_script))
-        .ok()
-        .filter(Outcome::is_success)
-        .map(|outcome| wsl_text(&outcome).trim().to_string());
-    if installed.as_deref() == Some(format!("rayx {}", request.version).as_str()) {
-        return Ok(());
-    }
-    // An architecture without a Linux release fails here, before anything is downloaded.
-    release_asset(host.arch).ok_or_else(|| {
-        WslError::Failed("this CPU architecture has no Linux rayx release".to_string())
-    })?;
-    let url = format!(
-        "{RELEASES}/v{version}/rayx-cli-installer.sh",
-        version = request.version
-    );
-    let _ = writeln!(
-        out,
-        "==> wsl: installing the Linux rayx {}",
-        request.version
-    );
-    // The release's own installer picks the musl archive, verifies it, installs into
-    // `~/.rayx/bin`, adds it to PATH and writes the receipt `rayx self update` reads. `pipefail`
-    // keeps a failed download from looking like an empty, successful script, and `RAYX_HOME` is
-    // dropped so the binary lands where `LINUX_BINARY` expects it.
-    let script = format!(
-        "set -o pipefail; curl --proto '=https' --tlsv1.2 -LsSf '{url}' | env -u RAYX_HOME sh && \
-         test -x \"{LINUX_BINARY}\""
-    );
-    run_inside(runner, &script, "installing the Linux rayx")
+/// The binary the distribution gets: the override as `/mnt/...`, or the release installer.
+fn linux_binary(request: &WslRequest, host: &HostFacts) -> Result<LinuxBinary, WslError> {
+    let override_path = request
+        .binary_override
+        .as_deref()
+        .map(to_wsl_path)
+        .transpose()
+        .map_err(WslError::Failed)?;
+    Ok(LinuxBinary {
+        version: request.version.clone(),
+        arch: host.arch,
+        override_path,
+    })
 }
 
-fn run_inside(runner: &mut Runner, script: &str, what: &str) -> Result<(), WslError> {
-    runner
-        .run_checked(&in_distribution(script).interactive())
-        .map(|_| ())
-        .map_err(|error| WslError::Failed(format!("{what}: {error}")))
-}
-
-/// Clones (or fetches) the checkout and returns the Linux directory it lives in.
+/// Clones (or fetches) the Windows checkout and returns the Linux directory it lives in.
 fn clone_checkout(
+    guest: &Guest,
     requested: &str,
     checkout: Option<&Checkout>,
     runner: &mut Runner,
@@ -428,45 +450,12 @@ fn clone_checkout(
     let checkout = checkout.ok_or_else(|| {
         WslError::Failed("--clone needs a git checkout: run it from inside one".to_string())
     })?;
-    // A Windows path, split on both separators so the name is the same on every host.
-    let name = checkout
-        .root
-        .to_string_lossy()
-        .split(['/', '\\'])
-        .rfind(|part| !part.is_empty())
-        .map(str::to_string)
+    let name = guest::checkout_name(&checkout.root)
         .ok_or_else(|| WslError::Failed("the checkout has no directory name".to_string()))?;
-    let target = if requested.is_empty() {
-        linux_dir(&format!("~/{name}"))
-    } else {
-        linux_dir(requested)
-    }
-    .map_err(WslError::Failed)?;
-    let source = to_wsl_path(&checkout.root).map_err(WslError::Failed)?;
-    let script =
-        clone_script(&source, checkout.branch.as_deref(), &target).map_err(WslError::Failed)?;
-    let _ = writeln!(
-        out,
-        "==> wsl: cloning {} into {target}",
-        checkout.root.display()
-    );
-    run_inside(runner, &script, "cloning the checkout")?;
-    Ok(target)
-}
-
-fn run_setup_inside(
-    request: &WslRequest,
-    directory: Option<&str>,
-    runner: &mut Runner,
-    out: &mut dyn Write,
-) -> Result<(), WslError> {
-    let flags = request.flags.join(" ");
-    let enter = directory.map_or(String::new(), |dir| format!("cd \"{dir}\" && "));
-    let script = format!("{enter}\"{LINUX_BINARY}\" setup {flags}");
-    let heading = format!("==> wsl: rayx setup {flags}");
-    let _ = writeln!(out, "{}", heading.trim_end());
-    runner
-        .run_checked(&in_distribution(script.trim_end()).interactive())
-        .map(|_| ())
-        .map_err(|error| WslError::Failed(format!("rayx setup inside {DISTRIBUTION}: {error}")))
+    let source = CloneSource {
+        name,
+        path: to_wsl_path(&checkout.root).map_err(WslError::Failed)?,
+        branch: checkout.branch.clone(),
+    };
+    guest::clone_checkout(guest, requested, &source, runner, out).map_err(WslError::Failed)
 }

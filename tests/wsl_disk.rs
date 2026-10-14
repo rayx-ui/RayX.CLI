@@ -48,7 +48,9 @@ fn status_output() -> Outcome {
 }
 
 fn is_status_script(spec: &rayx_cli::host::CommandSpec) -> bool {
-    spec.args.last().is_some_and(|a| a.contains("wsl-clones"))
+    spec.args
+        .last()
+        .is_some_and(|a| a.contains(".config/rayx/clones"))
 }
 
 fn compact_args(clean: bool, yes: bool) -> CompactArgs {

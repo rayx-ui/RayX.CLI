@@ -27,6 +27,121 @@ Findings fixed while verifying:
   compaction itself is proven; the size gained depends on how much was freed inside.
 - The "installing the Linux rayx from" message prints a `\\?\D:\…` verbatim path (cosmetic).
 
+## Lima guests on this Mac (2026-10-14)
+
+macOS 26.6.2 on an Apple M5 (arm64, 10 cores, 24 GiB), Lima 2.2.1, branch `feat/lima-guests`
+(`rayx` built with `cargo build --release`). The owner's `gpux` VM (6 CPUs, 12 GiB) was running the
+whole time and was never started, stopped, edited or removed. Raw logs: `artifacts-temp/agentx/rayx-cli-guests/mac/`.
+
+| Check | Command | Result |
+|---|---|---|
+| Dry run | `rayx setup --lima --vm-cpus 2 --vm-memory 4 --web --clone --check` | pass: the create, start, installer, clone and inner `setup --web --check` lines were printed; nothing was created and no record was written |
+| MAN-1 create, customize prompt | `rayx setup --lima --vm-cpus 2 --vm-memory 4 --web --clone` in a pseudo-terminal | pass: `Create Lima VM rayx: 2 CPUs, 4 GiB memory, 100 GiB disk, home mounted read-only. Customize? [y/N]` answered `y`, then CPUs, memory, disk (Enter) and `Mount the home writable?` (`n`); the VM was created and started (the create line is the one `--check` printed in `01-check.log`: `--vm-type=vz`, `template:ubuntu-24.04`, `--mount-only=/Users/dinko`), the Linux `rayx` installed with the release installer (see Deviations), the checkout cloned to `~/RayX.CLI` |
+| Inner setup | the same command, rerun with `--yes` | pass: the inner `rayx setup --web` installed 7 steps (apt packages, rustup, the project toolchain, the pinned nightly, `wasm-bindgen-cli`) in about 3 minutes; `guests.json` recorded kind, name, Ubuntu 24.04, `--web`, the clone and the VM settings |
+| Home is read-only | `touch /Users/dinko/work-private/should-not-exist` inside the VM | pass: `Read-only file system`; the file does not exist on the Mac |
+| MAN-1 second run | `rayx setup --lima --vm-cpus 2 --vm-memory 4 --web --clone --yes` | pass: no VM command beyond reads, the clone fetched, the inner setup printed `Nothing to do: everything is installed.` |
+| MAN-1 doctor | `rayx doctor` | pass: `lima rayx: running, 2 CPUs, 4 GiB memory, 100 GiB disk, home read-only, Ubuntu 24.04, current` under `Lima: limactl 2.2.1`; `gpux` is not listed (not recorded) |
+| MAN-1 edit | `rayx setup --lima --vm-cpus 3 --vm-memory 4 --web --yes` | pass: `05-edit.log` shows `changing the VM rayx: 2 -> 3 CPUs`, the stop, `Instance rayx configuration edited` and the start; `limactl list` shows 3 CPUs |
+| MAN-2 refresh, host | `rayx setup` (no-op, records), then `rayx setup --update --check` and `--yes` | pass (`18-host-update.log`): the Mac was already set up, so `rayx setup` printed `Nothing to do` and wrote `setup.json` (`base`, this checkout); `--update --check` and `--update --yes` ran the recorded set in that project (`==> setup --update: /Users/dinko/work-private/projects/RayX/RayX.CLI`, everything installed, nothing changed); the record was removed afterwards |
+| MAN-2 refresh, guest | Linux `rayx` built inside the VM (`cargo build --release`, 1m47s) and used through `RAYX_LIMA_BINARY`; `rayx setup --update --check` (`07-update.log`), then `--yes` (`08`–`10`) | pass: `--check` printed the guest's `rayx` and Ubuntu versions, the install and the apt commands and started nothing. The first `--yes` runs failed in `apt-get upgrade` on a transient mirror 404 (`07`, `08`; `rayx` reported the guest as failed); after `apt-mark hold u-boot-tools` in the test VM the refresh passed (`09`: binary installed, apt upgrade, inner `rayx setup --update --yes`, which printed `nothing recorded` because the guest's first setup had been run by the released 1.0.0 binary that does not record); `10` reran `setup --lima --web --clone --yes` with the branch binary, after which the guest's `setup.json` held `base`, `web` and the clone, and `setup --update --yes` printed `==> setup --update: /home/dinko.guest/RayX.CLI` and `Nothing to do` inside the guest |
+| MAN-2 migration | a local build with the pin temporarily `26.04` (not committed): `rayx setup --lima --web` in a pseudo-terminal | pass: `Create rayx with Ubuntu 26.04 next to rayx-24.04? [y/N]` answered `y`; `limactl stop`, `limactl rename --tty=false rayx rayx-24.04`, `limactl create ... template:ubuntu-26.04` with the old 3 CPUs, 4 GiB, 100 GiB and the read-only home, start, the Linux `rayx` from `RAYX_LIMA_BINARY`, the clone re-cloned from the Mac checkout, `rayx setup --web` inside it; `13-migrate.log` also shows `rayx now runs Ubuntu 26.04` and the printed `rayx lima remove rayx-24.04`. Checked interactively right after (not saved as a log): `VERSION_ID=26.04` in the new VM, `guests.json` with `rayx-24.04` retired (24.04) and `rayx` current (26.04) with the clone and the VM settings, and the old VM stopped |
+| MAN-2 removal | `rayx lima remove rayx-24.04`, `rayx lima remove gpux --yes`, `rayx lima remove rayx` | pass: each removal asked `Remove <name> and everything in it? [y/N]` (answered `y`); `gpux` was refused (`gpux was not created by rayx; remove it with limactl delete yourself`, exit 1) and kept running; the current guest's removal said `rayx setup --lima` creates it again; the record ended empty and `limactl list` showed only `gpux` |
+| Smoke after the corrective sprint | `rayx setup --lima --vm-cpus 2 --vm-memory 4 --yes` (base set), a second run, `rayx doctor`; then a local 26.04-pin build `rayx setup --lima --vm-cpus 3 --yes`, then `rayx lima remove` of both | pass (`19`–`21`): created (`Installed 4 step(s)`), recorded with the VM settings, second run `Nothing to do`, doctor `lima rayx: running, 2 CPUs, 4 GiB memory, 100 GiB disk, home read-only, Ubuntu 24.04, current`; the migration stopped and renamed the old VM, created the new one with 3 CPUs (the flag laid over the old settings, no `limactl edit` of the old VM, which stayed at 2 CPUs), restored the setup and kept `rayx-24.04` retired; both were removed with `--yes`, `gpux` untouched, the temporary record removed |
+
+Deviations from the criteria text:
+
+- MAN-1 expects the Linux `rayx` to come from `RAYX_LIMA_BINARY`. The first install used the
+  published v1.0.0 release installer instead, because no Linux build of this branch existed before
+  the VM did; the released 1.0.0 binary ran the MAN-1 inner `setup --web`, the second run, doctor
+  and the CPU change. The branch's own Linux binary (built inside the VM) was used through
+  `RAYX_LIMA_BINARY` for the refresh (`07`–`10`) and the migration (`13`), so that path ran on a
+  real VM too.
+- The Linux binary for the migration was copied from the old VM to a directory under the Mac home
+  (`~/.rayx-lima-proof`, removed afterwards) so the new VM could read it through the read-only mount.
+- The MAN-2 migration used a local build with the pin temporarily `26.04` (`target/pin26`, never
+  committed; `src/project/pins.rs` is back at `24.04`).
+
+Findings fixed while verifying:
+
+- `limactl rename` asks `Do you want to start the instance now? (Y/n)` when it has a terminal, so
+  the migration waited on it forever. The rename (and the rollback rename) now pass `--tty=false`,
+  and `tests/guest_migration.rs` checks the arguments. The interrupted run had renamed the VM before
+  the record was written; the VM was renamed back by hand.
+- The inner `rayx setup` asks apt's `Do you want to continue? [Y/n]` unless `--yes` is given (apt
+  gets `-y` only with `--yes`), so an unattended first run needs `--yes`; this is the documented
+  behaviour, not a defect.
+- A transient 404 for one package (`u-boot-tools`) on the Ubuntu ports mirror made `apt-get upgrade`
+  fail inside the guest; `rayx` reported the guest as failed and exited 1, and the refresh passed
+  after `apt-mark hold u-boot-tools` in the test VM.
+- Without `--clone`, the inner `rayx setup --web` runs in the guest's home, outside any project, so
+  it installs a `stable` toolchain and its wasm target; run with `--clone` to set up the project.
+
+## Open: Windows and WSL guest layer, and the first release (owner-run)
+
+Rows without a result are still open (epic `rayx-cli-guests`, MAN-3 and MAN-4). Fill in the date,
+the versions and the result when you run them.
+
+Windows 11 PC with WSL 2 and `Ubuntu-24.04` (MAN-3), with a local Windows build
+(`cargo build --release`) and a Linux build for `RAYX_WSL_BINARY` (built inside the distribution
+with `cargo build --release`, then the `\\wsl$\...` path or a copy on the Windows disk):
+
+| Check | Command | Result |
+|---|---|---|
+| WSL setup on the guest layer | `rayx setup --wsl --web --clone --yes` from a checkout on the Windows disk | pass (2026-10-14, exit 0), twice. First with the Linux `rayx` 1.0.0 from the release installer (`installing the Linux rayx 1.0.0`, `~/.rayx/bin`), then with `RAYX_WSL_BINARY` (`installing the Linux rayx from /mnt/c/...`). The existing clone `~/RayX.CLI` was fetched into, not re-cloned; the inner `rayx setup --web --yes` said `Nothing to do: everything is installed.` |
+| The guest is recorded | `%LOCALAPPDATA%\rayx\guests.json` lists `Ubuntu-24.04` (kind `wsl`, flags, the clone) and `setup.json` is untouched by `--wsl` | pass: `kind` `wsl`, `name` `Ubuntu-24.04`, `ubuntu` `24.04`, `flags` `["--web"]`, one clone (`source` `D:/Work/projects/RayX/RayX.CLI`, `branch` `feat/lima-guests`, `target` `$HOME/RayX.CLI`), `retired` false. No `setup.json` exists in `%LOCALAPPDATA%\rayx` before or after |
+| The in-guest clones file | `~/.config/rayx/clones` inside the distribution lists the clone; `rayx wsl status` still shows its build output | pass: `clones` holds `/home/dinko/RayX.CLI`. `rayx wsl status` said `build output none` until `cargo build --release` ran in the clone, then `build output  381.9 MiB under the cloned checkouts` with `/home/dinko/RayX.CLI/target` |
+| Refresh | `rayx setup --update --yes` | pass with the `RAYX_WSL_BINARY` build (exit 0): `refreshing Ubuntu-24.04`, `installing the Linux rayx from /mnt/c/...`, `sudo apt-get update && sudo apt-get upgrade -y` (0 upgraded, 2 held back by phasing), `rayx setup --update --yes` inside, which printed `==> setup --update: /home/dinko/RayX.CLI` and `Nothing to do: everything is installed.`. **fail** with the release `rayx` 1.0.0 as the Linux `rayx` (first run, exit 1): the apt step upgraded 52 packages, then the inner 1.0.0 does not know the flag: `error: unexpected argument '--update' found` (`exited with code 2`). The first refresh needs a Linux `rayx` that has `setup --update`, so it needs the next release, or `RAYX_WSL_BINARY`. In between, with the inner `setup.json` still missing, the inner step printed `nothing recorded: run `rayx setup` first` and exited 0 |
+| Doctor | `rayx doctor` | pass (three runs, exit 0): `wsl Ubuntu-24.04: running, disk 214.6 GiB, Ubuntu 24.04, current` under `Guests:`, plus a `WSL disk:` line for each distribution. The 1 missing requirement is the Android AVD `rayx-android-34-x86_64`, which is unrelated |
+| Removal refusal | `rayx wsl remove not-a-rayx-guest-test --yes` (a name `rayx` did not create; do not use a real distribution) | pass: `rayx: not-a-rayx-guest-test was not created by rayx; remove it with wsl --unregister yourself`, exit 1; `wsl -l -q` still lists `Ubuntu-24.04` and `docker-desktop` |
+
+Run on 2026-10-14: Windows 10.0.26300.9457 (Windows 11 Pro), WSL 2.6.3.0 (kernel 6.6.87.2-1, WSLg
+1.0.71), `rayx 1.0.0` built from `feat/lima-guests` at `12adb9a`, `Ubuntu-24.04` (24.04.4 LTS, user
+`dinko`, uid 1000). The Linux `rayx` of the first pass came from the release installer (`rayx 1.0.0`);
+the second pass used `RAYX_WSL_BINARY`, a `cargo build --release` of this branch made inside the
+distribution (`CARGO_TARGET_DIR` outside the clone) and copied to the Windows disk. The `sudo`
+password was typed by the owner in the terminal.
+
+The refresh failure with the release `rayx` 1.0.0 is a property of this run, not of the product: the
+branch is still versioned 1.0.0, so the host's `rayx 1.0.0` found the guest's released `rayx 1.0.0`
+"matching" and did not replace it, and that binary does not know `setup --update`. A release that
+contains the epic has a higher version, so the refresh installs the matching Linux `rayx` first.
+
+Seen on the way (no change needed for the rows):
+
+- The release installer printed `WARN(B: The following commands are shadowed by other commands in
+  your PATH: rayx`, with a stray `(B` (an unreset terminal escape sequence), because an older
+  `~/.local/bin/rayx` (0.1.0) of this distribution is shadowed by `~/.rayx/bin/rayx`.
+- `rayx` sets no `DEBIAN_FRONTEND`, so `apt-get upgrade` in a small terminal printed `debconf: unable
+  to initialize frontend: Dialog` and fell back to Readline; harmless, but `--yes` could run apt
+  non-interactively.
+
+Runbook for the Windows rows (PowerShell, from the checkout on the Windows disk; it logs everything
+to `rayx-man3.log` next to you, which you can paste into the table above):
+
+```powershell
+cargo build --release
+$rayx = "$PWD\target\release\rayx.exe"
+# Optional: a Linux build for the guest, made inside the distribution and copied to the Windows disk.
+# $env:RAYX_WSL_BINARY = "D:\rayx-linux\rayx"
+Start-Transcript -Path rayx-man3.log
+Get-Date -Format o
+& $rayx setup --wsl --web --clone --yes          # row 1: WSL setup on the guest layer
+Get-Content "$env:LOCALAPPDATA\rayx\guests.json" # row 2: Ubuntu-24.04 is recorded
+wsl -d Ubuntu-24.04 --exec bash -lc 'cat ~/.config/rayx/clones'   # row 3 (and `rayx wsl status`)
+& $rayx wsl status
+& $rayx setup --update --yes                      # row 4: refresh (apt upgrade + inner update)
+& $rayx doctor                                    # row 5: the guest report
+& $rayx wsl remove not-a-rayx-guest-test --yes    # row 6: refused (a name rayx did not create); never use a real distribution here
+Stop-Transcript
+```
+
+First release that contains the epic (MAN-4), from the previous release on the Mac and on Windows:
+
+| Check | Command | Result |
+|---|---|---|
+| Update offers the refresh | `rayx self update` | deferred (owner, 2026-10-14: no release contains the epic yet; follow-up: run these two rows after the first release that does): expect `Refresh this machine's setup and guests with rayx <new>? [y/N]`; `y` runs the new binary's `setup --update` and the guest is refreshed; `n` prints ``run `rayx setup --update` to refresh the setup and guests`` |
+| Unattended | `rayx self update --yes` on the next release | deferred (same follow-up) |
+
 ## Linux (hosted CI)
 
 `rayx setup --web --test --yes` and the ignored heavy groups run on `ubuntu-latest`; `rayx setup
