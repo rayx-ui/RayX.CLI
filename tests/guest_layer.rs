@@ -103,7 +103,8 @@ fn no_source_file_but_the_pins_table_names_an_ubuntu_version() {
     );
     let hits: Vec<&String> = hits
         .iter()
-        .filter(|hit| !hit.contains("project/pins.rs"))
+        // Windows prints `project\pins.rs`.
+        .filter(|hit| !hit.replace('\\', "/").contains("project/pins.rs"))
         .collect();
     assert!(
         hits.is_empty(),
