@@ -225,7 +225,7 @@ fn a_distribution_whose_default_user_is_root_needs_its_first_user() {
 }
 
 #[test]
-fn the_release_asset_of_the_same_version_is_installed_and_setup_runs_with_the_same_flags() {
+fn the_release_installer_of_the_same_version_runs_and_setup_runs_with_the_same_flags() {
     let machine = FakeMachine::new().with_wsl_distributions(vec![ubuntu(1000)]);
     let mut runner = wsl2_runner();
 
@@ -245,14 +245,14 @@ fn the_release_asset_of_the_same_version_is_installed_and_setup_runs_with_the_sa
         .unwrap_or_else(|| panic!("a download in {all:?}"));
     assert!(
         download.contains(
-            "https://github.com/rayx-ui/RayX.CLI/releases/download/v0.3.0/rayx-cli-x86_64-unknown-linux-musl.tar.xz"
+            "https://github.com/rayx-ui/RayX.CLI/releases/download/v0.3.0/rayx-cli-installer.sh"
         ),
         "{download}"
     );
     assert!(download.contains("-d Ubuntu-24.04"), "{download}");
     let setup = all.last().expect("setup runs last");
     assert!(
-        setup.contains("$HOME/.local/bin/rayx") && setup.contains("setup --web --test --yes"),
+        setup.contains("$HOME/.rayx/bin/rayx") && setup.contains("setup --web --test --yes"),
         "{setup}"
     );
     let setup_spec = runner.specs().last().expect("a spec");
@@ -263,7 +263,7 @@ fn the_release_asset_of_the_same_version_is_installed_and_setup_runs_with_the_sa
 }
 
 #[test]
-fn windows_arm64_installs_the_arm64_linux_binary() {
+fn windows_arm64_installs_the_linux_binary_through_the_same_installer() {
     assert_eq!(release_asset(Arch::X64), Some("x86_64-unknown-linux-musl"));
     assert_eq!(
         release_asset(Arch::Arm64),
@@ -281,10 +281,11 @@ fn windows_arm64_installs_the_arm64_linux_binary() {
         None,
     )
     .expect("sets up");
+    // The release installer picks the musl archive of the distribution's architecture itself.
     assert!(
         lines(&runner)
             .iter()
-            .any(|line| line.contains("aarch64-unknown-linux-musl")),
+            .any(|line| line.contains("releases/download/v0.3.0/rayx-cli-installer.sh")),
         "{:?}",
         lines(&runner)
     );

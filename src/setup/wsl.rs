@@ -16,8 +16,9 @@ use super::Machine;
 /// The distribution `--wsl` sets up.
 pub const DISTRIBUTION: &str = "Ubuntu-24.04";
 
-/// Where the Linux `rayx` goes inside the distribution.
-pub const LINUX_BINARY: &str = "$HOME/.local/bin/rayx";
+/// Where the Linux `rayx` goes inside the distribution: the release installer's own location, so
+/// the install receipt next to it lets `rayx self update` work there.
+pub const LINUX_BINARY: &str = "$HOME/.rayx/bin/rayx";
 
 /// The repository releases are published from.
 pub const RELEASES: &str = "https://github.com/rayx-ui/RayX.CLI/releases/download";
@@ -38,7 +39,7 @@ pub struct WslRequest {
     pub flags: Vec<String>,
     /// `--clone`: the Linux directory, `Some("")` for the default `~/<checkout name>`.
     pub clone: Option<String>,
-    /// `RAYX_WSL_BINARY`: a Linux `rayx` built on this machine, used instead of the release asset.
+    /// `RAYX_WSL_BINARY`: a Linux `rayx` built on this machine, used instead of the release installer.
     pub binary_override: Option<PathBuf>,
     /// The version of this `rayx`, which the Linux binary must match.
     pub version: String,
@@ -145,7 +146,9 @@ pub fn linux_dir(dir: &str) -> Result<String, String> {
     Ok(expanded)
 }
 
-/// The release asset that holds the Linux `rayx` for a host: the static musl build.
+/// The release asset that holds the Linux `rayx` for a host: the static musl build. The installer
+/// picks it by itself; `None` marks an architecture with no Linux release, which fails before any
+/// download.
 pub fn release_asset(arch: Arch) -> Option<&'static str> {
     match arch {
         Arch::X64 => Some("x86_64-unknown-linux-musl"),
@@ -371,7 +374,7 @@ fn ensure_linux_binary(
             binary.display()
         );
         let script = format!(
-            "mkdir -p \"$HOME/.local/bin\" && cp \"{source}\" \"{LINUX_BINARY}\" && chmod 755 \"{LINUX_BINARY}\""
+            "mkdir -p \"$HOME/.rayx/bin\" && cp \"{source}\" \"{LINUX_BINARY}\" && chmod 755 \"{LINUX_BINARY}\""
         );
         return run_inside(runner, &script, "copying the Linux rayx");
     }
@@ -384,11 +387,12 @@ fn ensure_linux_binary(
     if installed.as_deref() == Some(format!("rayx {}", request.version).as_str()) {
         return Ok(());
     }
-    let asset = release_asset(host.arch).ok_or_else(|| {
+    // An architecture without a Linux release fails here, before anything is downloaded.
+    release_asset(host.arch).ok_or_else(|| {
         WslError::Failed("this CPU architecture has no Linux rayx release".to_string())
     })?;
     let url = format!(
-        "{RELEASES}/v{version}/rayx-cli-{asset}.tar.xz",
+        "{RELEASES}/v{version}/rayx-cli-installer.sh",
         version = request.version
     );
     let _ = writeln!(
@@ -396,12 +400,15 @@ fn ensure_linux_binary(
         "==> wsl: installing the Linux rayx {}",
         request.version
     );
+    // The release's own installer picks the musl archive, verifies it, installs into
+    // `~/.rayx/bin`, adds it to PATH and writes the receipt `rayx self update` reads. `pipefail`
+    // keeps a failed download from looking like an empty, successful script, and `RAYX_HOME` is
+    // dropped so the binary lands where `LINUX_BINARY` expects it.
     let script = format!(
-        "mkdir -p \"$HOME/.local/bin\" && curl --proto '=https' --tlsv1.2 -LsSf '{url}' | \
-         tar -xJ --strip-components=1 -C \"$HOME/.local/bin\" 'rayx-cli-{asset}/rayx' && \
-         chmod 755 \"{LINUX_BINARY}\""
+        "set -o pipefail; curl --proto '=https' --tlsv1.2 -LsSf '{url}' | env -u RAYX_HOME sh && \
+         test -x \"{LINUX_BINARY}\""
     );
-    run_inside(runner, &script, "downloading the Linux rayx")
+    run_inside(runner, &script, "installing the Linux rayx")
 }
 
 fn run_inside(runner: &mut Runner, script: &str, what: &str) -> Result<(), WslError> {
