@@ -28,6 +28,9 @@ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/rayx-ui/RayX.CLI/releas
 powershell -ExecutionPolicy Bypass -c "irm https://github.com/rayx-ui/RayX.CLI/releases/download/v1.0.0/rayx-cli-installer.ps1 | iex"
 ```
 
+An installed `rayx` can switch release, in either direction, with `rayx self update --release
+1.0.1` (see [Choosing a release](#choosing-a-release-and-going-back)).
+
 The installer puts `rayx` in `~/.rayx/bin` (`$RAYX_HOME/bin` when `RAYX_HOME` is set), adds that
 directory to your `PATH` (open a new shell afterwards) and writes the install receipt that
 `rayx self update` reads. Run the installer again, or `rayx self update`, to update in place.
@@ -51,7 +54,7 @@ such step. How releases are made, and how to check one, is in [Releasing `rayx`]
 | `rayx doctor` | Reports every requirement on this host with the exact fix. |
 | `rayx wsl` | Shows the WSL status, compacts the WSL virtual disk and removes a distribution `rayx` created. |
 | `rayx lima` | Removes a Lima VM `rayx` created (macOS). |
-| `rayx self update` | Updates `rayx` to the latest release and offers to refresh this machine and its guests. |
+| `rayx self update` | Updates `rayx` to the latest release, or installs the release `--release` names, and offers to refresh this machine and its guests. |
 | `rayx app` | Builds, runs, packages, publishes, deploys and tests a RayX app. |
 | `rayx fmt` | Formats the project, one workspace member at a time. |
 
@@ -80,15 +83,17 @@ updated: the step is reported with the commands that would update it and `rayx s
 | `--ios` | (macOS) Xcode through `xcodes`, its command line tools, license and first launch, the Simulator runtime, XcodeGen and the iOS targets. |
 | `--gpu` | The GPU driver for every adapter found. winget has no NVIDIA or AMD display driver package, so on Windows this uses Windows Update and says what it did; Ubuntu uses `ubuntu-drivers` for NVIDIA and Mesa for AMD and Intel. |
 | `--wsl` | From Windows: WSL 2 with `Ubuntu-24.04`, the Linux `rayx` of the same version in it, and the same `rayx setup` run inside it. `--clone [<dir>]` also clones the current checkout (only that one) into the distribution. |
-| `--lima` | From macOS: the Lima VM `rayx` with Ubuntu 24.04, the Linux `rayx` of the same version in it, and the same `rayx setup` run inside it; see [`rayx setup --lima`](#rayx-setup---lima). Never part of `--all`. |
+| `--lima` | From macOS: a Lima VM (`rayx`, or the name `--vm` gives) with Ubuntu 24.04, the Linux `rayx` of the same version in it, and the same `rayx setup` run inside it; see [`rayx setup --lima`](#rayx-setup---lima). Never part of `--all`. |
 | `--update` | Re-runs the setup recorded on this machine and refreshes its guests; see [`rayx setup --update`](#records-rayx-setup---update-and-the-refresh). |
+| `--release <X.Y.Z>` | With `--lima`, `--wsl` or `--update`: puts exactly that release of the Linux `rayx` in the guest; see [Choosing a release](#choosing-a-release-and-going-back). |
+| `--vm <name>` | With `--lima`: the VM's name (default `rayx`). With `--update`: refreshes only the named guests (repeatable). |
 
 ### `rayx setup --lima`
 
 On macOS, `rayx setup --lima [--clone [<dir>]] [set flags]` makes a Linux guest the way `--wsl`
 does on Windows. It needs macOS 13 or later and Homebrew (run `rayx setup` first if you have none),
 installs Lima with `brew install lima` when it is missing (an older Lima is an update and is asked
-about), and creates **one** VM named `rayx`: `vz`, the Ubuntu 24.04 template, 6 CPUs, 12 GiB memory
+about), and creates **one** VM named `rayx` (or the name `--vm <name>` gives, see below): `vz`, the Ubuntu 24.04 template, 6 CPUs, 12 GiB memory
 and a 100 GiB sparse disk, with your macOS home mounted **read-only** and Lima's container runtime
 off. Then it puts the Linux `rayx` of the same version inside (the release installer, so `rayx self
 update` works there too) and runs `rayx setup` with the same set flags inside. `--check` prints
@@ -116,6 +121,45 @@ differ from the existing VM are an update: `rayx` lists it (`4 -> 6 CPUs`), asks
 shrink one. VMs `rayx` did not create (your own `gpux`, say) are never started, stopped, edited,
 updated or removed.
 
+`--vm <name>` gives the VM its own name, so one VM per project repository works:
+`rayx setup --lima --vm app` creates, starts and records a VM `app` (default `rayx`, which behaves
+exactly as before). A name is 1 to 40 lowercase letters, digits and hyphens, starts with a letter
+and is not `default`; anything else is refused with that rule before any command runs. Every VM has
+its own record with its own flags, clones and settings, the sizing flags change only the VM they are
+given with, and a migration of `app` keeps the old VM as `app-<old version>`. A VM that exists in
+Lima but is not in `guests.json` is **never adopted**, whatever its name and `rayx` included: remove
+or rename it with `limactl`, or choose another `--vm` name. Nothing is created while `guests.json`
+cannot be read.
+
+### Choosing a release and going back
+
+By default a machine runs the latest `rayx` and its guests run the version of the `rayx` that
+refreshes them. To try another release, in either direction:
+
+- `rayx self update --release 1.0.1 [--yes] [--check]` installs exactly that release over the
+  installed one, for a `rayx` the release installers made (the install receipt). The name is
+  `--release`, not `--version`. A release that does not exist exits 1 with `release X was not found`,
+  and `--check` prints the installed release, the requested one and the direction (`upgrade`,
+  `downgrade` or `same`) and installs nothing.
+- `rayx setup --lima|--wsl --release 1.0.1` and `rayx setup --update --release 1.0.1` put that
+  release of the Linux `rayx` in the guest, from that tag's own installer, instead of the running
+  version. The release is looked for first (a header request, nothing downloaded) and nothing
+  changes if it is missing. It cannot be combined with `RAYX_LIMA_BINARY` or `RAYX_WSL_BINARY`.
+
+Installing an older release than the one in place is a downgrade and is confirmed:
+`Install rayx 1.0.1 over 1.2.0, an older release? [y/N]` for the host and `Install rayx 1.0.1 in
+<guest> over 1.2.0, an older release? [y/N]` for a guest. `--yes` skips the question, no terminal
+and no `--yes` refuses, and a no changes nothing (exit 1). Nothing is remembered: a later plain
+`rayx self update` installs the latest release, and a later plain `rayx setup --update` brings the
+guests back to the running version.
+
+`1.0.0` is the oldest release that can be named. The first release with `setup --update` and the
+refresh offer is `1.1.0`: after an upgrade to it or a later one `rayx self update` offers the
+refresh as usual, but a release older than that has no refresh to offer: `self update` prints `rayx
+1.0.0 predates the guest refresh: no refresh was offered`, and `setup --update --release 1.0.0`
+skips the inner `rayx setup --update` of a guest with `rayx 1.0.0 predates the guest refresh: the
+inner update was skipped`.
+
 ### Records, `rayx setup --update` and the refresh
 
 Every `rayx setup` run records on the machine it ran on which sets it installed and in which
@@ -134,6 +178,11 @@ guest is reported and the next still runs. `apt-get upgrade` runs only inside gu
 manages, never on the host. `--check` inspects running guests (a stopped VM is not started) and
 changes nothing.
 
+`rayx setup --update --vm <name>` (repeat the flag for more) refreshes only the named recorded,
+current guests, Lima VMs and WSL distributions alike, and skips the host part: an explicit target
+is not a host run. A name that is not a recorded current guest of this host is refused with the
+recorded names, before any command runs. `--check` then inspects only the named running guests.
+
 After `rayx self update` installed a newer release and a record exists, it asks `Refresh this
 machine's setup and guests with rayx <new>? [y/N]`; yes, or `rayx self update --yes`, runs the new
 binary's `setup --update`, and its exit code is the command's. Otherwise it prints
@@ -145,7 +194,7 @@ All guests use the one Ubuntu pin (24.04, built in: a guest serves every project
 A guest older than the pin is never upgraded in place. `rayx setup --lima`, `--wsl` and
 `--update` list the clones in it that hold uncommitted work or commits on no remote, say the old
 guest is kept, and ask `Create <new> with Ubuntu 24.04 next to <old>? [y/N]`. On yes, a Lima VM is
-renamed `rayx-<old version>` and a new `rayx` is created from the pinned image with the same size
+renamed `rayx-<old version>` (`<name>-<old version>` for a VM chosen with `--vm`) and a new `rayx` is created from the pinned image with the same size
 and home mount; on WSL `Ubuntu-24.04` is installed next to the old distribution. Either way the
 Linux `rayx`, the recorded clones (copied again from their checkouts) and the recorded setup flags
 are restored in the new guest, and the old one is kept, retired, until you remove it. An
@@ -160,8 +209,8 @@ release left alone.
 Both work only for guests in `guests.json` (a name `rayx` did not create is refused with how to
 remove it yourself), list the clones in the guest that hold unpushed work, ask `Remove <name> and
 everything in it? [y/N]` (without a terminal and without `--yes` they refuse), and drop the guest
-from the record afterwards. Removing the current guest says that `rayx setup --lima` or `--wsl`
-creates it again; `rayx doctor` names the removal command for every retired guest.
+from the record afterwards. Removing the current guest says that `rayx setup --lima` (with
+`--vm <name>` for a named VM) or `--wsl` creates it again; `rayx doctor` names the removal command for every retired guest.
 
 ### `rayx doctor`
 
