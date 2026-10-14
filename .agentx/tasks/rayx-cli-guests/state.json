@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 0,
+  "revision": 8,
   "planRevision": 1,
   "specHashes": {
     "requirements": "bd122f66c7ae5a347f737aa7f4f7803c5f31d4e2803f7fc0bfc6d41f42af6d34",
@@ -10,10 +10,16 @@
   },
   "tasks": {
     "t01-guest-layer": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     },
     "t02-setup-lima": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     },
     "t03-lima-sizing": {
       "status": "pending"
@@ -52,11 +58,296 @@
       "status": "pending"
     }
   },
-  "validationBatches": {},
-  "checkResults": {},
-  "reviews": {},
-  "checkpoints": {},
-  "findings": [],
+  "validationBatches": {
+    "d0be8f97f881f8904544776b2e30f96d1ebeb23e487fdb0d44f2b807dfe3bc81": {
+      "snapshot": {
+        "specHash": "1cc61c573e9837dee6b55addd0c5930a7e3a781be5486b2c4ee3d1663810ee11",
+        "repositories": {
+          "rayx-cli": "3a6756e0333244b640cb83b19332fe5fa3027bb90eaab0ae454020f592a317dc"
+        }
+      },
+      "recordedAt": "2026-10-14T15:12:50Z"
+    }
+  },
+  "checkResults": {
+    "s1-guest-layer-lima/check-guest-layer/final": {
+      "checkId": "check-guest-layer",
+      "boundaryId": "s1-guest-layer-lima",
+      "phase": "final",
+      "batchId": "d0be8f97f881f8904544776b2e30f96d1ebeb23e487fdb0d44f2b807dfe3bc81",
+      "definitionHash": "8f3ea4c69ceab1c6475bc01381198e83ff88296570c52f366e18e17ffd559dcc",
+      "basisHash": "ae2136da7ac3ac14653ca5eb7ac05cdb36f4a4007d21d847d9c6ecd27dc698ab",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 17,
+      "durationSeconds": 0.1323,
+      "recordedAt": "2026-10-14T15:12:49Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s1-guest-layer-lima-final-e5783331d850.log",
+      "logSha256": "3857316eb236fcbd1b0144ac55712656ae09963666a2447b635114a627db3f18",
+      "inputsHash": "b04c8b438e26dfb248a48f44026dc9843fcfa012724ebcc5a9c353287117cfd0"
+    },
+    "s1-guest-layer-lima/check-setup-lima/final": {
+      "checkId": "check-setup-lima",
+      "boundaryId": "s1-guest-layer-lima",
+      "phase": "final",
+      "batchId": "d0be8f97f881f8904544776b2e30f96d1ebeb23e487fdb0d44f2b807dfe3bc81",
+      "definitionHash": "029418084318e740aec4b1f2a304d86420ba5ff842716f9027eafd75fce5d6cb",
+      "basisHash": "7f3a2bb73b3b4e98bdd2ca0e388a5e0466a93818b0228973f976c650cb1dd505",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 22,
+      "durationSeconds": 0.9935,
+      "recordedAt": "2026-10-14T15:12:50Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s1-guest-layer-lima-final-ff4a80593029.log",
+      "logSha256": "507babf5ec8c9f63416aa297a318b9a21fe8e3386e5d15268c7e9e689d1c6602",
+      "inputsHash": "9182eb2ec62b7321f3b68dd840ee1f5257dad956e20ae0d8b97e150a90ba22f4"
+    }
+  },
+  "reviews": {
+    "s1-guest-layer-lima": {
+      "reviewerId": "reviewer-s1-g7vx9ory",
+      "snapshotId": "d0be8f97f881f8904544776b2e30f96d1ebeb23e487fdb0d44f2b807dfe3bc81",
+      "criterionIds": [
+        "PIN-1",
+        "GST-1",
+        "LIMA-1",
+        "LIMA-2",
+        "LIMA-3",
+        "LIMA-4"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "e6fbc371e0cb7dc1c0edb8a593ba7a0077c65eed2dc5a872661f8fe0abdf6d82"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "bef50041849c82f52bba2224c2ce910fb4d98ab6371e5bdaf37a630c1d4f4fe2"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1",
+            "GST-1",
+            "LIMA-4"
+          ],
+          "sha256": "27cd4c0822308cf737be506112fe8c2d959ed6dfb2b8ee6bd0e443539dbde67c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1",
+            "GST-1"
+          ],
+          "sha256": "475bd62b80e97c2ba6a7181666bad13aeba16ae12c1c9e2ad17b0b378304e7ca"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GST-1"
+          ],
+          "sha256": "1e0f926572e5afbe339d3bd02a5a3229644aaccee00f93e4fe606df317ec3e76"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_layer.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1",
+            "GST-1"
+          ],
+          "sha256": "922038222603155d2cf6cbb5c4bc528e93e73ad2192b1d1214d0220e0adb262d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_plan.rs",
+          "kind": "test",
+          "criterionIds": [
+            "GST-1"
+          ],
+          "sha256": "569cb23cd2fbbf56899b6d74afc0b2f42798425b34aa31b2fa58ceec9aa6eb94"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_install.rs",
+          "kind": "test",
+          "criterionIds": [
+            "GST-1"
+          ],
+          "sha256": "b07c69bca91114b323111c83fd2a3979848065370d5448f8104c0ee6dc731b18"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "kind": "test",
+          "criterionIds": [
+            "GST-1"
+          ],
+          "sha256": "a1f8e3ba83dfa76be59fe79846067e734b22df93e378155bc3d8e4b8c3b4f011"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-1"
+          ],
+          "sha256": "a9f89a6d2abe1b0d53004602635294738e3f873da5a3fd288e0d12a8c0b6c39f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-1"
+          ],
+          "sha256": "ecae89ce8cd938f918c3732f908616307e27a985d509c1f441d64b804f176b47"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-1",
+            "LIMA-2",
+            "LIMA-3",
+            "LIMA-4"
+          ],
+          "sha256": "6ba8470a245a25f4d364704b64ecff82991f657342d0e4cf18496ebac1d398c7"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/macos.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-2"
+          ],
+          "sha256": "8fa52e21f418277a34640d4eeec1e8d9fe70ac0ad30458537ad947e8a058324d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima.rs",
+          "kind": "test",
+          "criterionIds": [
+            "LIMA-1",
+            "LIMA-2",
+            "LIMA-3",
+            "LIMA-4"
+          ],
+          "sha256": "23d18e1603ee32cd011b6f96e190ff6a3f72d96ab248f8d24054b663eb94ad0d"
+        }
+      ],
+      "deltaSummaryMarkdown": "Inspected the delta in src/setup/lima.rs, tests/setup_lima.rs and tests/guest_layer.rs. (1) `doctor_lists_the_ubuntu_pin_with_the_other_pins` renders the real doctor report JSON and asserts `pins.ubuntu` is 24.04/default; the Pins-value claim is dropped and the test renamed `both_guest_names_derive_from_one_pin_value`, consistent with the pin being the constant `DEFAULTS.ubuntu`. (2) `plan_clone` runs in `run_with` right after the macOS, Homebrew and home checks and before `ensure_lima`, any `limactl` call, create/start or guest step; it refuses a missing checkout, one outside the home, and an unsafe target, and the new test uses a Mac without Lima and asserts no change command and no guest script for each case. The exact refusal text is unchanged. (3) `lima::detect_checkout` returns NotMacOs before any command off macOS and runs git only with `--clone`; `lima::run` uses it and exits 1; the test asserts an empty recorded spec list off macOS and without `--clone`. The create/start arguments, `--check` behaviour and clone script are untouched; both sprint groups pass on the new snapshot.",
+      "reattestedFrom": "09bdfe04d93c672c30a8430d96a6004da058583088582349632c53d4496ea20f",
+      "summaryMarkdown": "Source review: the pin lives only in `project::pins`; `setup::guest` is a faithful move of the WSL operations (same scripts, `--exec`/`--workdir /` quoting, installer, override, clone, inner setup) and the WSL sequence and clones-file changes are covered; `lima.rs` builds the exact create/start arguments, only touches instance `rayx`, runs no `sudo`, and `--check` runs only reads (also proved end to end with stand-in tools; `limactl shell` without `--start` cannot start a stopped VM in Lima 2.2.1). Failed on one coverage gap (doctor pin listing untested, PIN-1) and two minor ordering defects (late clone validation, git queries on non-macOS). Everything else in GST-1, LIMA-1..4 is met by source and meaningful tests.",
+      "findingIds": [
+        "F-s1-doctor-pin-untested",
+        "F-s1-lima-setup-check-late",
+        "F-s1-lima-nonmacos-runs-git"
+      ],
+      "recordedAt": "2026-10-14T15:13:12Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "7edb415382fc54daffcba917307bcd165f1d6cde7320b1549537917ff1369f40"
+      }
+    }
+  },
+  "checkpoints": {
+    "s1-guest-layer-lima": {
+      "snapshotId": "d0be8f97f881f8904544776b2e30f96d1ebeb23e487fdb0d44f2b807dfe3bc81",
+      "commits": {
+        "rayx-cli": "0855f67759b7a5dfb1ba3fcd6bf1f59c91e68333"
+      },
+      "reviewHash": "96c0550bb7541c8b752f0144410985d0235455f5eed050f9eaa2c9736c1be8bd",
+      "recordedAt": "2026-10-14T15:13:35Z"
+    }
+  },
+  "findings": [
+    {
+      "id": "F-s1-doctor-pin-untested",
+      "boundaryId": "s1-guest-layer-lima",
+      "criterionIds": [
+        "PIN-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** PIN-1 requires `rayx doctor` to list the Ubuntu pin with the other pins, and the criterion's automated verification is the new group `tests/guest_layer.rs`. **Observed:** `src/doctor.rs` `pin_list` pushes `(\"ubuntu\", p.ubuntu.clone())` (the built binary's `doctor --json` does print `pins.ubuntu = 24.04/default`), but no test in `tests/guest_layer.rs` or `tests/doctor.rs` asserts it; `tests/doctor.rs` checks only other pin keys, so deleting the line would leave every test green. Also, the `a changed pin` test (`both_guest_names_derive_from_the_pin`) passes `pins.ubuntu.value` into the pure helpers by hand: production `distribution()` and `create_command` read `DEFAULTS.ubuntu` through `pinned_ubuntu()`, never a `Pins` value, so that part of the test does not prove the derivation path. **Repair:** add a test to `tests/guest_layer.rs` that renders doctor's JSON (as `tests/doctor.rs` does, `json[\"pins\"][\"ubuntu\"]` equals `{value: \"24.04\", source: \"default\"}`) and, if the names should follow `Pins`, assert through the real consumers (`distribution()` / `create_command`) or document that the pin is the constant `DEFAULTS.ubuntu` and drop the Pins-value claim.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_layer.rs",
+          "symbol": "doctor_lists_the_ubuntu_pin_with_the_other_pins"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor.rs",
+          "symbol": "pin_list"
+        }
+      ]
+    },
+    {
+      "id": "F-s1-lima-setup-check-late",
+      "boundaryId": "s1-guest-layer-lima",
+      "criterionIds": [
+        "LIMA-4"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** LIMA-4 / d-lima-vm: a `--clone` with a checkout outside the macOS home (or no checkout) exits 1 with `--clone needs a checkout under <home>, which the VM mounts` and, per the design order, `--lima` should not spend a 100 GiB VM and a release download on a request that cannot succeed. **Observed:** the refusal is made inside `lima::clone_checkout`, after `limactl create`, `limactl start` and `ensure_linux_binary` have already run (`tests/setup_lima.rs::a_checkout_outside_the_home_or_none_at_all_stops_the_clone` only exercises an already running VM, so it cannot see this). **Repair:** in `lima::run_with`, validate the clone request (checkout present, under `home`, `linux_dir` of the requested target) right after the host checks and before the create/start step; extend the test to an absent VM and assert `changes(&runner)` is empty.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima.rs",
+          "symbol": "plan_clone"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima.rs",
+          "symbol": "an_impossible_clone_is_refused_before_anything_is_installed_or_created"
+        }
+      ]
+    },
+    {
+      "id": "F-s1-lima-nonmacos-runs-git",
+      "boundaryId": "s1-guest-layer-lima",
+      "criterionIds": [
+        "LIMA-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** LIMA-1: on Windows or Linux `setup --lima` exits 1 with the macOS message and runs nothing. **Observed:** `lima::run` (like `wsl::run`) calls `guest::detect_checkout`, which executes `git rev-parse --show-toplevel` and `--abbrev-ref HEAD`, before `run_with` reaches its `host.os != MacOs` check; the test `off_macos_it_exits_before_running_anything` calls `run_with` directly, so the real entry path is unproved. **Repair:** in `lima::run`, return the `LimaError::NotMacOs` message (exit 1) when `host.os != Os::MacOs` before building the runner or detecting the checkout, or detect the checkout lazily only when `--clone` is set; add a check that goes through `run`/the binary on a non-macOS host stand-in, or keep the unit test and assert the ordering in `run`.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima.rs",
+          "symbol": "detect_checkout"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima.rs",
+          "symbol": "the_checkout_is_detected_only_for_a_clone_and_never_off_macos"
+        }
+      ]
+    }
+  ],
   "handoffMarkdown": "",
   "protectedPaths": {
     "rayx-cli": {
