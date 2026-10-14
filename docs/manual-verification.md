@@ -91,7 +91,7 @@ a throwaway script; the sudo password was typed by the owner in a Terminal tab. 
 | 2 | `rayx self update --release 1.1.0 --check` | installed, requested, `downgrade`; nothing installed | pass | `installed 1.2.0, requested release 1.1.0: downgrade`, exit 0, `rayx 1.2.0` afterwards |
 | 3 | `rayx self update --release 1.1.0`, answer `n`, then `y` | the downgrade question; `n` changes nothing and exits non-zero; `y` installs, no refresh offer | pass | `Install rayx 1.1.0 over 1.2.0, an older release? [y/N]`; `n`: `rayx: nothing was changed`, exit 1, version still 1.2.0; `y`: `Updated rayx 1.2.0 -> 1.1.0.` and no refresh question |
 | 4 | `rayx --version` | `rayx 1.1.0` | pass | `rayx 1.1.0` (no busy `rayx.exe`) |
-| 5 | `rayx self update` (run by 1.1.0), answer `y` | `Updated rayx 1.1.0 -> 1.2.0.`, the refresh question, then the new binary's `setup --update` for the host and the guest, exit 0 | partial | `Updated rayx 1.1.0 -> 1.2.0.`, `Refresh this machine's setup and guests with rayx 1.2.0? [y/N]` (`y`), `Update wsl guest Ubuntu-24.04? [y/N]` (`y`), `==> wsl: refreshing Ubuntu-24.04`, `==> wsl: installing the Linux rayx 1.2.0`, `==> wsl: sudo apt-get update && sudo apt-get upgrade`, then the `[sudo] password` prompt. The pseudo-terminal cannot take the password, so that run was stopped there. The refresh was finished by `rayx setup --update` typed in a Terminal tab (not through `self update`): `apt-get upgrade` (curl 3 packages), `==> wsl: rayx setup --update`, `==> setup --update: /home/dinko/RayX.CLI`, `Nothing to do: everything is installed.` The exit code was not captured, and no `nothing recorded` line for the host appeared (there is no `setup.json`) |
+| 5 | `rayx self update` (run by 1.1.0), answer `y` | `Updated rayx 1.1.0 -> 1.2.0.`, the refresh question, then the new binary's `setup --update` for the host and the guest, exit 0 | pass | Second, complete run, typed by the owner in a Terminal tab as `cmd /c "rayx.exe self update & echo exit=%errorlevel% & rayx.exe --version"` after stepping down to 1.1.0 again: `Updated rayx 1.1.0 -> 1.2.0.`, `Refresh this machine's setup and guests with rayx 1.2.0? [y/N]` (`y`), `Update wsl guest Ubuntu-24.04? [y/N]` (`y`), `==> wsl: refreshing Ubuntu-24.04`, `==> wsl: sudo apt-get update && sudo apt-get upgrade` (the owner typed the sudo password; `0 upgraded`), `==> wsl: rayx setup --update`, `==> setup --update: /home/dinko/RayX.CLI`, `Nothing to do: everything is installed.`, `exit=0`, then `rayx 1.2.0`. The Linux `rayx` was already 1.2.0 from the earlier attempt, so the `installing the Linux rayx` line did not repeat; no `nothing recorded` line for the host appeared (there is no `setup.json`). An earlier attempt with a hidden pseudo-terminal stopped at the sudo prompt and was finished by a separate `rayx setup --update` |
 | 6 | `rayx --version`; the guest's `~/.rayx/bin/rayx --version`; `rayx doctor` | both `rayx 1.2.0`; the guest line current | pass | `rayx 1.2.0`, `rayx 1.2.0`, `wsl Ubuntu-24.04: running, disk 215.0 GiB, Ubuntu 24.04, current` |
 | 7 | `rayx self update --check`; `--release 1.1.0 --check`; list `%LOCALAPPDATA%\rayx` | up to date; still a downgrade; nothing new written | pass | `installed 1.2.0, latest release 1.2.0: rayx is up to date`; `installed 1.2.0, requested release 1.1.0: downgrade`; the directory holds `DevKit`, `storage` (both older than this run) and `guests.json` (written before the run); no `setup.json` and nothing new |
 | 8 | `rayx self update --release 9.9.9 --check`; `--release not-a-version` | clear errors, exit 1, nothing installed | pass | `rayx: release 9.9.9 was not found`; ``rayx: `not-a-version` is not a release name: use the form X.Y.Z, for example 1.0.1``; both exit 1, `rayx 1.2.0` afterwards |
@@ -104,20 +104,16 @@ installed by the release installer at `~/.rayx/bin/rayx`):
 |---|---|---|
 | 5 (in WSL) | pass | `rayx 1.2.0`; `Install rayx 1.1.0 over 1.2.0, an older release? [y/N]` (`y`); `Updated rayx 1.2.0 -> 1.1.0.` with no refresh offer; `rayx 1.1.0`; the plain `rayx self update` printed `Updated rayx 1.1.0 -> 1.2.0.` and `Refresh this machine's setup and guests with rayx 1.2.0? [y/N]` (`y`); `==> setup --update: /home/dinko/RayX.CLI`, `Nothing to do: everything is installed.`; `exit=0`; final `rayx 1.2.0` |
 
-This closes the downgrade question, the refresh offer after the upgrade, the inner `setup --update`
+This repeats the downgrade question, the refresh offer after the upgrade, the inner `setup --update`
 and exit code 0 on Linux. The guest has a `setup.json` but no `guests.json`, so no guest was
-refreshed and no sudo password was asked; the Windows-host path that refreshes a WSL guest through
-`self update` is still only seen up to the sudo prompt (see the first table).
+refreshed and no sudo password was asked; the Windows host path that refreshes the WSL guest is the
+step 5 row above.
 
 Anything surprising:
 
 - The refresh asks a second question per guest (`Update wsl guest Ubuntu-24.04? [y/N]`) after the
   `self update` refresh question was answered `y`; the criteria text lists only the first. Accepting
   the refresh does not pass `--yes` to `setup --update`, so each guest is asked again.
-- Step 5 is only partly proven: the refresh offer, the Linux `rayx` install and the apt step ran
-  from `self update`, but the sudo prompt stopped the pseudo-terminal run, so the inner
-  `setup --update` and the exit code were seen only in a separate `rayx setup --update`. Rerun with
-  `sudo` configured not to ask (or with a driver that can forward the password) to close it.
 - Installing a release prints the installer's `Expand-Archive` progress bar into the console (very
   wide in a pseudo-terminal; cosmetic).
 - The first attempt at step 3 ran without a terminal and correctly refused (`... is a downgrade and
