@@ -14,12 +14,15 @@ A release is a version tag `vX.Y.Z` on `main`. Two tools split the work:
 1. Commit to `main` (through pull requests) with Conventional Commits. The type decides the next
    version:
 
-   | Commit | Bump |
+   | Commit | Release |
    | --- | --- |
    | `fix:`, `perf:` | patch (`1.0.0` → `1.0.1`) |
    | `feat:` | minor (`1.0.0` → `1.1.0`) |
-   | `feat!:` or a `BREAKING CHANGE:` footer | major (`1.0.0` → `2.0.0`) |
-   | `docs:`, `test:`, `ci:`, `chore:`, `refactor:` | no release on their own; listed in the next one |
+   | `feat!:`, `fix!:` or `perf!:` (a `BREAKING CHANGE:` footer on those types) | major (`1.0.0` → `2.0.0`) |
+   | `docs:`, `test:`, `ci:`, `build:`, `chore:`, `refactor:` | none on their own (`release_commits` in `release-plz.toml` lists `feat`, `fix` and `perf`); they appear in the changelog of the next release |
+
+   Write a breaking change as `feat!`, `fix!` or `perf!`: a breaking `refactor!` or `docs!` commit
+   would not start a release by itself.
 
    A breaking change that touches the `rayx app` grammar, its flags, the artifact layout or the
    `[package.metadata.rayx]` contract needs the matching RayX change (RayX's CI installs a pinned

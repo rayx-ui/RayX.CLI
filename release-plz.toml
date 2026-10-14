@@ -13,6 +13,9 @@ git_release_enable = false
 changelog_update = true
 # The library target is an implementation detail, not a public API.
 semver_check = false
+# Only changes that reach users start a release; docs, tests, CI and agentx commits ride along in
+# the next one. A breaking change is written `feat!`, `fix!` or `perf!`.
+release_commits = "^(feat|fix|perf)"
 
 [[package]]
 name = "rayx-cli"

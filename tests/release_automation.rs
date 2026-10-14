@@ -58,6 +58,11 @@ fn release_plz_is_git_only_unpublished_and_leaves_the_github_release_to_dist() {
     assert_eq!(workspace["changelog_update"].as_bool(), Some(true));
     assert_eq!(workspace["semver_check"].as_bool(), Some(false));
     assert_eq!(workspace["publish"].as_bool(), Some(false));
+    assert_eq!(
+        workspace["release_commits"].as_str(),
+        Some("^(feat|fix|perf)"),
+        "only feat, fix and perf commits start a release"
+    );
 
     let packages = config["package"].as_array().expect("[[package]]");
     assert_eq!(packages.len(), 1);
