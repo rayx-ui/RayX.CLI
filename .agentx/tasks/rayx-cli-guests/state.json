@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 36,
+  "revision": 44,
   "planRevision": 1,
   "specHashes": {
     "requirements": "bd122f66c7ae5a347f737aa7f4f7803c5f31d4e2803f7fc0bfc6d41f42af6d34",
@@ -70,10 +70,16 @@
       ]
     },
     "t11-docs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     },
     "t12-mac-proof": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     },
     "t13-wsl-proof": {
       "status": "pending"
@@ -118,6 +124,15 @@
         }
       },
       "recordedAt": "2026-10-14T15:46:14Z"
+    },
+    "626f0d3ff55b86faf59516decfe03e3f8b0ca0a81f110b38411f6e6f4d565cdd": {
+      "snapshot": {
+        "specHash": "1cc61c573e9837dee6b55addd0c5930a7e3a781be5486b2c4ee3d1663810ee11",
+        "repositories": {
+          "rayx-cli": "e6a9c98509c349fad8d17c13f7ff8cc7adc8a7312e75e5dfb8a2c03501892add"
+        }
+      },
+      "recordedAt": "2026-10-14T16:55:06Z"
     }
   },
   "checkResults": {
@@ -290,6 +305,23 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-guests/s4-migration-removal-final-6f55687550a8.log",
       "logSha256": "7a0c2a1de7aa96ff62b7a3c876a7564a0866924fc22096ec59d508335afc6bbe",
       "inputsHash": "3eebc2bda7e8c4f2869191560a118aa92ea6efbebc6cb43b897e72facfa5336f"
+    },
+    "s5-docs-mac-proof/check-readme-guests/final": {
+      "checkId": "check-readme-guests",
+      "boundaryId": "s5-docs-mac-proof",
+      "phase": "final",
+      "batchId": "626f0d3ff55b86faf59516decfe03e3f8b0ca0a81f110b38411f6e6f4d565cdd",
+      "definitionHash": "c67b0275e637687158e10a386071036585af9ee190dc6971c92f377699ecd499",
+      "basisHash": "db3835a59e5340b5992f27ad30ee5063cf6d07f414f9d0dcaecb200415e988fb",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 0.6147,
+      "recordedAt": "2026-10-14T16:51:45Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s5-docs-mac-proof-final-bd8f778530b6.log",
+      "logSha256": "478644e246985aa5c2a65bc267ef2eed347ca6d15c4160e9e0554f0dcaa25ab2",
+      "inputsHash": "ceae22148abac119cb470e79a331f1a873dd0fa3fe8239a04a764c4143314d06"
     }
   },
   "reviews": {
@@ -863,6 +895,140 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "7edb415382fc54daffcba917307bcd165f1d6cde7320b1549537917ff1369f40"
       }
+    },
+    "s5-docs-mac-proof": {
+      "reviewerId": "reviewer-s5-e68422fb",
+      "snapshotId": "626f0d3ff55b86faf59516decfe03e3f8b0ca0a81f110b38411f6e6f4d565cdd",
+      "criterionIds": [
+        "DOCS-1",
+        "MAN-1",
+        "MAN-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "aec2b143cfcd72f54ca092f962c181e74a31fad20bc3fe2749ccd2afb4d71be4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "d260d08f359369d037f482b11813bb2ec10ebddce733b5b80846f7b2d7db10de"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_guests.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "a991433dd7f1e6dc96c7754721982c0746e9c1159dd98272d23292075071a441"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/sizing.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1",
+            "MAN-1"
+          ],
+          "sha256": "6a6028f5d029d90966b16e705ff0a3e870b258636558bcd25c3eadc5a28b8389"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-2"
+          ],
+          "sha256": "43b12e441a4bd41d4199f854090675e29657614b768f65bea4c809d104259640"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-2"
+          ],
+          "sha256": "b418ed3f979102c9e7d3c7d7792b35c0e88145a2f73c914be11a229c27a6896a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-2"
+          ],
+          "sha256": "b9ad562b47489a1f3f3904779a087bc5c3f19ed89bfdbaa583ca9e304c943aae"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-1"
+          ],
+          "sha256": "7efb161fc396cf1b3da0cdeb2dd05ac71f65fc172c9b0913006fb449e2c27d13"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/edit.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-1"
+          ],
+          "sha256": "e275e84d98e541682b6a47d649b2313e65526b301b1e1db2e7f6d778b7773706"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/remove.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-2"
+          ],
+          "sha256": "c701f1d1202685ab5d7f73ef69a5c6dd2668b7072a4b84975a14913efe6ac68e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_migration.rs",
+          "kind": "test",
+          "criterionIds": [
+            "MAN-2"
+          ],
+          "sha256": "ab4d859b9053461b69347ea198b00faddf7e0997d6c0da693890df30bcd95452"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "runtime",
+          "criterionIds": [
+            "MAN-1",
+            "MAN-2"
+          ],
+          "sha256": "c1c26bf16a75305c0e50e3d25559420dbab7e21d82fa7c4751a55d5dadb24b15"
+        }
+      ],
+      "deltaSummaryMarkdown": "Docs-only delta; snapshot unchanged. Read docs/manual-verification.md and the new logs 17-host-check.log and 18-host-update.log; no source changed (git shows only the AgentX state file modified); limactl list shows only gpux, no ~/.config/rayx remains. f-s5-host-refresh-unproven: 18-host-update.log shows a real `rayx setup` writing setup.json (base + this checkout), then `setup --update --check` and `--update --yes` printing `==> setup --update: /Users/dinko/work-private/projects/RayX/RayX.CLI` with everything installed / Nothing to do, and doctor `no guests recorded` afterwards; the new `MAN-2 refresh, host` row matches it (everything was already installed, so nothing changed, as the row says). f-s5-claims-not-in-logs: the refresh row now separates the failed `--yes` runs (07, 08), the held run (09, `nothing recorded` explained) and the recorded rerun (10); create/edit command lines are attributed to 01-check.log / 05-edit.log; `now runs Ubuntu 26.04` is confirmed at 13-migrate.log:1775 and the VERSION_ID and guests.json-after-migration facts are explicitly labelled as checked interactively and not saved, which is honest. Residual (not a defect): the inner-setup row's guests.json contents are not saved as a log; doctor in 04-checks.log (which reads that record) and the later refresh logs cover it. f-s5-man1-binary-deviation-unrecorded: the new `Deviations from the criteria text` block states the v1.0.0 release installer, why, which MAN-1 checks ran with the released binary, that the branch binary built in the VM ran the refresh and migration through RAYX_LIMA_BINARY, the staging directory under the Mac home (removed) and the uncommitted 26.04 pin build; acceptable and honest. DOCS-1 unchanged and passing.",
+      "reattestedFrom": "626f0d3ff55b86faf59516decfe03e3f8b0ca0a81f110b38411f6e6f4d565cdd",
+      "summaryMarkdown": "DOCS-1 holds: README sections match source (caps `max(1,ncpu-2)`/`max(2,RAM/2)`, 30 GiB disk floor, 10 GiB free, three-quarters warning, prompt and question texts, `setup.json`/`guests.json` locations, refresh and removal behaviour, doctor states), every new flag and subcommand has precise help, tests/readme_guests.rs (6 tests) check real README text and `--help` output (not tautologies; minor weakness: `wsl remove` help only checks `<NAME>`/`--yes`). The `limactl rename --tty=false` fix is genuinely covered: without it the recorded command is `rename rayx rayx-22.04`, so `tests/guest_migration.rs` fails its exact change list and the scripted Lima never renames (the rollback rename path is untested, minor). No pin change is left in `src/project/pins.rs` (`24.04`, `git diff` shows only the AgentX state file). The real Mac proof is largely evidenced (customize prompt, read-only home, second run, doctor, stop/edit/start to 3 CPUs, migration to 26.04 with the clone restored, removals with `gpux` running untouched and refused), but MAN-2's host refresh is not shown, several doc claims have no log behind them, and MAN-1's RAYX_LIMA_BINARY deviation is not recorded as one.",
+      "findingIds": [
+        "f-s5-host-refresh-unproven",
+        "f-s5-claims-not-in-logs",
+        "f-s5-man1-binary-deviation-unrecorded"
+      ],
+      "recordedAt": "2026-10-14T16:55:33Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "2c750858371ed702b4c68181ef3610928d05d599936fb560cee04e54cb918237"
+      }
     }
   },
   "checkpoints": {
@@ -897,6 +1063,14 @@
       },
       "reviewHash": "26381cd7c2a27579ef4aa2e555cbe23b83c90f37e51029636676f5aec02473c4",
       "recordedAt": "2026-10-14T15:47:23Z"
+    },
+    "s5-docs-mac-proof": {
+      "snapshotId": "626f0d3ff55b86faf59516decfe03e3f8b0ca0a81f110b38411f6e6f4d565cdd",
+      "commits": {
+        "rayx-cli": "021e25eb9afbd819db40f24f1679abc606d260c5"
+      },
+      "reviewHash": "5e28e95b89f475ea2e7ab17ce4e14ec5b69c229417d9bffea43a0ac49dbffa48",
+      "recordedAt": "2026-10-14T16:55:44Z"
     }
   },
   "findings": [
@@ -1152,6 +1326,55 @@
         {
           "repositoryId": "rayx-cli",
           "path": "src/setup/migrate.rs"
+        }
+      ]
+    },
+    {
+      "id": "f-s5-host-refresh-unproven",
+      "boundaryId": "s5-docs-mac-proof",
+      "criterionIds": [
+        "MAN-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved; verified in the delta.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ]
+    },
+    {
+      "id": "f-s5-claims-not-in-logs",
+      "boundaryId": "s5-docs-mac-proof",
+      "criterionIds": [
+        "MAN-1",
+        "MAN-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved; verified in the delta.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ]
+    },
+    {
+      "id": "f-s5-man1-binary-deviation-unrecorded",
+      "boundaryId": "s5-docs-mac-proof",
+      "criterionIds": [
+        "MAN-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved; verified in the delta.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
         }
       ]
     }
