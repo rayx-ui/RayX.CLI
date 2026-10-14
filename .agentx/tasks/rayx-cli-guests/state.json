@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 27,
+  "revision": 36,
   "planRevision": 1,
   "specHashes": {
     "requirements": "bd122f66c7ae5a347f737aa7f4f7803c5f31d4e2803f7fc0bfc6d41f42af6d34",
@@ -58,10 +58,16 @@
       ]
     },
     "t09-guest-migration": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     },
     "t10-guest-remove": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     },
     "t11-docs": {
       "status": "pending"
@@ -103,6 +109,15 @@
         }
       },
       "recordedAt": "2026-10-14T15:34:31Z"
+    },
+    "d71e5c4559181668961f7cce3f954c71c4fcbcefc3144fd6617f62449fb24f3c": {
+      "snapshot": {
+        "specHash": "1cc61c573e9837dee6b55addd0c5930a7e3a781be5486b2c4ee3d1663810ee11",
+        "repositories": {
+          "rayx-cli": "df98f560f4de554e95d1a9cc037386f8a6820f51cc023fd0cae3dfe01c545af5"
+        }
+      },
+      "recordedAt": "2026-10-14T15:46:14Z"
     }
   },
   "checkResults": {
@@ -241,6 +256,40 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-guests/s3-update-refresh-final-390fd3f5414c.log",
       "logSha256": "840bec7008c679d0a63f38d21860fa15f066e348ec4029e78f0b03e3cb84feed",
       "inputsHash": "fbc8fdbd63017b44a847050185b4310788685df56054b1c7a2396d48b24202d1"
+    },
+    "s4-migration-removal/check-guest-migration/final": {
+      "checkId": "check-guest-migration",
+      "boundaryId": "s4-migration-removal",
+      "phase": "final",
+      "batchId": "d71e5c4559181668961f7cce3f954c71c4fcbcefc3144fd6617f62449fb24f3c",
+      "definitionHash": "6a63beeb307ef7c36d0863f6a0faa81cc5f1639e6445b541e6079811e2e76ad3",
+      "basisHash": "bf0ee8f372e62399acff5ec2573916ae34d100fbdde824c84bd3e00ea5abe1c9",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 21,
+      "durationSeconds": 0.2459,
+      "recordedAt": "2026-10-14T15:46:14Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s4-migration-removal-final-0d691b17ed07.log",
+      "logSha256": "a362d7fbeb5fe356b9fc663fa6987b5bc29064d03f4b356f00d8f04b96997330",
+      "inputsHash": "0774b4552f268790efb0f9db17eaad14feb0652615615c29c1007e2a325c82bf"
+    },
+    "s4-migration-removal/check-guest-remove/final": {
+      "checkId": "check-guest-remove",
+      "boundaryId": "s4-migration-removal",
+      "phase": "final",
+      "batchId": "d71e5c4559181668961f7cce3f954c71c4fcbcefc3144fd6617f62449fb24f3c",
+      "definitionHash": "5684128ec5416dca0ff29ffe3672a032a06e64582ab4f3670e903c0612d8d83b",
+      "basisHash": "9c3e27c957ef5cb11185a9dadb43292dd6e02e19015bbbebce22347af27ea289",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 11,
+      "durationSeconds": 0.6051,
+      "recordedAt": "2026-10-14T15:46:14Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s4-migration-removal-final-6f55687550a8.log",
+      "logSha256": "7a0c2a1de7aa96ff62b7a3c876a7564a0866924fc22096ec59d508335afc6bbe",
+      "inputsHash": "3eebc2bda7e8c4f2869191560a118aa92ea6efbebc6cb43b897e72facfa5336f"
     }
   },
   "reviews": {
@@ -665,6 +714,155 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "7edb415382fc54daffcba917307bcd165f1d6cde7320b1549537917ff1369f40"
       }
+    },
+    "s4-migration-removal": {
+      "reviewerId": "reviewer-s4-7b04db8d",
+      "snapshotId": "21810fbc16c5b4a979f7cf42d6b427e0163d3bd81d65249a1bec46adc7f7df83",
+      "criterionIds": [
+        "MIG-1",
+        "MIG-2",
+        "MIG-3",
+        "RM-1",
+        "RM-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1",
+            "MIG-2",
+            "MIG-3"
+          ],
+          "sha256": "0387912e9cb4723cee7d03eda0bed0c6278f3c3b8202a45acd2ab57522ab117d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1",
+            "MIG-2",
+            "MIG-3"
+          ],
+          "sha256": "b418ed3f979102c9e7d3c7d7792b35c0e88145a2f73c914be11a229c27a6896a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1",
+            "MIG-2"
+          ],
+          "sha256": "7efb161fc396cf1b3da0cdeb2dd05ac71f65fc172c9b0913006fb449e2c27d13"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1",
+            "MIG-3"
+          ],
+          "sha256": "6314675c53abe4dc2309c2b60edfb360a50b49094780abfc2dad48ef27a705d6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1"
+          ],
+          "sha256": "afc3a7648e6ea31030b8e10c387d6e23355d7dbcb4e679a9e14866f47e277d01"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-2",
+            "MIG-3",
+            "RM-1"
+          ],
+          "sha256": "5ec6bf0cb8bd7346028041cf87cc86bc1c89fcb41104b4dd8a839b32e5504f49"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/remove.rs",
+          "kind": "source",
+          "criterionIds": [
+            "RM-1",
+            "RM-2"
+          ],
+          "sha256": "c701f1d1202685ab5d7f73ef69a5c6dd2668b7072a4b84975a14913efe6ac68e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "RM-1",
+            "RM-2"
+          ],
+          "sha256": "5d1db9880e4fbf07b9f7fe48b074eba26b1b166a1d77464a97ae2ac72b6eb953"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/lib.rs",
+          "kind": "source",
+          "criterionIds": [
+            "RM-1",
+            "RM-2"
+          ],
+          "sha256": "cd74a273428bcbf507dd6f437ba0c38050d1e265fbba9a746ff69958a82af60e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_migration.rs",
+          "kind": "test",
+          "criterionIds": [
+            "MIG-1",
+            "MIG-2",
+            "MIG-3"
+          ],
+          "sha256": "fa66eaa4d0a23a9221446057b80a9c719300de1d686516e41c3c8976fd0911f7"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_refresh.rs",
+          "kind": "test",
+          "criterionIds": [
+            "MIG-1"
+          ],
+          "sha256": "ca0278406bf8cbe9a543b532b02f726a714443ac7047c3f01e74c6bbc0b04c3a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_remove.rs",
+          "kind": "test",
+          "criterionIds": [
+            "RM-1",
+            "RM-2"
+          ],
+          "sha256": "9259a47a25c36cfacf83d99032217016b0b14f5c7922c4ebdac3b6035980745b"
+        }
+      ],
+      "deltaSummaryMarkdown": "Inspected the delta in src/setup/migrate.rs, records.rs, refresh.rs, lima/mod.rs, wsl.rs and tests/guest_migration.rs, and ran guest_migration (21), guest_remove (11), guest_refresh (14) and setup_lima (22): all pass. s4-f1: `migrate_lima` returns `Planned` with a printed plan on the resume path under `--check` before any create, clone, setup or record; the new test asserts no create/rename, no `now runs` line and an unchanged record. s4-f2: after consent and before stop/rename `update_guests(.., |_| {})` probes that the record is readable and writable (an unparsable file or missing config dir stops with `rayx was not changed`); a failed post-rename record write renames the VM back or names the manual `limactl rename` command; tests cover the unparsable record and the unwritable directory (the latter is weak but the probe is exercised by code inspection). s4-f3: `GuestRecord.migrating` is set by `rename_and_retire` and cleared by `finish_migration`; `pending_lima` resumes only migrating entries so a plain `rayx lima remove rayx` is not a resume; `refresh_guests` reports a migrating retired VM without a current `rayx` as Failed (exit 1). s4-f4: `setup --lima` reads VERSION_ID after the optional `--vm-*` edit and start (older -> migration, newer -> note); `migrate_older_guest` reads the live VERSION_ID, prints the newer-than-pin note for recorded WSL guests, and the question is exactly `Create <new> with Ubuntu <pin> next to <old>?` with a separate always-printed kept line naming the removal command. The trivial enum test was removed. Residual observation, not a defect: WSL outdated detection still starts from a recorded older version, and a record that is stale in the other direction is not discovered. RM-1/RM-2 are unchanged and still pass.",
+      "reattestedFrom": "2b2ed104e948b6a51e57015897e1a780b3cb3dc4c7efd5dbee02ab6e6fb13f1b",
+      "summaryMarkdown": "RM-1 and RM-2 are met: `remove_guest` refuses wrong OS and unrecorded names before anything runs, lists dirty clones only when the guest can be inspected without starting it, asks `Remove <name> and everything in it?`, refuses without terminal and without `--yes`, runs `limactl delete --force` / `wsl --unregister`, drops the record entry and prints the current-guest message; `tests/guest_remove.rs` covers each case. MIG-1..3 are largely implemented and well tested (side-by-side Lima rename/create with the old VM's CPUs/memory/disk/yaml-read home mount, record right after the rename, resume after a failed create, WSL install next to the old distribution with first-user stop and rerun, old entry retired only after the new one is set up, no `do-release-upgrade`, no deletion, retired guests skipped by `refresh_guests`, other instances such as `gpux` untouched). The review fails on two defects reproduced against the working tree: `--check` writes the record on the resume path (s4-f1), and a failed record write after the rename leaves a non-resumable, unremovable orphan (s4-f2); two minor findings (s4-f3, s4-f4) cover the uncovered `setup --update` resume and the MIG-1 reading gaps.",
+      "findingIds": [
+        "s4-f1-check-resume-records",
+        "s4-f2-record-failure-after-rename",
+        "s4-f3-setup-update-ignores-interrupted-migration",
+        "s4-f4-mig1-version-reading-gaps"
+      ],
+      "recordedAt": "2026-10-14T15:47:03Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "7edb415382fc54daffcba917307bcd165f1d6cde7320b1549537917ff1369f40"
+      }
     }
   },
   "checkpoints": {
@@ -691,6 +889,14 @@
       },
       "reviewHash": "bb82297cbf1f185c3a881817ef56d67e76df5e7a464d7fbd7763274ec4f0d937",
       "recordedAt": "2026-10-14T15:35:07Z"
+    },
+    "s4-migration-removal": {
+      "snapshotId": "21810fbc16c5b4a979f7cf42d6b427e0163d3bd81d65249a1bec46adc7f7df83",
+      "commits": {
+        "rayx-cli": "2fa0e5275f5d03248ea5c53a8e6fd1d822f80c6a"
+      },
+      "reviewHash": "26381cd7c2a27579ef4aa2e555cbe23b83c90f37e51029636676f5aec02473c4",
+      "recordedAt": "2026-10-14T15:47:23Z"
     }
   },
   "findings": [
@@ -870,6 +1076,82 @@
         {
           "repositoryId": "rayx-cli",
           "path": "tests/guest_refresh.rs"
+        }
+      ]
+    },
+    {
+      "id": "s4-f1-check-resume-records",
+      "boundaryId": "s4-migration-removal",
+      "criterionIds": [
+        "MIG-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved; verified in the delta.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs"
+        }
+      ]
+    },
+    {
+      "id": "s4-f2-record-failure-after-rename",
+      "boundaryId": "s4-migration-removal",
+      "criterionIds": [
+        "MIG-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved; verified in the delta.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs"
+        }
+      ]
+    },
+    {
+      "id": "s4-f3-setup-update-ignores-interrupted-migration",
+      "boundaryId": "s4-migration-removal",
+      "criterionIds": [
+        "MIG-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved; verified in the delta.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs"
+        }
+      ]
+    },
+    {
+      "id": "s4-f4-mig1-version-reading-gaps",
+      "boundaryId": "s4-migration-removal",
+      "criterionIds": [
+        "MIG-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved; verified in the delta.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs"
         }
       ]
     }
