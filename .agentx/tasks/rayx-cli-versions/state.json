@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-versions",
-  "revision": 22,
+  "revision": 32,
   "planRevision": 1,
   "specHashes": {
     "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
@@ -29,10 +29,16 @@
       ]
     },
     "t04-vm-names": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "claude-impl-91b31a6e"
+      ]
     },
     "t05-update-target": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "claude-impl-91b31a6e"
+      ]
     },
     "t06-docs": {
       "status": "pending"
@@ -71,6 +77,15 @@
         }
       },
       "recordedAt": "2026-10-14T22:01:44Z"
+    },
+    "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2": {
+      "snapshot": {
+        "specHash": "a7930166344d2989a94ba045ddd41a3a7e1ca24bfcdf317453ce3d97ab5bde02",
+        "repositories": {
+          "rayx-cli": "dec4817cb4d8883374f8f526a01bc556614188f2ef641abb1f7ca94b18c8c93a"
+        }
+      },
+      "recordedAt": "2026-10-14T22:20:30Z"
     }
   },
   "checkResults": {
@@ -124,6 +139,40 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-versions/s2-guest-release-final-46ae4f41a38e.log",
       "logSha256": "9baa044eaf83ba835d147b10466e865357df7d6df5b7b81da1d748cbe96f708d",
       "inputsHash": "1d0daa630cc9333136f1450673f6fc3a15585e706e74881e75aa62f5c67d98ea"
+    },
+    "s3-named-vms/check-vm-names/final": {
+      "checkId": "check-vm-names",
+      "boundaryId": "s3-named-vms",
+      "phase": "final",
+      "batchId": "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2",
+      "definitionHash": "5bd8a8980af760c2ebd2f24922ac369b94ef990bcd941815304409442ab23a39",
+      "basisHash": "d462019efa1dc05ed51d99d730da450ea7da7e76f1f4820a4c4f0a60b7d8f338",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 23,
+      "durationSeconds": 0.4674,
+      "recordedAt": "2026-10-14T22:20:27Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s3-named-vms-final-520fc4ea40e0.log",
+      "logSha256": "67f7277e786a4f49bb27398573cf6b8ab50cf2254ac66b2ae6488c0cc6bafa8a",
+      "inputsHash": "7d86475241a6a83608db57cb73220d29a9e426d4ffdbf27d4ed25de5fdff0d30"
+    },
+    "s3-named-vms/check-update-target/final": {
+      "checkId": "check-update-target",
+      "boundaryId": "s3-named-vms",
+      "phase": "final",
+      "batchId": "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2",
+      "definitionHash": "39393806d3da4e1ca1b777c6faa4b514945cc3435842b45a8a0009bba97d1b2a",
+      "basisHash": "da18e55edc9dbb2df87922c8c2a5a002051bda55a764928b29b249958d2cf215",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 10,
+      "durationSeconds": 2.4911,
+      "recordedAt": "2026-10-14T22:20:30Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s3-named-vms-final-eaada9436f76.log",
+      "logSha256": "2c5403d173e1c049e9eaa4582f2acefa5b5f7d5fee65bf076071b991bd16d841",
+      "inputsHash": "fb85a88c4aee38204917bfdc535c06a6d091bb788fb2bfcb8519c04e1e941e99"
     }
   },
   "reviews": {
@@ -309,6 +358,137 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "3277f06e422ec328e486d0dc69f2bf2c33883af09106873c15d9e226baf7a0c1"
       }
+    },
+    "s3-named-vms": {
+      "reviewerId": "reviewer-s3-independent-1",
+      "snapshotId": "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2",
+      "criterionIds": [
+        "VM-1",
+        "VM-2",
+        "VM-3",
+        "VM-4",
+        "VM-5"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/name.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-1",
+            "VM-3"
+          ],
+          "sha256": "293a60813ef673503ec3949b639a12a7bb9585559a788e18c88e637eecd3c51c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-1",
+            "VM-4"
+          ],
+          "sha256": "50799b47c1f66d95aeb4cd4b2f529708675710cc21e42d92a2e48c02f77ce68a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-1",
+            "VM-2",
+            "VM-3",
+            "VM-5"
+          ],
+          "sha256": "215962cdecbf2182b9852e48e674d208b1a83d56a41c1782a8d89f028c24d4bd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/edit.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3",
+            "VM-5"
+          ],
+          "sha256": "7ad883dff25c129c35d63be3d02a9827fda732344b453e1729032ba1334993f9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3"
+          ],
+          "sha256": "36b182c5c6df5c58b4783daf3be01170e7c43f50d924543a60538f4d67ec5d91"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/remove.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3"
+          ],
+          "sha256": "d3a3d98c19f42c2072080ee0ee95cdc160215a46fe48f68b951b6d69c0612dab"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/guests.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3"
+          ],
+          "sha256": "949c48561b82a2a15dd90bbf0d60d36a9ec6abe5269b6bdb9c10185a41285b10"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3",
+            "VM-4"
+          ],
+          "sha256": "a37496d57025acecb39259e5ebdc68d9fb7ecca33a424dbe2a7042de1359c725"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-4"
+          ],
+          "sha256": "88d123693aa7b3c2536e712fb3200db21cf0850150afc0162796a5bf50fe99d8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/lima_named_vms.rs",
+          "kind": "test",
+          "criterionIds": [
+            "VM-1",
+            "VM-2",
+            "VM-3",
+            "VM-5"
+          ],
+          "sha256": "c02327f4fe90c4fb6a506cdc6926606fbcc033990fe039e603f4cb0a7f148832"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/update_target_vm.rs",
+          "kind": "test",
+          "criterionIds": [
+            "VM-4"
+          ],
+          "sha256": "88efd47f9781b691057946dc12577685b2c44f80cd4f5595f58a7c2be96d6fef"
+        }
+      ],
+      "summaryMarkdown": "Name rules, create/start/shell arguments, default-name byte-for-byte output, never-adopt (interrupted-migration exemption, other guest kind, unreadable record), per-name migration/resume/pending, `--vm` clap rules, `setup --update --vm` (names validated before any command, host part skipped, WSL names, --check, --release, notice only for targeted names), remove hint and doctor are implemented and covered by tests/lima_named_vms.rs and tests/update_target_vm.rs; all programs go through host::Runner, no password handling or elevation. The earlier finding (unreadable guests.json let a new VM be created that was then never adopted) is repaired in 4c2d0f5: creation stops before any VM command while the record is unreadable, --check still reports, and a new test covers names app and rayx. Non-blocking notes: LimaRequest::from_args falls back to rayx on an invalid --vm (run validates first); pending detection assumes a retired entry's recorded ubuntu equals the version in its name.",
+      "findingIds": [
+        "F-s3-unreadable-record-creates-unrecordable-vm"
+      ],
+      "recordedAt": "2026-10-14T22:20:50Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "3277f06e422ec328e486d0dc69f2bf2c33883af09106873c15d9e226baf7a0c1"
+      }
     }
   },
   "checkpoints": {
@@ -327,6 +507,14 @@
       },
       "reviewHash": "be62c0c9c2ad6cf3aad299c9dfc8dc9fc77a7280c8f1bbba53ae2b4008126663",
       "recordedAt": "2026-10-14T22:02:29Z"
+    },
+    "s3-named-vms": {
+      "snapshotId": "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2",
+      "commits": {
+        "rayx-cli": "4c2d0f5c40ebd425949a5873c5c30239eab37228"
+      },
+      "reviewHash": "25f75ba9daefb72a7f4d92354e50be9b96f35ebb2e3625b78d9229c5a405f9fe",
+      "recordedAt": "2026-10-14T22:21:01Z"
     }
   },
   "findings": [
@@ -415,6 +603,29 @@
           "repositoryId": "rayx-cli",
           "path": "tests/guest_release.rs",
           "symbol": "wsl_probes_the_release_before_an_older_distribution_is_replaced"
+        }
+      ]
+    },
+    {
+      "id": "F-s3-unreadable-record-creates-unrecordable-vm",
+      "boundaryId": "s3-named-vms",
+      "criterionIds": [
+        "VM-1",
+        "VM-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** with the record unreadable (`guests.json` unparsable or unreadable), `rayx setup --lima [--vm <name>]` must not create a VM it cannot record, because a VM missing from the record is now never adopted. The guest-layer invariant is that a failed read is never presented as an empty record, and the migration already guards the same hazard (`migrate_lima` calls `records::update_guests(.., |_| {})` and stops before any stop/rename when the record cannot be read or written).\n\n**Observed:** `lima::run_with` turns a failed `records::read_guests` into `GuestsFile::default()` and keeps the error in `unreadable`, but only uses it to word the never-adopt refusal for an already existing VM. When the VM does not exist (and no migration is pending), the `None` branch runs `limactl create` and `limactl start` and the guest steps; `guest::record_run` then fails on the same unreadable record (`records::record_guest` -> `read_guests_at` error, only printed, 'never fails the run'). Result: a VM that rayx just created is unrecorded. The next run refuses it as `<name> exists in Lima and rayx cannot tell whether it created it`, and once the owner repairs or deletes `guests.json` it is refused as `exists in Lima but was not created by rayx`, so the owner has to delete the VM rayx made by hand. Before this sprint nothing refused such a VM, so the trap is new with never-adopt. The same default-empty read also hides an interrupted migration's retired entry from `pending_lima`, so a new `<name>` is created from scratch instead of resuming. No test covers creation with an unreadable record (the only unreadable-record test starts from an existing VM).\n\n**Repair:** in `run_with`, when `unreadable` is `Some` and the run is not `--check`, and the VM is about to be created (existing is `None`), return `LimaError::Failed` with the record error and an instruction to fix or remove the file, before `sizing::customize` / `limactl create` (the same condition as the migration guard; `--check` may still print the plan). Add a test to `tests/lima_named_vms.rs`: unparsable `guests.json`, no VM in Lima, name `app` and `rayx` -> error carries the record problem, `limactl_lines` is empty (nothing created or started), record file left untouched.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/lima_named_vms.rs",
+          "symbol": "an_unreadable_record_stops_a_creation_before_any_vm_exists_and_check_still_reports"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "symbol": "run_with"
         }
       ]
     }
