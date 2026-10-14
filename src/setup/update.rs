@@ -12,7 +12,7 @@ use crate::project::Project;
 use super::guest;
 use super::lima::sizing::{Prompter, TerminalPrompter};
 use super::records::{self, SetupFile};
-use super::refresh::{RefreshOptions, refresh_guests};
+use super::refresh::{RefreshOptions, check_targets, refresh_guests};
 use super::wsl;
 use super::{Machine, Set, SystemMachine, ask_on_terminal, environment_for, run_sets};
 
@@ -171,6 +171,7 @@ pub fn run(args: &SetupArgs) -> u8 {
     let options = RefreshOptions {
         version: guest::guest_version(release.as_ref()),
         release,
+        targets: args.vm.clone(),
         yes: args.yes,
         check: args.check,
         lima_binary: std::env::var("RAYX_LIMA_BINARY")
@@ -211,6 +212,11 @@ pub fn run_with(
     prompter: Option<&mut dyn Prompter>,
     out: &mut dyn Write,
 ) -> u8 {
+    // Names are checked before the first command, the release probe included.
+    if let Err(error) = check_targets(options, host, machine) {
+        eprintln!("rayx: {error}");
+        return 1;
+    }
     let override_name = match host.os {
         Os::MacOs => options.lima_binary.is_some().then_some("RAYX_LIMA_BINARY"),
         Os::Windows => options.wsl_binary.is_some().then_some("RAYX_WSL_BINARY"),
@@ -220,7 +226,17 @@ pub fn run_with(
         eprintln!("rayx: {error}");
         return 1;
     }
-    let update = update_host(args, host, runner, machine, user_path, out, confirm);
+    // Naming guests is an explicit target, not a host run: the host part is skipped.
+    let update = if options.targets.is_empty() {
+        update_host(args, host, runner, machine, user_path, out, confirm)
+    } else {
+        let _ = writeln!(out, "the host part is skipped: --vm names guests only");
+        HostUpdate {
+            code: 0,
+            recorded: true,
+            unreadable: false,
+        }
+    };
     let refreshed = refresh_guests(options, host, runner, machine, prompter, out);
     if !update.recorded
         && !update.unreadable

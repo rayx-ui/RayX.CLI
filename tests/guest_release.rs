@@ -204,6 +204,10 @@ fn macos() -> HostFacts {
 fn mac_machine() -> FakeMachine {
     FakeMachine::new()
         .with_home(HOME)
+        .with_text(
+            format!("{HOME}/.config/rayx/guests.json"),
+            r#"{"version":1,"guests":[{"kind":"lima","name":"rayx","ubuntu":"24.04","flags":["--web"],"clones":[],"retired":false}]}"#,
+        )
         .with_program("brew", "/opt/homebrew/bin/brew")
         .with_program("limactl", "/opt/homebrew/bin/limactl")
 }
@@ -255,6 +259,7 @@ fn lima_request(release: Option<&str>) -> LimaRequest {
         binary_override: None,
         version: guest_version(release.as_ref()),
         release,
+        name: rayx_cli::setup::lima::VmName::default(),
         vm: VmFlags::default(),
         check: false,
         yes: false,
@@ -819,6 +824,7 @@ fn options(release: Option<&str>, yes: bool, check: bool) -> RefreshOptions {
             .as_ref()
             .map_or_else(|| "1.2.0".to_string(), Release::to_string),
         release,
+        targets: Vec::new(),
         yes,
         check,
         lima_binary: None,

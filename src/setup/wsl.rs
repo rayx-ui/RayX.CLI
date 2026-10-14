@@ -319,6 +319,7 @@ pub fn migrate_older_guest(
     let options = RefreshOptions {
         version: request.version.clone(),
         release: request.release.clone(),
+        targets: Vec::new(),
         yes,
         check,
         lima_binary: None,

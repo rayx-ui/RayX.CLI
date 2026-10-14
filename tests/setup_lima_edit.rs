@@ -40,6 +40,10 @@ fn runner(instances: String) -> Runner {
     })
 }
 
+/// What `guests.json` says when the VM `rayx` was created by rayx: an existing VM that is not in
+/// the record is never adopted.
+const RECORD: &str = r#"{"version":1,"guests":[{"kind":"lima","name":"rayx","ubuntu":"24.04","flags":["--web"],"clones":[],"retired":false}]}"#;
+
 fn request(vm: VmFlags) -> LimaRequest {
     LimaRequest {
         flags: Vec::new(),
@@ -47,6 +51,7 @@ fn request(vm: VmFlags) -> LimaRequest {
         binary_override: None,
         version: "1.0.0".into(),
         release: None,
+        name: rayx_cli::setup::lima::VmName::default(),
         vm,
         check: false,
         yes: false,
@@ -68,6 +73,7 @@ fn run(
         .with_home(HOME)
         .with_program("brew", "/opt/homebrew/bin/brew")
         .with_program("limactl", "/opt/homebrew/bin/limactl")
+        .with_text("/Users/dev/.config/rayx/guests.json", RECORD)
         .with_text("/Users/dev/.lima/rayx/lima.yaml", yaml);
     let host = HostFacts {
         os: Os::MacOs,

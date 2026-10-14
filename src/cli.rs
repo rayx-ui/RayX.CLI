@@ -52,6 +52,7 @@ pub enum Command {
 #[derive(Debug, Default, Args)]
 #[command(
     group(ArgGroup::new("guest").args(["wsl", "lima"])),
+    group(ArgGroup::new("vm_target").args(["lima", "update"]).multiple(true)),
     group(ArgGroup::new("release_target").args(["wsl", "lima", "update"]).multiple(true))
 )]
 pub struct SetupArgs {
@@ -97,6 +98,14 @@ pub struct SetupArgs {
     /// With --lima, --wsl or --update: put exactly this release (X.Y.Z, for example 1.0.1, also an older one) of the Linux rayx in the guest instead of this rayx's version; it is not remembered
     #[arg(long, requires = "release_target", value_name = "RELEASE")]
     pub release: Option<String>,
+    /// With --lima or --update: the Lima VM by name (default `rayx`; one VM per project). With --update, repeat it to refresh only these recorded guests and skip this machine's own update
+    #[arg(
+        long = "vm",
+        value_name = "NAME",
+        requires = "vm_target",
+        conflicts_with = "wsl"
+    )]
+    pub vm: Vec<String>,
     /// With --wsl or --lima: clone the current checkout into the guest (default `~/<checkout name>`)
     #[arg(
         long,

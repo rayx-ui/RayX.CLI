@@ -30,6 +30,7 @@ fn options(yes: bool, check: bool) -> RefreshOptions {
     RefreshOptions {
         version: "1.0.0".into(),
         release: None,
+        targets: Vec::new(),
         yes,
         check,
         lima_binary: None,

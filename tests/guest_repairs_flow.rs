@@ -184,6 +184,7 @@ fn request(yes: bool, check: bool) -> LimaRequest {
         binary_override: None,
         version: "1.0.0".into(),
         release: None,
+        name: rayx_cli::setup::lima::VmName::default(),
         vm: VmFlags::default(),
         check,
         yes,
@@ -489,6 +490,7 @@ fn after_a_migration_the_refresh_stops_the_vm_it_started_and_says_why() {
     let options = RefreshOptions {
         version: "1.0.0".into(),
         release: None,
+        targets: Vec::new(),
         yes: true,
         check: false,
         lima_binary: None,
@@ -546,9 +548,9 @@ fn after_a_migration_the_refresh_stops_the_vm_it_started_and_says_why() {
 }
 
 #[test]
-fn a_running_old_vm_with_no_record_is_replaced_not_edited() {
+fn a_running_old_vm_with_no_record_is_never_adopted_or_edited() {
     let config = tempfile::tempdir().expect("temp dir");
-    // Nothing is recorded: the VM's own Ubuntu decides.
+    // Nothing is recorded: the VM is not rayx's, whatever Ubuntu it runs.
     let machine = mac_machine(config.path(), "{\"version\":1,\"guests\":[]}");
     let mut runner = Lab::new(&[("rayx", "Running", "22.04")]).runner();
     let vm = VmFlags {
@@ -558,17 +560,16 @@ fn a_running_old_vm_with_no_record_is_replaced_not_edited() {
 
     let (result, _) = setup_lima(&flags_request(vm), &machine, &mut runner, None);
 
-    result.expect("migrates");
-    let changes = limactl_lines(&runner);
-    assert!(
-        changes.iter().all(|c| !c.starts_with("edit")),
-        "{changes:?}"
+    let error = result.expect_err("refused").to_string();
+    assert_eq!(
+        error,
+        "rayx exists in Lima but was not created by rayx: remove or rename it with limactl, or \
+         choose another --vm name"
     );
     assert!(
-        changes
-            .iter()
-            .any(|c| c.starts_with("create") && c.contains("--cpus=4")),
-        "{changes:?}"
+        limactl_lines(&runner).is_empty(),
+        "nothing was started, stopped, edited, renamed or created: {:?}",
+        limactl_lines(&runner)
     );
 }
 

@@ -209,6 +209,10 @@ fn the_mac_is_read_with_sysctl_and_df_on_the_lima_home_volume() {
     assert_eq!(parse_df_available(""), None);
 }
 
+/// What `guests.json` says when the VM `rayx` was created by rayx: an existing VM that is not in
+/// the record is never adopted.
+const RECORD: &str = r#"{"version":1,"guests":[{"kind":"lima","name":"rayx","ubuntu":"24.04","flags":["--web"],"clones":[],"retired":false}]}"#;
+
 fn request() -> LimaRequest {
     LimaRequest {
         flags: Vec::new(),
@@ -216,6 +220,7 @@ fn request() -> LimaRequest {
         binary_override: None,
         version: "1.0.0".into(),
         release: None,
+        name: rayx_cli::setup::lima::VmName::default(),
         vm: VmFlags::default(),
         check: false,
         yes: false,
@@ -290,6 +295,7 @@ fn create(
     let mut runner = mac.runner();
     let machine = FakeMachine::new()
         .with_home(HOME)
+        .with_text("/Users/dev/.config/rayx/guests.json", RECORD)
         .with_program("brew", "/opt/homebrew/bin/brew")
         .with_program("limactl", "/opt/homebrew/bin/limactl");
     let mut out = Vec::new();

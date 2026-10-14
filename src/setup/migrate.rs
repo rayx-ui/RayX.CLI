@@ -12,7 +12,7 @@ use crate::host::{CommandSpec, HostFacts, Runner};
 use super::guest::{self, CloneSource, Guest, LinuxBinary, pinned_ubuntu};
 use super::lima::edit::home_is_writable;
 use super::lima::sizing::Prompter;
-use super::lima::{self, INSTANCE, Instance, Tool, VmFlags, VmSettings};
+use super::lima::{self, Instance, Tool, VmFlags, VmName, VmSettings};
 use super::records::{self, CloneRecord, GuestRecord, GuestUpdate, GuestsFile, VmRecord};
 use super::refresh::RefreshOptions;
 use super::{Machine, wsl};
@@ -118,20 +118,21 @@ pub struct LimaOld {
     pub instance: Instance,
 }
 
-/// The migration an interrupted run left behind: a retired `rayx-<version>` VM in the record and
-/// in Lima, and no current `rayx` in the record.
-pub fn pending_lima(file: &GuestsFile, instances: &[Instance]) -> Option<LimaOld> {
+/// The migration an interrupted run left behind for the VM `name`: a retired `<name>-<version>`
+/// VM in the record and in Lima, and no current `<name>` in the record. Another name's retired VM
+/// never counts.
+pub fn pending_lima(file: &GuestsFile, instances: &[Instance], name: &VmName) -> Option<LimaOld> {
     let current = file
         .guests
         .iter()
-        .any(|g| g.kind == records::LIMA && g.name == INSTANCE && !g.retired);
+        .any(|g| g.kind == records::LIMA && g.name == name.as_str() && !g.retired);
     if current {
         return None;
     }
     file.guests
         .iter()
         .filter(|g| {
-            g.kind == records::LIMA && g.retired && g.migrating && g.name.starts_with("rayx-")
+            g.kind == records::LIMA && g.retired && g.migrating && g.name == name.retired(&g.ubuntu)
         })
         .find_map(|entry| {
             instances
@@ -156,6 +157,8 @@ pub struct LimaMigration<'a> {
     /// The `--vm-*` flags of this run, already validated: they size the new VM (the old one is
     /// never edited).
     pub vm_flags: VmFlags,
+    /// The VM being replaced and created again under the same name.
+    pub name: &'a VmName,
 }
 
 /// Replaces an old `rayx` VM with a new one from the pinned Ubuntu, side by side. The old VM must
@@ -170,11 +173,12 @@ pub fn migrate_lima(
     let tool = Tool {
         path_dir: m.path_dir.clone(),
     };
-    let resumed = old.current_name != INSTANCE;
+    let name = m.name.as_str();
+    let resumed = old.current_name != name;
     let old_name = if resumed {
         old.current_name.clone()
     } else {
-        format!("rayx-{}", old.version)
+        m.name.retired(&old.version)
     };
     let writable = m
         .machine
@@ -194,15 +198,15 @@ pub fn migrate_lima(
     };
 
     if !resumed {
-        let old_guest = Guest::lima(INSTANCE).with_path_dir(m.path_dir.clone());
+        let old_guest = Guest::lima(name).with_path_dir(m.path_dir.clone());
         let dirty = guest::dirty_clones(&old_guest, runner);
         let question = format!(
-            "Create {INSTANCE} with Ubuntu {} next to {old_name}?",
+            "Create {name} with Ubuntu {} next to {old_name}?",
             pinned_ubuntu()
         );
         let _ = writeln!(
             out,
-            "{INSTANCE} runs Ubuntu {}, older than {}: it is never upgraded in place. The old VM \
+            "{name} runs Ubuntu {}, older than {}: it is never upgraded in place. The old VM \
              is kept, retired, as {old_name} until you remove it: rayx lima remove {old_name}",
             old.version,
             pinned_ubuntu()
@@ -211,8 +215,8 @@ pub fn migrate_lima(
         if m.options.check {
             let _ = writeln!(
                 out,
-                "{question}\nwould run: limactl stop {INSTANCE}; limactl rename {INSTANCE} \
-                 {old_name}; limactl create ... {}; limactl start {INSTANCE}; then the Linux \
+                "{question}\nwould run: limactl stop {name}; limactl rename {name} \
+                 {old_name}; limactl create ... {}; limactl start {name}; then the Linux \
                  rayx, the recorded clones and rayx setup inside it",
                 guest::lima_template(pinned_ubuntu())
             );
@@ -221,10 +225,11 @@ pub fn migrate_lima(
         if !consent(m.options, prompter, &question) {
             return Ok((
                 Migration::Declined(format!(
-                    "{INSTANCE} runs Ubuntu {}, older than {}; nothing was changed: run `rayx \
-                     setup --lima --yes` to replace it",
+                    "{name} runs Ubuntu {}, older than {}; nothing was changed: run `rayx \
+                     setup {} --yes` to replace it",
                     old.version,
-                    pinned_ubuntu()
+                    pinned_ubuntu(),
+                    m.name.lima_flags()
                 )),
                 None,
             ));
@@ -232,12 +237,12 @@ pub fn migrate_lima(
         // The rename and its record are one resumable step: nothing is stopped or renamed unless
         // the record can be read and written.
         records::update_guests(m.machine, m.host.os, |_| {}).map_err(|e| {
-            format!("{e}; {INSTANCE} was not changed, fix or remove that file and run this again")
+            format!("{e}; {name} was not changed, fix or remove that file and run this again")
         })?;
         let instances = lima::list_instances(&tool, runner).map_err(|e| e.to_string())?;
         let running = instances
             .iter()
-            .find(|i| i.name == INSTANCE)
+            .find(|i| i.name == name)
             .unwrap_or(&old.instance)
             .is_running();
         if instances.iter().any(|i| i.name == old_name) {
@@ -247,25 +252,25 @@ pub fn migrate_lima(
             ));
         }
         if running {
-            let _ = writeln!(out, "==> lima: stopping the VM {INSTANCE}");
+            let _ = writeln!(out, "==> lima: stopping the VM {name}");
             lima::run_limactl(
                 runner,
                 &tool.spec(
                     CommandSpec::new("limactl")
-                        .args(["stop", INSTANCE])
+                        .args(["stop", name])
                         .interactive(),
                 ),
                 "stopping the VM",
             )
             .map_err(|e| e.to_string())?;
         }
-        let _ = writeln!(out, "==> lima: renaming the VM {INSTANCE} to {old_name}");
+        let _ = writeln!(out, "==> lima: renaming the VM {name} to {old_name}");
         lima::run_limactl(
             runner,
             &tool.spec(
                 CommandSpec::new("limactl")
                     // `rename` asks "start the instance now?" in a terminal unless told not to.
-                    .args(["rename", "--tty=false", INSTANCE, &old_name])
+                    .args(["rename", "--tty=false", name, &old_name])
                     .interactive(),
             ),
             "renaming the VM",
@@ -274,23 +279,23 @@ pub fn migrate_lima(
         let version = old.version.clone();
         let renamed = old_name.clone();
         if let Err(error) = records::update_guests(m.machine, m.host.os, |file| {
-            file.rename_and_retire(records::LIMA, INSTANCE, &renamed, &version);
+            file.rename_and_retire(records::LIMA, name, &renamed, &version);
         }) {
             // Put the name back so the next run starts from a state it understands.
             let undone = lima::run_limactl(
                 runner,
                 &tool.spec(
                     CommandSpec::new("limactl")
-                        .args(["rename", "--tty=false", &old_name, INSTANCE])
+                        .args(["rename", "--tty=false", &old_name, name])
                         .interactive(),
                 ),
                 "undoing the rename",
             );
             return Err(match undone {
-                Ok(()) => format!("{error}; the VM was renamed back to {INSTANCE}"),
+                Ok(()) => format!("{error}; the VM was renamed back to {name}"),
                 Err(_) => format!(
                     "{error}; the VM is now named {old_name}: rename it back with `limactl \
-                     rename {old_name} {INSTANCE}` and run this again"
+                     rename {old_name} {name}` and run this again"
                 ),
             });
         }
@@ -299,8 +304,8 @@ pub fn migrate_lima(
     if resumed && m.options.check {
         let _ = writeln!(
             out,
-            "A migration of {INSTANCE} was interrupted: {old_name} is renamed and recorded. Without \
-             --check this run would create {INSTANCE} from {} with the old VM's settings, then \
+            "A migration of {name} was interrupted: {old_name} is renamed and recorded. Without \
+             --check this run would create {name} from {} with the old VM's settings, then \
              set it up and record it",
             guest::lima_template(pinned_ubuntu())
         );
@@ -308,11 +313,11 @@ pub fn migrate_lima(
     }
     // The new VM, unless an interrupted run made it.
     let instances = lima::list_instances(&tool, runner).map_err(|e| e.to_string())?;
-    match instances.iter().find(|i| i.name == INSTANCE) {
+    match instances.iter().find(|i| i.name == name) {
         None => {
             let _ = writeln!(
                 out,
-                "==> lima: creating the VM {INSTANCE} (Ubuntu {}, {} CPUs, {} GiB memory, {} GiB \
+                "==> lima: creating the VM {name} (Ubuntu {}, {} CPUs, {} GiB memory, {} GiB \
                  disk, like {old_name})",
                 pinned_ubuntu(),
                 settings.cpus,
@@ -321,19 +326,19 @@ pub fn migrate_lima(
             );
             lima::run_limactl(
                 runner,
-                &tool.spec(lima::create_command(&settings, m.home)),
+                &tool.spec(lima::create_command(m.name, &settings, m.home)),
                 "creating the VM",
             )
             .map_err(|e| e.to_string())?;
-            lima::start_vm(runner, &tool, out).map_err(|e| e.to_string())?;
+            lima::start_vm(m.name, runner, &tool, out).map_err(|e| e.to_string())?;
         }
         Some(existing) if !existing.is_running() => {
-            lima::start_vm(runner, &tool, out).map_err(|e| e.to_string())?;
+            lima::start_vm(m.name, runner, &tool, out).map_err(|e| e.to_string())?;
         }
         Some(_) => {}
     }
 
-    let new_guest = Guest::lima(INSTANCE).with_path_dir(m.path_dir.clone());
+    let new_guest = Guest::lima(name).with_path_dir(m.path_dir.clone());
     let binary = LinuxBinary {
         version: m.options.version.clone(),
         arch: m.host.arch,
@@ -367,7 +372,7 @@ pub fn migrate_lima(
     for clone in restored.iter().map(Some).chain(std::iter::once(None)) {
         let update = GuestUpdate {
             kind: records::LIMA,
-            name: INSTANCE.to_string(),
+            name: name.to_string(),
             ubuntu: ubuntu.clone(),
             flags: recorded_flags.clone(),
             clone: clone.cloned(),
@@ -386,12 +391,12 @@ pub fn migrate_lima(
     }
     let _ = writeln!(
         out,
-        "{INSTANCE} now runs Ubuntu {ubuntu}. The old VM {old_name} is kept, retired; when you no \
+        "{name} now runs Ubuntu {ubuntu}. The old VM {old_name} is kept, retired; when you no \
          longer need it: rayx lima remove {old_name}"
     );
     Ok((
         Migration::Done {
-            new: INSTANCE.to_string(),
+            new: name.to_string(),
             old: old_name,
         },
         Some(vm),

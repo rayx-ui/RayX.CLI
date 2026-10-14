@@ -182,6 +182,7 @@ fn request(yes: bool, check: bool) -> LimaRequest {
         binary_override: None,
         version: "1.0.0".into(),
         release: None,
+        name: rayx_cli::setup::lima::VmName::default(),
         vm: VmFlags::default(),
         check,
         yes,
@@ -522,6 +523,7 @@ fn the_update_refresh_migrates_an_outdated_guest_instead_of_skipping_it() {
     let options = RefreshOptions {
         version: "1.0.0".into(),
         release: None,
+        targets: Vec::new(),
         yes: true,
         check: false,
         lima_binary: None,
@@ -854,7 +856,7 @@ fn a_finished_migration_is_not_a_pending_one_and_a_plain_removal_is_not_a_resume
     let instances = rayx_cli::setup::lima::parse_instances(
         "{\"name\":\"rayx-22.04\",\"status\":\"Stopped\",\"cpus\":6,\"memory\":12884901888,\"disk\":107374182400,\"dir\":\"/x\"}\n",
     );
-    assert!(pending_lima(&after_removal, &instances).is_none());
+    assert!(pending_lima(&after_removal, &instances, &Default::default()).is_none());
 }
 
 #[test]
@@ -866,6 +868,7 @@ fn the_update_refresh_reports_an_interrupted_migration_instead_of_exiting_0() {
     let options = RefreshOptions {
         version: "1.0.0".into(),
         release: None,
+        targets: Vec::new(),
         yes: true,
         check: false,
         lima_binary: None,
