@@ -129,7 +129,13 @@ the `rayx-cli-releases` epic; run them and record the results here):
 - Linux x64 in WSL, and `rayx setup --wsl` from the v1.0.0 Windows `rayx`: installs `rayx 1.0.0` into
   `~/.rayx/bin` of `Ubuntu-24.04`, a new WSL shell finds it, and `rayx self update --check` inside WSL
   reports up to date instead of the no-receipt message.
-- RayX CI: the pull request `rayx-ui/RayX#2` (pins the v1.0.0 installer in `pr-test.yml`) has not
-  run: its jobs were not started because GitHub reported a failed-payment/spending-limit state for
-  the account (2026-10-14). Re-run it once billing or the repository visibility is fixed; both jobs
-  (Rust Workspace, WASM Playwright WebGPU) must pass with the release-installed `rayx`.
+- RayX CI (`rayx-ui/RayX#2`, pins the v1.0.0 installer in `pr-test.yml`): after the GitHub Actions
+  billing was fixed the jobs ran for the first time (2026-10-14, attempt 5). The release-installed
+  `rayx` works: `Install rayx` (the v1.0.0 installer, `~/.rayx/bin` on `GITHUB_PATH`), `Install the
+  web set` and `Install the web and test sets` pass in both jobs. Both jobs then fail in steps that
+  have nothing to do with the pin: `cargo fmt --check` and `rayx app ... test wasm` cannot load the
+  workspace because RayX's `Cargo.toml` references the sibling `../RayX.SignalR` by path and the
+  workflow never checks it out. RayX `master` has failed the same way since 2026-10-08. Owner
+  decision: RayX is fixed separately so it builds without that sibling; this repository does not
+  work around it. Re-run `rayx-ui/RayX#2` after that fix; both jobs (Rust Workspace, WASM
+  Playwright WebGPU) must pass.
