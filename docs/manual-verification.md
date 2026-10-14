@@ -94,6 +94,26 @@ with `cargo build --release`, then the `\\wsl$\...` path or a copy on the Window
 | Doctor | `rayx doctor` | open: expect `wsl Ubuntu-24.04: running, disk <size>, Ubuntu 24.04, current` |
 | Removal refusal | `rayx wsl remove Debian` (a distribution `rayx` did not create) | open: expect `Debian was not created by rayx; remove it with wsl --unregister yourself`, exit 1 |
 
+Runbook for the Windows rows (PowerShell, from the checkout on the Windows disk; it logs everything
+to `rayx-man3.log` next to you, which you can paste into the table above):
+
+```powershell
+cargo build --release
+$rayx = "$PWD\target\release\rayx.exe"
+# Optional: a Linux build for the guest, made inside the distribution and copied to the Windows disk.
+# $env:RAYX_WSL_BINARY = "D:\rayx-linux\rayx"
+Start-Transcript -Path rayx-man3.log
+Get-Date -Format o
+& $rayx setup --wsl --web --clone --yes          # row 1: WSL setup on the guest layer
+Get-Content "$env:LOCALAPPDATA\rayx\guests.json" # row 2: Ubuntu-24.04 is recorded
+wsl -d Ubuntu-24.04 --exec bash -lc 'cat ~/.config/rayx/clones'   # row 3 (and `rayx wsl status`)
+& $rayx wsl status
+& $rayx setup --update --yes                      # row 4: refresh (apt upgrade + inner update)
+& $rayx doctor                                    # row 5: the guest report
+& $rayx wsl remove Debian --yes                   # row 6: refused when Debian is not a rayx guest
+Stop-Transcript
+```
+
 First release that contains the epic (MAN-4), from the previous release on the Mac and on Windows:
 
 | Check | Command | Result |
