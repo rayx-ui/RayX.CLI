@@ -1,0 +1,68 @@
+name: Release-plz
+
+# The one workflow that runs on pushes to `main`. It runs no tests: `ci.yml` covers the release pull
+# request. `release` tags `vX.Y.Z` when the version in Cargo.toml has no tag yet (the merged release
+# pull request), which starts `release.yml` (dist builds and creates the GitHub Release);
+# `release-pr` keeps the next release pull request up to date.
+#
+# RELEASE_PLZ_TOKEN is a fine-grained personal access token (see docs/releasing.md). Events made with
+# the default GITHUB_TOKEN start no workflows, so with it the release pull request would get no CI
+# and the pushed tag would not start the Release workflow.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: release
+    if: github.repository == 'rayx-ui/RayX.CLI'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: release-plz-release-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: false
+          rustflags: ""
+
+      - uses: release-plz/action@v0.5
+        with:
+          command: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
+  release-pr:
+    name: release-pr
+    if: github.repository == 'rayx-ui/RayX.CLI'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: release-plz-pr-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: false
+          rustflags: ""
+
+      - uses: release-plz/action@v0.5
+        with:
+          command: release-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}

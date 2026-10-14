@@ -1,0 +1,570 @@
+{
+  "schemaVersion": 6,
+  "epicId": "rayx-cli-releases",
+  "revision": 33,
+  "planRevision": 1,
+  "specHashes": {
+    "requirements": "65f211f39a94277d6e5596a4705791db542e42ae9d77bd7413edec7caf335a65",
+    "design": "59af04afb3da430461479d70ed144b0ecfdd908161ab6ff8e232eb1262443205",
+    "plan": "dd6453a76d5c61917755a0759bc152c193aa7b30dda9413a94adcdc80fd63dc6"
+  },
+  "tasks": {
+    "t01-dist-config": {
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
+    },
+    "t02-release-build-proof": {
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
+    },
+    "t03-release-plz": {
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
+    },
+    "t04-version-changelog": {
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
+    },
+    "t05-release-docs": {
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
+    },
+    "t06-dependency-rule": {
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
+    },
+    "t07-wsl-installer": {
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
+    },
+    "t08-first-release": {
+      "status": "pending"
+    },
+    "t09-host-installs": {
+      "status": "pending"
+    },
+    "t10-rayx-ci": {
+      "status": "pending"
+    }
+  },
+  "validationBatches": {
+    "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "86f66ecb82b977090a496b6c5929e2af91fbfaebb7015df095eafbb2f54fc737",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:17:25Z"
+    },
+    "94b765f05134a3f0bfbe4da6109368a01a2bcecf916d240a93b021d6be058d86": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "4759183b15b48d4470ed5e984cce0841b4d9520cf7580c3c3eb5c6dac49d9123",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:21:30Z"
+    },
+    "2b67132bc83aba2a96df5da679305bb500d87b7bca00ea0550e83a6b3eba4338": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "2158f973770681ba754c3319cb38a1dbf49be10ae6eaa279baee987cef5f0fc4",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:25:38Z"
+    },
+    "3b30541dd9ee13583830dde4bea8eafa37aece3bf84c2a7828b4b2d613ae05f4": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "29a04292a29c4eafcc75f327be31ac5c6a110d535982606eb67a71bcc1e4fddb",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:29:37Z"
+    },
+    "e461fad773a3a9a0f90da3640d12fcebdf37a0f6c673660ec6d4cad8855254e7": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "dba3e06a9c34324bc2112ffaf812a50f1e1994e9494f4d41c698478095ecd3c9",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:31:39Z"
+    }
+  },
+  "checkResults": {
+    "s1-release-build/check-release-config/final": {
+      "checkId": "check-release-config",
+      "boundaryId": "s1-release-build",
+      "phase": "final",
+      "batchId": "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8",
+      "definitionHash": "a7a6bfc0f582995be7a6b4488d3931e5a8753f5ffab4aa3b6067aaa76b077501",
+      "basisHash": "ffd437079f7bd0d06ab84145cd3f66a46b19bf50734443ac77ed60c5f757967f",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 5,
+      "durationSeconds": 0.2418,
+      "recordedAt": "2026-10-14T12:17:22Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s1-release-build-final-2b71f8910388.log",
+      "logSha256": "eb4909cf9d7fe26cc6eb377272ffb85824e14a8d1d53c52f1c2fb8405ed3c108",
+      "inputsHash": "48042b3af85a8a0cb47a49568e9916fedfe9266e0ff8ce4016e54a3113e7bfd4"
+    },
+    "s1-release-build/check-dist-plan/final": {
+      "checkId": "check-dist-plan",
+      "boundaryId": "s1-release-build",
+      "phase": "final",
+      "batchId": "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8",
+      "definitionHash": "8698ef13cb0fd496baf114362285969138f23794e1093a6ceab4858204ac8cb2",
+      "basisHash": "c727d379267e56262f83212fbb7be772e70be3de047160b38eb1da0cc30cf56e",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 2.7699,
+      "recordedAt": "2026-10-14T12:17:24Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s1-release-build-final-187d04f901e8.log",
+      "logSha256": "9639bbeae9c4e3aa5972f90a1924461b30ca1f55e2d3f7e5d7d3cd91cf9b75ec",
+      "inputsHash": "7a394641dcfcae0c39fe12c33826b9c65f33e73aa5465916bd30dff8942cd2ba"
+    },
+    "s2-release-automation/check-release-automation/final": {
+      "checkId": "check-release-automation",
+      "boundaryId": "s2-release-automation",
+      "phase": "final",
+      "batchId": "2b67132bc83aba2a96df5da679305bb500d87b7bca00ea0550e83a6b3eba4338",
+      "definitionHash": "9339bc185341db6f21a38c1cd6503ac029a84f45b65f2fff2e400a897a2a4bb2",
+      "basisHash": "d185e8485817c610608fc6e14a76ec562225ed7ab2bb74fd112b7faf8a502b0c",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 0.9983,
+      "recordedAt": "2026-10-14T12:25:38Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s2-release-automation-final-81f530b0bdc6.log",
+      "logSha256": "dc2bec7134d2fd595299f777439ea413b34374222d3e96b783775fc845fd8d7e",
+      "inputsHash": "df913f1e51ef69ee5f7eeeed63af7e365e39850d1536b55a69d72e577db21c1e"
+    },
+    "s2-release-automation/check-workflow-yaml/final": {
+      "checkId": "check-workflow-yaml",
+      "boundaryId": "s2-release-automation",
+      "phase": "final",
+      "batchId": "94b765f05134a3f0bfbe4da6109368a01a2bcecf916d240a93b021d6be058d86",
+      "definitionHash": "5d97c92f67920924f92680123165eb1a59cfdf281d19966e8fdaddfef412f855",
+      "basisHash": "3e24f81e6cdddf985d4fe905f9f64d5aeca60f626bc996ab8e881b7f67926ecc",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.0381,
+      "recordedAt": "2026-10-14T12:21:30Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s2-release-automation-final-b6b1016142a1.log",
+      "logSha256": "b5ef34948d119b8c9a2a83ea3fa7be28686336c326ed4fa8cbd531bc51a84a27",
+      "inputsHash": "5eb0a7772f6407b614dd5ed78d5fbd40267115bb31040efa96ecca50c5df578f"
+    },
+    "s3-dependency-rule/check-dependency-sources/final": {
+      "checkId": "check-dependency-sources",
+      "boundaryId": "s3-dependency-rule",
+      "phase": "final",
+      "batchId": "3b30541dd9ee13583830dde4bea8eafa37aece3bf84c2a7828b4b2d613ae05f4",
+      "definitionHash": "4a9123e61feb52783b5b0aed05d540b38cbc0c0efd81fad7dfc54b9c87d357bf",
+      "basisHash": "7fdcdaf1d97618eb9cb496952f0f0e5db9cb32d3ad1e3ca5d387b6383f86522f",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 13,
+      "durationSeconds": 0.2914,
+      "recordedAt": "2026-10-14T12:29:37Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s3-dependency-rule-final-40c28d977f0b.log",
+      "logSha256": "780382d6c0c91cbcb7b322e28a74cd7ec94531293ecdeda4e6b437f960e01d1b",
+      "inputsHash": "0b577601c58a40aebe9cde97f17db91bc776350993efec03634b7112e3494cd9"
+    },
+    "s4-wsl-installer/check-wsl-install/final": {
+      "checkId": "check-wsl-install",
+      "boundaryId": "s4-wsl-installer",
+      "phase": "final",
+      "batchId": "e461fad773a3a9a0f90da3640d12fcebdf37a0f6c673660ec6d4cad8855254e7",
+      "definitionHash": "2b9b586f89234e7a25120e537854e2759540fa140ca1a9c15e978c7b3d18cdb5",
+      "basisHash": "9219f8fdc03c8cce1dd6674fcdd711f4a9c24890107ed56b0cefb7b41d1bd398",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 1.3852,
+      "recordedAt": "2026-10-14T12:31:39Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s4-wsl-installer-final-c7aadd12ba5c.log",
+      "logSha256": "1116c6850916e858f27ea00670955fcf00aafeeab9d0e434bdf87d2a6efcaf59",
+      "inputsHash": "113a24ff1d13d90404a356c3faa951b2412e6a890d4dbc36a261183a12211553"
+    }
+  },
+  "reviews": {
+    "s1-release-build": {
+      "reviewerId": "reviewer-s1-rayx-cli-releases",
+      "snapshotId": "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8",
+      "criterionIds": [
+        "REL-1",
+        "REL-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "dist-workspace.toml",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "568e182cbedb40c860dd4e57b6eea4f2156e7fa19ba1df262dd7f16d8d06f4d6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release.yml",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1",
+            "REL-2"
+          ],
+          "sha256": "c5e9ff13eaede3d91c4f4fbe4bb04b140c6ef223374b7156dc299309caae214c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_config.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "41061a8e79668d4e4baa5fa6d049fefcd5de0e59f9798c0cad0d59393208f478"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release.yml",
+          "kind": "runtime",
+          "criterionIds": [
+            "REL-2"
+          ],
+          "sha256": "c5e9ff13eaede3d91c4f4fbe4bb04b140c6ef223374b7156dc299309caae214c"
+        }
+      ],
+      "summaryMarkdown": "REL-1: `dist-workspace.toml` carries every required key (dist 0.33.0, six targets, shell/powershell, sha256, install-updater false, github hosting, install-path `[$RAYX_HOME/bin, ~/.rayx/bin]`, attestations, pr-run-mode upload, windows-2022 custom runner with x86_64 host and no container, no allow-dirty). `release.yml` differs from the previous version only by dist's 0.33.0 output (version URL, attestation permissions and `actions/attest` step, rust-cache); tag trigger unchanged. `dist plan` (0.33.0) and `dist generate --check` succeed with a clean tree, and the plan matrix shows six hosted-runner entries, none with a container. The five tests in `tests/release_config.rs` assert the config and the generated workflow and pass. REL-2: Release run 38561390146 on draft PR #1 succeeded for all six build-local-artifacts jobs (aarch64-pc-windows-msvc on windows-2022, Attest step green) plus plan and build-global-artifacts. Re-extracted artifacts: all six `.sha256` match; aarch64 `rayx.exe` is PE32+ Aarch64, x86_64 one is x86-64; both musl binaries are static (static-pie / statically linked); macOS binaries are arm64 and x86_64 Mach-O; installers, sha256.sum and dist manifests are present. Both installers install to `$RAYX_HOME/bin` or `~/.rayx/bin` and write `rayx-cli-receipt.json` for app name `rayx-cli`, matching `APP_NAME` in `src/update.rs`. Rules and decision honoured: no hand edit, no allow-dirty, asset names unchanged, hosted runners only.",
+      "findingIds": [],
+      "recordedAt": "2026-10-14T12:18:23Z"
+    },
+    "s2-release-automation": {
+      "reviewerId": "reviewer-s2-rayx-cli-releases",
+      "snapshotId": "2b67132bc83aba2a96df5da679305bb500d87b7bca00ea0550e83a6b3eba4338",
+      "criterionIds": [
+        "RPZ-1",
+        "RPZ-2",
+        "RPZ-3",
+        "RPZ-4",
+        "DOC-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-1"
+          ],
+          "sha256": "05d064ad32a51a8de9eee1f60148e57908fb8b462de026157b4254d90b236d96"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release-plz.yml",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-2"
+          ],
+          "sha256": "d13603b9d8ef14facb769bf64f0c854f672ccd569c66f89a1c24c748e076f86d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.toml",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-3"
+          ],
+          "sha256": "9282003f56c8b21a905fc71b3f3a65f9fd76b844c4d9f3192a2e599919ec32f3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CHANGELOG.md",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-3"
+          ],
+          "sha256": "e26459a2c204c12a5d445afc266acbabcba62344e230b4ddb6e92b58b267b920"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-4"
+          ],
+          "sha256": "7b1afe21511ac79bfd4dc377957f97bdcdf9eab805dd0c6fb540562b90f166b3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-1"
+          ],
+          "sha256": "5767370212b168a434b94084fa5c83764715eb0452261b276c1d63aecf6a12e0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_automation.rs",
+          "kind": "test",
+          "criterionIds": [
+            "RPZ-1",
+            "RPZ-2",
+            "RPZ-3"
+          ],
+          "sha256": "aad162854079437db413b13c8fd7bf99a5273f00595b02b90aaf8137aec36fe5"
+        }
+      ],
+      "summaryMarkdown": "All five criteria are met. F-s2-1 is resolved by ff08766: release-plz.toml sets release_commits = \"^(feat|fix|perf)\", tests/release_automation.rs asserts it, and docs/releasing.md now states which commit types release and that breaking changes must be written feat!/fix!/perf!. A scratch run of release-plz 0.3.172 against ff08766 confirmed docs, chore(agentx) and refactor! commits produce no release, perf gives 1.0.1 and feat gives 1.1.0. Earlier checks stand: no-tag initial release is a no-op for release-pr, the changelog inserts above the hand-written 1.0.0 section, the 9 release_automation tests pass. GitHub cannot list release-plz.yml before it is on main (observed in s5, t08), and RELEASE_PLZ_TOKEN must exist before the first push to main that contains the workflow.",
+      "findingIds": [
+        "F-s2-1"
+      ],
+      "recordedAt": "2026-10-14T12:26:04Z"
+    },
+    "s3-dependency-rule": {
+      "reviewerId": "reviewer-s3-rayx-cli-releases",
+      "snapshotId": "3b30541dd9ee13583830dde4bea8eafa37aece3bf84c2a7828b4b2d613ae05f4",
+      "criterionIds": [
+        "DEP-1",
+        "DEP-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-1"
+          ],
+          "sha256": "ba1dc479f5b95840c3c0d6e46b9c886d6a3347b88bc7ac9e0355581f1803d219"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DEP-1"
+          ],
+          "sha256": "ba1dc479f5b95840c3c0d6e46b9c886d6a3347b88bc7ac9e0355581f1803d219"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/package_layout.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DEP-1"
+          ],
+          "sha256": "31489e2d1da54fc641577a0bd027aa8107f56dbd98aad9a00e43ad9f0d23de14"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CLAUDE.md",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-2"
+          ],
+          "sha256": "54c9c2cb89d95375f2af4627555ae68d3c39cd354ce4012800b5b7dbc569c4ec"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-2"
+          ],
+          "sha256": "54c9c2cb89d95375f2af4627555ae68d3c39cd354ce4012800b5b7dbc569c4ec"
+        }
+      ],
+      "summaryMarkdown": "DEP-2 holds (CLAUDE.md and AGENTS.md identical, Gpux public, RayX private). DEP-1 holds: the rule function is tested on inline accept/reject manifests and the real manifest, cargo metadata and Cargo.lock. Delta d31fd09 closes both findings: `registry`/`registry-index` keys are rejected in dependency and patch specs, resolved sources accept only the exact crates.io registry source (other registry+/sparse+ rejected), and `rev` must be a 7-40 hex commit in the manifest and in `?rev=...#` of resolved sources; 13 tests pass.",
+      "findingIds": [
+        "s3-f1-alternative-registry",
+        "s3-f2-rev-must-be-a-commit"
+      ],
+      "recordedAt": "2026-10-14T12:29:54Z"
+    },
+    "s4-wsl-installer": {
+      "reviewerId": "reviewer-s4-rayx-cli-releases",
+      "snapshotId": "e461fad773a3a9a0f90da3640d12fcebdf37a0f6c673660ec6d4cad8855254e7",
+      "criterionIds": [
+        "WSL-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "WSL-1"
+          ],
+          "sha256": "e661a31d8ea59d7002960e1478ffe6b9fb140e5fb647dfc284413be6ba41eb4b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_install.rs",
+          "kind": "test",
+          "criterionIds": [
+            "WSL-1"
+          ],
+          "sha256": "68a29e452b9736078a0d9efe38588ba23ada877c8ff4c0e711bae7ee0fd2cfd9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_plan.rs",
+          "kind": "test",
+          "criterionIds": [
+            "WSL-1"
+          ],
+          "sha256": "2dd310a64a8b347193a41ed08d886a218c7b5193221b99ef5963a068f4ab2e89"
+        }
+      ],
+      "summaryMarkdown": "WSL-1 holds. `LINUX_BINARY` is `$HOME/.rayx/bin/rayx` for the probe, the copy override and the inner `setup`. A non-matching version runs `set -o pipefail; curl --proto '=https' --tlsv1.2 -LsSf <v<version>/rayx-cli-installer.sh> | env -u RAYX_HOME sh && test -x <binary>` through `--exec bash -lc`; hand extraction into `~/.local/bin` is gone. Checked against the s1 generated installer: it has no prompts or /dev/tty reads (only `read -r RECEIPT` from a heredoc), installs to `$RAYX_HOME/bin` else `$HOME/.rayx/bin` (so dropping RAYX_HOME matches LINUX_BINARY), writes the receipt, edits PATH profiles itself, and `pipefail` makes a failed curl fail the step. The unsupported-architecture check precedes any download with the existing message; a matching version is not reinstalled. `wsl_install` (8) and `wsl_plan` (18) pass and assert the real script text and argv. The print-mode test is a sound proxy: `Runner::query` rejects interactive specs and is the only call that runs for real in print mode, and every mutating command (install, copy, inner setup, `--install`) is asserted interactive.",
+      "findingIds": [],
+      "recordedAt": "2026-10-14T12:32:43Z"
+    }
+  },
+  "checkpoints": {
+    "s1-release-build": {
+      "snapshotId": "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8",
+      "commits": {
+        "rayx-cli": "53100862326d8de71ec45d5c9e5c74eefc1588fb",
+        "rayx": "66875570b2d51a8e7e855114430dbcd96e619b9a"
+      },
+      "reviewHash": "382a2d4b19addb028ca28762e17d238302802b533e7f38b9442aac03a0b1d314",
+      "recordedAt": "2026-10-14T12:18:36Z"
+    },
+    "s2-release-automation": {
+      "snapshotId": "2b67132bc83aba2a96df5da679305bb500d87b7bca00ea0550e83a6b3eba4338",
+      "commits": {
+        "rayx-cli": "ff08766324020adb15885cadf21910fc4e2d4916",
+        "rayx": "66875570b2d51a8e7e855114430dbcd96e619b9a"
+      },
+      "reviewHash": "025c140a28ca1dcfb83c4570e9b132e651852f8fbd23d903d5cc2959ddda2e27",
+      "recordedAt": "2026-10-14T12:26:11Z"
+    },
+    "s3-dependency-rule": {
+      "snapshotId": "3b30541dd9ee13583830dde4bea8eafa37aece3bf84c2a7828b4b2d613ae05f4",
+      "commits": {
+        "rayx-cli": "d31fd09511f6388005866ed51ed8fe8cae061b93",
+        "rayx": "66875570b2d51a8e7e855114430dbcd96e619b9a"
+      },
+      "reviewHash": "c854ac2256fcd67bf3b58061f230973153e36c11f441b9b2ceaeccd675eb56c2",
+      "recordedAt": "2026-10-14T12:30:02Z"
+    },
+    "s4-wsl-installer": {
+      "snapshotId": "e461fad773a3a9a0f90da3640d12fcebdf37a0f6c673660ec6d4cad8855254e7",
+      "commits": {
+        "rayx-cli": "ccc72bc9424ec0fd1b9312f12d6d82e7af36169c",
+        "rayx": "66875570b2d51a8e7e855114430dbcd96e619b9a"
+      },
+      "reviewHash": "d7439278a26cd566e1a2f21309be7bc79065274a9d7d7bae546d9d505a8c5385",
+      "recordedAt": "2026-10-14T12:32:52Z"
+    }
+  },
+  "findings": [
+    {
+      "id": "F-s2-1",
+      "boundaryId": "s2-release-automation",
+      "criterionIds": [
+        "RPZ-4",
+        "RPZ-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Expected: docs/releasing.md says `docs:`, `test:`, `ci:`, `chore:`, `refactor:` commits cause 'no release on their own', and release PRs only follow releasable commits. Observed (release-plz 0.3.172, scratch clone of HEAD with tag v1.0.0, `release-plz update --config release-plz.toml`): any commit that touches the package (the package is the whole repository) bumps the patch version: `docs:`, `chore:`, `refactor:`, `ci:`, `test:` and even a `chore(agentx)` commit that only changes `.agentx/memory/a.md` each produce `1.0.0 -> 1.0.1`. So the doc table is wrong, and every `chore(agentx)` sprint sync on main would open or refresh a release PR with an empty or noise-only changelog. Repair: add `release_commits = \"^(feat|fix|perf)\"` to `[workspace]` in release-plz.toml (verified in the scratch clone: docs/chore/chore(agentx) commits then produce no update, `fix` -> 1.0.1, `perf` -> 1.0.1, `feat!` -> 2.0.0, and docs commits are still listed in the changelog when a `fix` triggers the release). Assert the key in tests/release_automation.rs (changelog/config test). Then make docs/releasing.md match: state that only `feat`, `fix` and `perf` commits (and their `!` forms) start a release, that other types are listed in the next one, and that a breaking change must be marked on a `feat!`/`fix!`/`perf!` commit (a `BREAKING CHANGE:` footer on another type does not trigger a release); or widen the regex to `^(feat|fix|perf)|!:` and say so. If the owner prefers every commit to release, instead correct the table to say so and drop the 'no release on their own' row.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_automation.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md"
+        }
+      ]
+    },
+    {
+      "id": "s3-f1-alternative-registry",
+      "boundaryId": "s3-dependency-rule",
+      "criterionIds": [
+        "DEP-1"
+      ],
+      "descriptionMarkdown": "**Expected:** DEP-1 accepts crates.io only (plus pinned public git); a dependency a clean clone cannot fetch must be rejected. **Observed:** a dependency from an alternative (private/other) registry passes both gates. `dependency_violations` never looks at the `registry` / `registry-index` keys, and `source_violation` returns `None` for any source starting with `registry+` (`tests/dependency_sources.rs`, `source_violation`), so `foo = { version = \"1\", registry = \"internal\" }` and a Cargo.lock/`cargo metadata` source `registry+https://private.example/index` are accepted. (Verified by reading the code paths; the previous `package_layout` test had the same `starts_with(\"registry+\")` looseness, but DEP-1 and the DEP-2 rule text say crates.io.)\n\n**Repair:** (1) in `dependency_violations` push a violation when `spec` contains `registry` or `registry-index` (the same for `[patch]` entries, which go through it); (2) in `source_violation` accept only exactly `registry+https://github.com/rust-lang/crates.io-index` (what cargo prints for crates.io, including with the sparse protocol; the real lockfile already uses it) and reject any other `registry+`/`sparse+` source; (3) add inline reject cases: `registry = \"internal\"`, `registry-index = \"https://example.com/index\"` in `[dependencies]` and in a `[patch.crates-io]` entry, and a `source_violation(\"a\", \"registry+https://private.example/index\")` assertion.",
+      "severity": "major",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "symbol": "alternative_registries_are_rejected"
+        }
+      ]
+    },
+    {
+      "id": "s3-f2-rev-must-be-a-commit",
+      "boundaryId": "s3-dependency-rule",
+      "criterionIds": [
+        "DEP-1"
+      ],
+      "descriptionMarkdown": "**Expected:** git dependencies are pinned, not selected by a moving ref (DEP-1: reject `branch`, `tag` or nothing). **Observed:** `rev` is only checked for presence, so `gpux = { git = \"https://github.com/rayx-ui/Gpux\", rev = \"main\" }` (or `rev = \"refs/heads/main\"`/a tag name; cargo accepts any ref in `rev`) is accepted; the lockfile source is then `?rev=main#<sha>`, which `source_violation` also accepts via `contains(\"?rev=\")`. The build is only as reproducible as the lock file, contradicting the rule text 'pinned to a `rev`'.\n\n**Repair:** in `dependency_violations` require the `rev` value to be a string of 7-40 hex digits (`rev.len() in 7..=40 && all ascii hexdigit`), pushing a violation such as 'rev must be a commit hash' otherwise (also for `[patch]` entries), and make `source_violation` check that the text between `?rev=` and `#` is hex the same way. Add reject cases `rev = \"main\"` and `rev = \"refs/heads/main\"` to `git_dependencies_must_be_pinned_by_rev` and a `git+...?rev=main#0123` case to `resolved_sources_are_registry_or_pinned_public_git`; the existing accept samples use `rev = \"abc\"`/`\"a\"`, so lengthen them to real-looking hashes.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "symbol": "git_rev_must_be_a_commit_hash"
+        }
+      ]
+    }
+  ],
+  "handoffMarkdown": "",
+  "protectedPaths": {
+    "rayx-cli": {
+      ".agentx/tasks/rayx-cli-foundation/**": "195289e41107bb67bba3ca4b2308e643cfd1821052238e1e3856f2546074b5f8"
+    },
+    "rayx": {
+      ".agentx/tasks/rayx-cli-foundation/**": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "rayx:crates/**": "d1c22d0a56840a3b9022087fc8a56c253b447485797e421574304eddccf65944",
+      "rayx:apps/**": "e5ab4711b0ceb561da4834bdf6a3ff6600074e3fddc465319dc275c3c9ff032f",
+      "rayx:.agentx/tasks/**": "d92d223a99c82b9742398b05452477042917508f7f0ca5fa8b30f6bb8b985362"
+    }
+  }
+}

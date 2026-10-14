@@ -3,7 +3,8 @@
 `rayx` is the RayX command-line tool. It sets up a machine for gpux and RayX work (`rayx setup`,
 `rayx doctor`, `rayx setup --wsl`), updates itself (`rayx self update`), and builds, runs, packages
 and tests RayX apps in any project (`rayx app ...`, `rayx fmt`). The repository is public
-(`rayx-ui/RayX.CLI`, Apache-2.0); RayX (`../RayX`) and Gpux (`../Gpux`) are private siblings.
+(`rayx-ui/RayX.CLI`, Apache-2.0); Gpux (`../Gpux`, `rayx-ui/Gpux`) is a public sibling (Apache-2.0)
+and RayX (`../RayX`) is private.
 
 ## Layout
 
@@ -11,8 +12,12 @@ and tests RayX apps in any project (`rayx app ...`, `rayx fmt`). The repository 
   `rayx` (`src/main.rs`). Modules: `cli`, `host`, `project`, `setup` (with `doctor` and WSL),
   `app` (moved from RayX xtask), `fmt`, `update`. Add a crate only when a second consumer needs a
   module.
-- Dependencies come from crates.io only. No `path` or `git` dependency on RayX, Gpux or any
-  private repository, and no `[patch]`: the public repository must build on its own.
+- Dependencies must be fetchable by anyone who clones this public repository, on any machine and
+  CI runner: crates.io; public git repositories over `https://` pinned to a `rev` (Gpux included);
+  and `[patch]` for a recorded reason, with a comment directly above it linking the upstream issue
+  or pull request, removed once upstream releases the change. No `path` dependency on a sibling
+  checkout, no git dependency on a `branch` or `tag`, no `[replace]`, and no dependency on RayX or
+  any other private repository (`tests/dependency_sources.rs` enforces this).
 - Nothing decides which project to work on from where `rayx` was compiled: no
   `env!("CARGO_MANIFEST_DIR")` outside tests. Version pins come from the project (`Cargo.lock`,
   `rust-toolchain.toml`, `[workspace.metadata.rayx]`); built-in defaults live in one table in

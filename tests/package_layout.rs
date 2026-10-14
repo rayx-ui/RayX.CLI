@@ -22,10 +22,6 @@ fn metadata() -> serde_json::Value {
     serde_json::from_slice(&output.stdout).expect("cargo metadata emits JSON")
 }
 
-fn manifest() -> toml::Table {
-    read_toml(&root().join("Cargo.toml"))
-}
-
 fn read_toml(path: &Path) -> toml::Table {
     fs::read_to_string(path)
         .unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
@@ -72,53 +68,6 @@ fn main_is_a_thin_wrapper_over_the_library() {
         main.lines().filter(|l| !l.trim().is_empty()).count() <= 6,
         "main.rs stays a thin wrapper:\n{main}"
     );
-}
-
-#[test]
-fn dependencies_come_from_crates_io_only() {
-    let metadata = metadata();
-    let package = package(&metadata);
-    for dependency in package["dependencies"]
-        .as_array()
-        .expect("dependencies array")
-    {
-        let name = dependency["name"].as_str().unwrap_or("?");
-        let source = dependency["source"].as_str().unwrap_or("");
-        assert!(
-            source.starts_with("registry+"),
-            "dependency {name} must come from a registry, found source {source:?}"
-        );
-        assert!(
-            dependency.get("path").is_none_or(|p| p.is_null()),
-            "dependency {name} must not be a path dependency"
-        );
-    }
-
-    let manifest = manifest();
-    assert!(!manifest.contains_key("patch"), "no [patch] section");
-    assert!(!manifest.contains_key("replace"), "no [replace] section");
-    assert_registry_only(&toml::Value::Table(manifest), false);
-}
-
-/// Walks a manifest and fails on any dependency declared with `path` or `git`.
-fn assert_registry_only(value: &toml::Value, in_dependencies: bool) {
-    let Some(table) = value.as_table() else {
-        return;
-    };
-    for (key, child) in table {
-        if in_dependencies {
-            if let Some(dependency) = child.as_table() {
-                for forbidden in ["path", "git"] {
-                    assert!(
-                        !dependency.contains_key(forbidden),
-                        "dependency {key} must not use `{forbidden}`"
-                    );
-                }
-            }
-        } else {
-            assert_registry_only(child, key.ends_with("dependencies"));
-        }
-    }
 }
 
 #[test]

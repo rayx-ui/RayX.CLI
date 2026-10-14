@@ -6,22 +6,42 @@ its own.
 
 ## Install
 
-macOS and Linux:
+Latest release, macOS and Linux:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/rayx-ui/RayX.CLI/releases/latest/download/rayx-cli-installer.sh | sh
 ```
 
-Windows (PowerShell):
+Latest release, Windows (PowerShell):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -c "irm https://github.com/rayx-ui/RayX.CLI/releases/latest/download/rayx-cli-installer.ps1 | iex"
 ```
 
-Until the first release is published, build it from source: `cargo install --locked --git https://github.com/rayx-ui/RayX.CLI --branch feature/initial-setup rayx-cli` (drop `--branch` once the work is merged to `main`).
+A pinned version (here 1.0.0) uses the same installers from that release:
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/rayx-ui/RayX.CLI/releases/download/v1.0.0/rayx-cli-installer.sh | sh
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/rayx-ui/RayX.CLI/releases/download/v1.0.0/rayx-cli-installer.ps1 | iex"
+```
+
+The installer puts `rayx` in `~/.rayx/bin` (`$RAYX_HOME/bin` when `RAYX_HOME` is set), adds that
+directory to your `PATH` (open a new shell afterwards) and writes the install receipt that
+`rayx self update` reads. Run the installer again, or `rayx self update`, to update in place.
 
 Release binaries cover Windows x64 and ARM64, Linux x64 and ARM64 (static musl), and macOS ARM64
-and x64. Update an installed `rayx` with `rayx self update`.
+and x64. Every archive carries a GitHub artifact attestation; check one you downloaded with
+
+```bash
+gh attestation verify rayx-cli-aarch64-apple-darwin.tar.xz --repo rayx-ui/RayX.CLI
+```
+
+If you download an archive by hand in a browser on macOS, remove the quarantine flag with
+`xattr -d com.apple.quarantine rayx` (the binaries are not notarized yet); the installers need no
+such step. How releases are made, and how to check one, is in [Releasing `rayx`](docs/releasing.md).
 
 ## Commands
 
