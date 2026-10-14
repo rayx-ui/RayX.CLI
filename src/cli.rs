@@ -171,11 +171,14 @@ pub struct CompactArgs {
 /// Subcommands of `rayx self`.
 #[derive(Debug, Subcommand)]
 pub enum SelfCommand {
-    /// Replace this rayx with the latest release
+    /// Replace this rayx with the latest release, or with the one named by --release
     Update {
         /// Report whether a newer release exists without installing it
         #[arg(long)]
         check: bool,
+        /// Install exactly this release (X.Y.Z, for example 1.0.1), also an older one
+        #[arg(long, value_name = "RELEASE")]
+        release: Option<String>,
         /// After installing, refresh this machine's setup and guests with the new rayx without asking
         #[arg(long, conflicts_with = "check")]
         yes: bool,

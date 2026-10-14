@@ -49,6 +49,18 @@ impl Backend for Fake {
         self.installed = true;
         self.install.clone()
     }
+    fn release_exists(
+        &mut self,
+        _release: &rayx_cli::release::Release,
+    ) -> rayx_cli::release::Existence {
+        unreachable!("the plain update never asks for a named release")
+    }
+    fn install_release(
+        &mut self,
+        _release: &rayx_cli::release::Release,
+    ) -> Result<Version, String> {
+        unreachable!("the plain update never installs a named release")
+    }
 }
 
 #[derive(Default)]
@@ -225,7 +237,7 @@ fn the_command_line_takes_yes_but_not_with_check() {
     };
     match parse(&["--yes"]).expect("--yes").command {
         Command::SelfCommand {
-            command: SelfCommand::Update { check, yes },
+            command: SelfCommand::Update { check, yes, .. },
         } => {
             assert!(yes && !check);
         }
