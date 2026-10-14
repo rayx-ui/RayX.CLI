@@ -887,32 +887,25 @@ fn the_update_refresh_reports_an_interrupted_migration_instead_of_exiting_0() {
 }
 
 #[test]
-fn vm_flags_on_an_older_vm_do_not_skip_the_version_check() {
+fn vm_flags_on_an_older_vm_are_not_applied_to_it_and_a_declined_replacement_changes_nothing() {
     let config = tempfile::tempdir().expect("temp dir");
     let machine = mac_machine(config.path(), OLD_RECORD);
     let mut runner = Lab::new(&[("rayx", "Running", "22.04")]).runner();
-    let mut asked = request(true, false);
+    let mut asked = request(false, false);
     asked.vm = VmFlags {
         cpus: Some(8),
         ..VmFlags::default()
     };
-    let mut no = ScriptedPrompter::always(false).with_confirms([true, false]);
-    asked.yes = false;
+    let mut no = ScriptedPrompter::always(false);
 
     let (result, _) = setup_lima(&asked, &machine, &mut runner, Some(&mut no));
 
     let error = result.expect_err("replacement declined");
     assert!(matches!(error, LimaError::Declined(_)), "{error}");
-    let changes = limactl_lines(&runner);
     assert!(
-        changes
-            .iter()
-            .any(|c| c.starts_with("edit --tty=false rayx --cpus=8")),
-        "{changes:?}"
-    );
-    assert!(
-        changes.iter().all(|c| !c.starts_with("rename")),
-        "{changes:?}"
+        limactl_lines(&runner).is_empty(),
+        "the old VM is never edited: {:?}",
+        limactl_lines(&runner)
     );
 }
 

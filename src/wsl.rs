@@ -265,10 +265,13 @@ pub fn parse_status(text: &str) -> (Option<u64>, Option<u64>, Vec<BuildOutput>) 
                     fields.next().and_then(|v| v.trim().parse().ok()),
                     fields.next().filter(|path| path.starts_with('/')),
                 ) {
-                    outputs.push(BuildOutput {
-                        path: path.to_string(),
-                        bytes,
-                    });
+                    // A clone listed in both the guest-neutral and the legacy clones file is one.
+                    if outputs.iter().all(|o: &BuildOutput| o.path != path) {
+                        outputs.push(BuildOutput {
+                            path: path.to_string(),
+                            bytes,
+                        });
+                    }
                 }
             }
             _ => {}

@@ -725,7 +725,7 @@ fn a_record_that_is_not_text_is_left_untouched_too() {
     let error = record_guest(&machine, Os::MacOs, &update("lima", "rayx", &[]), false)
         .expect_err("not text");
 
-    assert!(matches!(error, RecordError::Unparsable { .. }), "{error}");
+    assert!(matches!(error, RecordError::Unreadable { .. }), "{error}");
     assert_eq!(
         std::fs::read(&path).expect("file"),
         [0xff, 0xfe, 0x00, 0x7b]

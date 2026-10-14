@@ -5,11 +5,11 @@
 use std::io::{IsTerminal, Write};
 
 use crate::cli::RemoveArgs;
-use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
+use crate::host::{CommandSpec, HostFacts, Os, Runner};
 
 use super::guest::{self, Guest, GuestKind};
 use super::lima::sizing::{Prompter, TerminalPrompter};
-use super::lima::{lima_path_dir, parse_instances};
+use super::lima::{self, lima_path_dir};
 use super::records;
 use super::{Machine, SystemMachine};
 
@@ -112,17 +112,8 @@ pub fn remove_guest(
     // removal); a registered WSL distribution starts on demand.
     let present = match kind {
         GuestKind::Lima => {
-            let spec = CommandSpec::new("limactl").args(["list", "--json"]);
-            let spec = match &path_dir {
-                Some(dir) => spec.env("PATH", guest::path_with(dir)),
-                None => spec,
-            };
-            let instances = runner
-                .query(&spec)
-                .ok()
-                .filter(Outcome::is_success)
-                .map(|outcome| parse_instances(&outcome.stdout))
-                .unwrap_or_default();
+            let instances =
+                lima::list_instances_strict(&path_dir, runner).map_err(RemoveError::Failed)?;
             instances
                 .iter()
                 .find(|i| i.name == name)

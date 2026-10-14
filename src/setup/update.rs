@@ -123,6 +123,25 @@ pub fn update_host(
     }
 }
 
+/// `RAYX_WSL_BINARY` as the distribution reads it. One that is not on a Windows drive cannot be
+/// reached from WSL: it is reported (through `warn`) instead of silently replaced by the release
+/// installer.
+pub fn wsl_binary_for_refresh(
+    path: Option<std::path::PathBuf>,
+    warn: &mut dyn FnMut(String),
+) -> Option<String> {
+    let path = path?;
+    match wsl::to_wsl_path(&path) {
+        Ok(linux) => Some(linux),
+        Err(error) => {
+            warn(format!(
+                "RAYX_WSL_BINARY is ignored and the release installer is used: {error}"
+            ));
+            None
+        }
+    }
+}
+
 /// Runs `rayx setup --update` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
@@ -157,7 +176,9 @@ pub fn run(args: &SetupArgs) -> u8 {
         lima_binary: std::env::var("RAYX_LIMA_BINARY")
             .ok()
             .filter(|path| !path.trim().is_empty()),
-        wsl_binary: wsl::binary_override_from_env().and_then(|path| wsl::to_wsl_path(&path).ok()),
+        wsl_binary: wsl_binary_for_refresh(wsl::binary_override_from_env(), &mut |warning| {
+            eprintln!("rayx: {warning}");
+        }),
     };
     let mut prompter = TerminalPrompter {
         terminal: interactive,

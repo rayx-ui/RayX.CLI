@@ -324,6 +324,16 @@ pub fn run_setup_inside(
         .map_err(|error| format!("rayx setup inside {}: {error}", guest.name))
 }
 
+/// Whether a WSL distribution is running now (`wsl --list --running`): a query about a stopped
+/// distribution would start it, which `--check` must not do.
+pub fn wsl_is_running(name: &str, runner: &mut Runner) -> bool {
+    runner
+        .query(&CommandSpec::new("wsl").args(["--list", "--running", "--quiet"]))
+        .ok()
+        .filter(Outcome::is_success)
+        .is_some_and(|outcome| text(&outcome).lines().any(|line| line.trim() == name))
+}
+
 /// The version the guest's Linux `rayx` reports (`rayx 1.0.0`), when it has one.
 pub fn linux_binary_version(guest: &Guest, runner: &mut Runner) -> Option<String> {
     runner

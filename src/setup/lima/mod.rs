@@ -117,7 +117,7 @@ impl LimaRequest {
 }
 
 /// What stopped `--lima`.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum LimaError {
     NotMacOs,
     /// The Mac, Homebrew or Lima is not usable; the message says what to do.
@@ -278,6 +278,7 @@ pub fn run(args: &SetupArgs) -> u8 {
             return 1;
         }
     };
+    let existed_before = !request.check && instance_exists(&machine, &mut runner);
     let interactive = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
     let mut prompter = TerminalPrompter {
         terminal: interactive,
@@ -296,6 +297,7 @@ pub fn run(args: &SetupArgs) -> u8 {
             0
         }
         Err(error) => {
+            record_failed_first_run(&request, &host, &machine, &mut runner, existed_before);
             eprintln!("rayx: {error}");
             1
         }
@@ -348,6 +350,60 @@ pub fn record_outcome(
         outcome.vm,
         runner,
     );
+}
+
+/// Whether the VM `rayx` exists, read before a run so a failed first run can tell what it made.
+pub fn instance_exists(machine: &dyn Machine, runner: &mut Runner) -> bool {
+    let tool = Tool {
+        path_dir: lima_path_dir(machine),
+    };
+    list_instances(&tool, runner)
+        .map(|instances| instances.iter().any(|i| i.name == INSTANCE))
+        .unwrap_or(false)
+}
+
+/// A first run that made the VM and then failed (the Linux `rayx`, the clone or the inner setup)
+/// still leaves a guest `rayx` manages: it is recorded so doctor, `setup --update` and `rayx lima
+/// remove` know it. A run that did not make the VM, or `--check`, records nothing.
+pub fn record_failed_first_run(
+    request: &LimaRequest,
+    host: &HostFacts,
+    machine: &dyn Machine,
+    runner: &mut Runner,
+    existed_before: bool,
+) {
+    if request.check || existed_before {
+        return;
+    }
+    let tool = Tool {
+        path_dir: lima_path_dir(machine),
+    };
+    let Ok(instances) = list_instances(&tool, runner) else {
+        return;
+    };
+    let Some(instance) = instances.iter().find(|i| i.name == INSTANCE) else {
+        return;
+    };
+    let writable = machine
+        .read_to_string(&Path::new(&instance.dir).join("lima.yaml"))
+        .zip(machine.home())
+        .is_some_and(|(yaml, home)| edit::home_is_writable(&yaml, &home));
+    let update = records::GuestUpdate {
+        kind: records::LIMA,
+        name: INSTANCE.to_string(),
+        ubuntu: pinned_ubuntu().to_string(),
+        flags: Vec::new(),
+        clone: None,
+        vm: Some(VmRecord {
+            cpus: instance.cpus,
+            memory_gib: u32::try_from(instance.memory_gib()).unwrap_or(u32::MAX),
+            disk_gib: u32::try_from(instance.disk_gib()).unwrap_or(u32::MAX),
+            home_writable: writable,
+        }),
+    };
+    if let Err(error) = records::record_guest(machine, host.os, &update, false) {
+        eprintln!("rayx: {error}");
+    }
 }
 
 /// The body of `rayx setup --lima` over injectable collaborators. `prompter` answers the question
@@ -405,6 +461,7 @@ pub fn run_with(
         machine,
         home: &home,
         path_dir: tool.path_dir.clone(),
+        vm_flags: request.vm,
     };
     let pending = migrate::pending_lima(&guests_file, &instances);
     let vm = if let Some(old) = pending {
@@ -469,13 +526,43 @@ pub fn run_with(
                 })
             }
             Some(instance) => {
-                let edit = edit::plan_edit(instance, &request.vm, machine, &home)?;
+                // A smaller disk is refused for an edit, but a new VM may have one: the refusal
+                // only stands when the VM is not about to be replaced.
+                let (edit, edit_error) =
+                    match edit::plan_edit(instance, &request.vm, machine, &home) {
+                        Ok(edit) => (edit, None),
+                        Err(error) => (edit::VmEdit::default(), Some(error)),
+                    };
                 let mut migrated = None;
-                if edit.is_empty() {
+                let current = Guest::lima(INSTANCE).with_path_dir(tool.path_dir.clone());
+                // A VM the record already knows to be older than the pin is replaced, not edited:
+                // the `--vm-*` flags then size the new VM.
+                let recorded_older = guests_file
+                    .find(records::LIMA, INSTANCE)
+                    .is_some_and(|g| migrate::older_than_pin(&g.ubuntu));
+                // A refused flag is refused before anything is started, unless the VM is about to
+                // be replaced (a new VM may have a smaller disk).
+                if let Some(error) = &edit_error
+                    && !instance.is_running()
+                    && !recorded_older
+                {
+                    return Err(error.clone());
+                }
+                // A running VM, or one the record says is older, is asked for its Ubuntu before any
+                // edit, so a VM that is to be replaced is never edited.
+                let mut live = None;
+                if edit.is_empty() || recorded_older || instance.is_running() {
                     if !instance.is_running() {
                         start_vm(runner, &tool, out)?;
                     }
-                } else {
+                    live = guest::os_version(&current, runner);
+                }
+                if !live.as_deref().is_some_and(migrate::older_than_pin)
+                    && let Some(error) = edit_error
+                {
+                    return Err(error);
+                }
+                if !live.as_deref().is_some_and(migrate::older_than_pin) && !edit.is_empty() {
                     apply_edit(
                         request,
                         instance,
@@ -486,11 +573,11 @@ pub fn run_with(
                         &mut prompter,
                         out,
                     )?;
+                    // The VM is up again: read what it runs (the new flags still size a new VM).
+                    live = guest::os_version(&current, runner);
                 }
-                // The VM is up (started, or edited and started): one older than the pin is
-                // replaced side by side, one newer is reported and its release left alone.
-                let current = Guest::lima(INSTANCE).with_path_dir(tool.path_dir.clone());
-                let live = guest::os_version(&current, runner);
+                // One newer than the pin is reported and its release left alone; one older is
+                // replaced side by side.
                 if let Some(version) = live.as_deref().filter(|v| migrate::newer_than_pin(v)) {
                     let _ = writeln!(
                         out,
@@ -611,6 +698,14 @@ fn ensure_lima(
         }
         Some(version) => {
             let command = format!("{brew} upgrade lima");
+            if request.check {
+                // `--check` asks nothing and changes nothing: it says what would run.
+                let _ = writeln!(
+                    out,
+                    "Lima {version} is older than {MIN_LIMA_MAJOR}.0; would run: {command}"
+                );
+                return Ok(());
+            }
             if !request.yes
                 && let Some(prompter) = prompter.as_mut()
                 && !prompter.confirm(&format!(
@@ -643,6 +738,33 @@ pub(crate) fn run_limactl(
         .run_checked(spec)
         .map(|_| ())
         .map_err(|error| LimaError::Failed(format!("{what}: {error}")))
+}
+
+/// Every Lima instance, strictly: a `limactl list` that cannot run or fails is an error, never an
+/// empty list (a guest is only "missing" when Lima says so).
+pub(crate) fn list_instances_strict(
+    path_dir: &Option<PathBuf>,
+    runner: &mut Runner,
+) -> Result<Vec<Instance>, String> {
+    let spec = CommandSpec::new("limactl").args(["list", "--json"]);
+    let spec = match path_dir {
+        Some(dir) => spec.env("PATH", guest::path_with(dir)),
+        None => spec,
+    };
+    match runner.query(&spec) {
+        Ok(outcome) if outcome.is_success() => Ok(parse_instances(&outcome.stdout)),
+        Ok(outcome) => Err(format!(
+            "cannot read Lima: `limactl list --json` failed ({})",
+            outcome
+                .stderr
+                .lines()
+                .chain(outcome.stdout.lines())
+                .map(str::trim)
+                .find(|line| !line.is_empty())
+                .unwrap_or("no output")
+        )),
+        Err(error) => Err(format!("cannot read Lima: {error}")),
+    }
 }
 
 /// Every Lima instance. A machine where `limactl` cannot run yet (`--check` before Lima is

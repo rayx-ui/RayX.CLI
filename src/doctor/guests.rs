@@ -183,11 +183,24 @@ fn inspect_lima(cx: &mut Cx, recorded: &[GuestRecord], pin: &str, report: &mut G
         .and_then(|outcome| parse_lima_version(&outcome.stdout));
     let installed = version.is_some();
     report.lima = Some(LimaInfo { version });
+    // A `limactl list` that fails says nothing about the guests: they are `unknown`, not missing.
+    let mut list_failed = false;
     let instances = if installed {
-        cx.query(&limactl(&["list", "--json"]))
+        match cx
+            .query(&limactl(&["list", "--json"]))
             .filter(|outcome| outcome.is_success())
-            .map(|outcome| parse_instances(&outcome.stdout))
-            .unwrap_or_default()
+        {
+            Some(outcome) => parse_instances(&outcome.stdout),
+            None => {
+                list_failed = true;
+                let why = "cannot read Lima: `limactl list --json` failed".to_string();
+                report.problem = Some(match report.problem.take() {
+                    Some(problem) => format!("{problem}; {why}"),
+                    None => why,
+                });
+                Vec::new()
+            }
+        }
     } else {
         Vec::new()
     };
@@ -197,6 +210,7 @@ fn inspect_lima(cx: &mut Cx, recorded: &[GuestRecord], pin: &str, report: &mut G
         let status = match instance {
             Some(i) if i.is_running() => "running",
             Some(_) => "stopped",
+            None if list_failed => "unknown",
             None => "missing",
         };
         let writable = match (instance, &home) {

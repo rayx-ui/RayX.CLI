@@ -164,6 +164,10 @@ pub fn run(args: &SetupArgs) -> u8 {
         eprintln!("rayx: {error}");
         return 1;
     }
+    let existed_before = machine
+        .wsl_distributions()
+        .iter()
+        .any(|d| d.name == distribution());
     let checkout = detect_checkout(&mut runner);
     match run_with(
         &request,
@@ -185,6 +189,7 @@ pub fn run(args: &SetupArgs) -> u8 {
             0
         }
         Err(error) => {
+            record_failed_first_run(args.check, &host, &machine, existed_before);
             eprintln!("rayx: {error}");
             1
         }
@@ -213,6 +218,32 @@ pub fn record_outcome(
         None,
         runner,
     );
+}
+
+/// A first run that registered the distribution and then failed (the first user, the Linux
+/// `rayx`, the clone or the inner setup) still leaves a guest `rayx` manages: it is recorded so
+/// doctor, `setup --update` and `rayx wsl remove` know it. `--check` records nothing.
+pub fn record_failed_first_run(
+    check: bool,
+    host: &HostFacts,
+    machine: &dyn Machine,
+    existed_before: bool,
+) {
+    let name = distribution();
+    if check || existed_before || !machine.wsl_distributions().iter().any(|d| d.name == name) {
+        return;
+    }
+    let update = records::GuestUpdate {
+        kind: records::WSL,
+        name,
+        ubuntu: super::guest::pinned_ubuntu().to_string(),
+        flags: Vec::new(),
+        clone: None,
+        vm: None,
+    };
+    if let Err(error) = records::record_guest(machine, host.os, &update, false) {
+        eprintln!("rayx: {error}");
+    }
 }
 
 /// The clone `--clone` made, as the guest record keeps it.
@@ -262,8 +293,12 @@ pub fn migrate_older_guest(
     let Some(old) = migrate::outdated_wsl(&file) else {
         return Ok(());
     };
-    // The record can be stale: the guest's own version decides.
-    let live = guest::os_version(&Guest::wsl(&old.name), runner);
+    // The record can be stale: the guest's own version decides. `--check` never starts a
+    // distribution to ask it.
+    let inspectable = !check || guest::wsl_is_running(&old.name, runner);
+    let live = inspectable
+        .then(|| guest::os_version(&Guest::wsl(&old.name), runner))
+        .flatten();
     if live.as_deref().is_some_and(|v| !migrate::older_than_pin(v)) {
         return Ok(());
     }

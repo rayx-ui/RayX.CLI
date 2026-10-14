@@ -12,7 +12,7 @@ use crate::host::{CommandSpec, HostFacts, Runner};
 use super::guest::{self, CloneSource, Guest, LinuxBinary, pinned_ubuntu};
 use super::lima::edit::home_is_writable;
 use super::lima::sizing::Prompter;
-use super::lima::{self, INSTANCE, Instance, Tool, VmSettings};
+use super::lima::{self, INSTANCE, Instance, Tool, VmFlags, VmSettings};
 use super::records::{self, CloneRecord, GuestRecord, GuestUpdate, GuestsFile, VmRecord};
 use super::refresh::RefreshOptions;
 use super::{Machine, wsl};
@@ -153,6 +153,9 @@ pub struct LimaMigration<'a> {
     pub machine: &'a dyn Machine,
     pub home: &'a Path,
     pub path_dir: Option<PathBuf>,
+    /// The `--vm-*` flags of this run, already validated: they size the new VM (the old one is
+    /// never edited).
+    pub vm_flags: VmFlags,
 }
 
 /// Replaces an old `rayx` VM with a new one from the pinned Ubuntu, side by side. The old VM must
@@ -177,11 +180,17 @@ pub fn migrate_lima(
         .machine
         .read_to_string(&Path::new(&old.instance.dir).join("lima.yaml"))
         .is_some_and(|yaml| home_is_writable(&yaml, m.home));
+    // The old VM's size, with the explicit `--vm-*` flags laid over it.
+    let flags = &m.vm_flags;
     let settings = VmSettings {
-        cpus: old.instance.cpus,
-        memory_gib: u32::try_from(old.instance.memory_gib()).unwrap_or(u32::MAX),
-        disk_gib: u32::try_from(old.instance.disk_gib()).unwrap_or(u32::MAX),
-        home_writable: writable,
+        cpus: flags.cpus.unwrap_or(old.instance.cpus),
+        memory_gib: flags
+            .memory_gib
+            .unwrap_or_else(|| u32::try_from(old.instance.memory_gib()).unwrap_or(u32::MAX)),
+        disk_gib: flags
+            .disk_gib
+            .unwrap_or_else(|| u32::try_from(old.instance.disk_gib()).unwrap_or(u32::MAX)),
+        home_writable: writable || flags.home_writable,
     };
 
     if !resumed {
@@ -466,7 +475,12 @@ pub fn migrate_wsl(
         .any(|d| d.name == new_name);
     if !registered {
         let old_guest = Guest::wsl(&old.name);
-        let dirty = guest::dirty_clones(&old_guest, runner);
+        // `--check` never starts a stopped distribution just to look inside it.
+        let dirty = if m.options.check && !guest::wsl_is_running(&old.name, runner) {
+            Vec::new()
+        } else {
+            guest::dirty_clones(&old_guest, runner)
+        };
         let question = format!(
             "Create {new_name} with Ubuntu {} next to {}?",
             pinned_ubuntu(),

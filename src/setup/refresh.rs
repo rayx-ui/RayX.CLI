@@ -10,7 +10,7 @@ use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 use super::Machine;
 use super::guest::{self, Guest, GuestKind, LinuxBinary, pinned_ubuntu};
 use super::lima::sizing::Prompter;
-use super::lima::{INSTANCE, Tool, lima_path_dir, list_instances, parse_instances};
+use super::lima::{INSTANCE, Tool, VmFlags, lima_path_dir, list_instances, list_instances_strict};
 use super::migrate::{LimaMigration, LimaOld, Migration, WslMigration, migrate_lima, migrate_wsl};
 use super::records::{self, GuestRecord};
 
@@ -152,20 +152,10 @@ enum State {
     Missing,
 }
 
-fn state(guest: &Guest, runner: &mut Runner, machine: &dyn Machine) -> State {
-    match guest.kind {
+fn state(guest: &Guest, runner: &mut Runner, machine: &dyn Machine) -> Result<State, String> {
+    Ok(match guest.kind {
         GuestKind::Lima => {
-            let spec = CommandSpec::new("limactl").args(["list", "--json"]);
-            let spec = match &guest.path_dir {
-                Some(dir) => spec.env("PATH", guest::path_with(dir)),
-                None => spec,
-            };
-            let instances = runner
-                .query(&spec)
-                .ok()
-                .filter(Outcome::is_success)
-                .map(|outcome| parse_instances(&outcome.stdout))
-                .unwrap_or_default();
+            let instances = list_instances_strict(&guest.path_dir, runner)?;
             match instances.iter().find(|i| i.name == guest.name) {
                 Some(i) if i.is_running() => State::Running,
                 Some(_) => State::Stopped,
@@ -178,7 +168,7 @@ fn state(guest: &Guest, runner: &mut Runner, machine: &dyn Machine) -> State {
                 .iter()
                 .any(|d| d.name == guest.name)
             {
-                return State::Missing;
+                return Ok(State::Missing);
             }
             let running = runner
                 .query(&CommandSpec::new("wsl").args(["--list", "--running", "--quiet"]))
@@ -197,7 +187,7 @@ fn state(guest: &Guest, runner: &mut Runner, machine: &dyn Machine) -> State {
                 State::Stopped
             }
         }
-    }
+    })
 }
 
 fn limactl(guest: &Guest, args: &[&str]) -> CommandSpec {
@@ -222,7 +212,10 @@ fn refresh_one(
     out: &mut dyn Write,
 ) -> GuestOutcome {
     let label = guest.kind.label();
-    let current = state(guest, runner, machine);
+    let current = match state(guest, runner, machine) {
+        Ok(current) => current,
+        Err(why) => return GuestOutcome::Failed(why),
+    };
     if current == State::Missing {
         return GuestOutcome::Failed(format!(
             "it is recorded but {label} does not have it: `rayx {label} remove {}` drops the \
@@ -277,7 +270,11 @@ fn refresh_one(
         None => refresh_inside(options, host, runner, guest, out),
     };
     if started {
-        let _ = writeln!(out, "==> lima: stopping the VM {}", guest.name);
+        let _ = writeln!(
+            out,
+            "==> lima: stopping the VM {} again (it was stopped before the refresh)",
+            guest.name
+        );
         let _ = runner.run_checked(&limactl(guest, &["stop", &guest.name]));
     }
     result
@@ -376,6 +373,7 @@ fn migrate_outdated(
                 machine,
                 home: &home,
                 path_dir: guest.path_dir.clone(),
+                vm_flags: VmFlags::default(),
             };
             migrate_lima(&migration, runner, prompter, out, &old).map(|(done, _)| done)
         }

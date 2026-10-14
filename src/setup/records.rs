@@ -247,6 +247,8 @@ pub fn update_guests(
 pub enum RecordError {
     /// The file exists but is not a valid record; it is left as it is.
     Unparsable { path: PathBuf, message: String },
+    /// The file exists but cannot be read (permissions, not text, a directory); it is left as it is.
+    Unreadable { path: PathBuf, message: String },
     /// The directory or the file could not be written.
     Write { path: PathBuf, message: String },
     /// There is no home or config directory to put the record in.
@@ -259,6 +261,11 @@ impl std::fmt::Display for RecordError {
             RecordError::Unparsable { path, message } => write!(
                 f,
                 "{} is not a valid guest record ({message}); it was left untouched",
+                path.display()
+            ),
+            RecordError::Unreadable { path, message } => write!(
+                f,
+                "{} cannot be read ({message}); it was left untouched",
                 path.display()
             ),
             RecordError::Write { path, message } => {
@@ -288,21 +295,26 @@ pub fn parse_guests(path: &Path, text: Option<&str>) -> Result<GuestsFile, Recor
 pub fn read_guests_at(path: &Path) -> Result<GuestsFile, RecordError> {
     match std::fs::read_to_string(path) {
         Ok(text) => parse_guests(path, Some(&text)),
-        // Not text at all: as unusable as broken JSON, and as much to be left alone.
-        Err(error) if error.kind() == std::io::ErrorKind::InvalidData => {
-            Err(RecordError::Unparsable {
-                path: path.to_path_buf(),
-                message: error.to_string(),
-            })
-        }
-        Err(_) => Ok(GuestsFile::default()),
+        // Only a missing file is an empty record; anything else that cannot be read is left alone.
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(GuestsFile::default()),
+        Err(error) => Err(RecordError::Unreadable {
+            path: path.to_path_buf(),
+            message: error.to_string(),
+        }),
     }
 }
 
 /// Reads `guests.json` through a machine: what doctor and the guest commands see.
 pub fn read_guests(machine: &dyn Machine, os: Os) -> Result<GuestsFile, RecordError> {
     let path = guests_path(machine, os).ok_or(RecordError::NoConfigDir)?;
-    parse_guests(&path, machine.read_to_string(&path).as_deref())
+    let text = machine.read_to_string(&path);
+    if text.is_none() && machine.exists(&path) {
+        return Err(RecordError::Unreadable {
+            path,
+            message: "it is not readable text".to_string(),
+        });
+    }
+    parse_guests(&path, text.as_deref())
 }
 
 /// Writes the record with a temporary file and a rename, so a reader never sees half a document.
@@ -317,7 +329,14 @@ fn write_json_atomic(path: &Path, document: &impl Serialize) -> Result<(), Recor
     };
     let dir = path.parent().ok_or(RecordError::NoConfigDir)?;
     std::fs::create_dir_all(dir).map_err(fail)?;
-    let temporary = path.with_extension("json.tmp");
+    // One temporary file per write (process and sequence number), so two runs, or two threads,
+    // never interleave their writes.
+    static SEQUENCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let temporary = path.with_extension(format!(
+        "json.{}.{}.tmp",
+        std::process::id(),
+        SEQUENCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+    ));
     let mut text = serde_json::to_string_pretty(document).map_err(|error| RecordError::Write {
         path: path.to_path_buf(),
         message: error.to_string(),
@@ -406,32 +425,34 @@ impl SetupFile {
 /// Reads `setup.json` through a machine; a missing file is an empty record.
 pub fn read_setup(machine: &dyn Machine, os: Os) -> Result<SetupFile, RecordError> {
     let path = setup_path(machine, os).ok_or(RecordError::NoConfigDir)?;
-    match machine.read_to_string(&path) {
-        Some(text) if !text.trim().is_empty() => {
-            serde_json::from_str(&text).map_err(|error| RecordError::Unparsable {
-                path,
-                message: error.to_string(),
-            })
-        }
-        _ => Ok(SetupFile::default()),
+    let text = machine.read_to_string(&path);
+    if text.is_none() && machine.exists(&path) {
+        return Err(RecordError::Unreadable {
+            path,
+            message: "it is not readable text".to_string(),
+        });
+    }
+    parse_setup(&path, text.as_deref())
+}
+
+fn parse_setup(path: &Path, text: Option<&str>) -> Result<SetupFile, RecordError> {
+    match text.filter(|text| !text.trim().is_empty()) {
+        Some(text) => serde_json::from_str(text).map_err(|error| RecordError::Unparsable {
+            path: path.to_path_buf(),
+            message: error.to_string(),
+        }),
+        None => Ok(SetupFile::default()),
     }
 }
 
 fn read_setup_at(path: &Path) -> Result<SetupFile, RecordError> {
     match std::fs::read_to_string(path) {
-        Ok(text) if !text.trim().is_empty() => {
-            serde_json::from_str(&text).map_err(|error| RecordError::Unparsable {
-                path: path.to_path_buf(),
-                message: error.to_string(),
-            })
-        }
-        Err(error) if error.kind() == std::io::ErrorKind::InvalidData => {
-            Err(RecordError::Unparsable {
-                path: path.to_path_buf(),
-                message: error.to_string(),
-            })
-        }
-        _ => Ok(SetupFile::default()),
+        Ok(text) => parse_setup(path, Some(&text)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(SetupFile::default()),
+        Err(error) => Err(RecordError::Unreadable {
+            path: path.to_path_buf(),
+            message: error.to_string(),
+        }),
     }
 }
 
