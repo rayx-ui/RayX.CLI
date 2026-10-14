@@ -3,7 +3,7 @@
 //! `app` keeps its own grammar (moved from RayX xtask), so it captures the raw trailing values and
 //! leaves them to the app parser.
 
-use clap::{Args, Parser, Subcommand};
+use clap::{ArgGroup, Args, Parser, Subcommand};
 
 /// The `rayx` command line.
 #[derive(Debug, Parser)]
@@ -45,6 +45,7 @@ pub enum Command {
 
 /// Flags of `rayx setup`.
 #[derive(Debug, Default, Args)]
+#[command(group(ArgGroup::new("guest").args(["wsl", "lima"])))]
 pub struct SetupArgs {
     /// Also install the web set: wasm target, wasm-bindgen and the browser tooling
     #[arg(long)]
@@ -70,18 +71,33 @@ pub struct SetupArgs {
     /// Accept licenses and agreements the installers ask for
     #[arg(long)]
     pub yes: bool,
-    /// Set up WSL 2 with Ubuntu-24.04 and run the same setup inside it (Windows only)
+    /// Set up WSL 2 with the pinned Ubuntu and run the same setup inside it (Windows only)
     #[arg(long)]
     pub wsl: bool,
-    /// With --wsl: clone the current checkout into the distribution (default `~/<checkout name>`)
+    /// Set up the Lima VM `rayx` with the pinned Ubuntu and run the same setup inside it (macOS only)
+    #[arg(long)]
+    pub lima: bool,
+    /// With --wsl or --lima: clone the current checkout into the guest (default `~/<checkout name>`)
     #[arg(
         long,
-        requires = "wsl",
+        requires = "guest",
         num_args = 0..=1,
         default_missing_value = "",
         value_name = "LINUX_DIR"
     )]
     pub clone: Option<String>,
+    /// With --lima: CPUs of the VM when it is created (default 6, at most what this Mac has)
+    #[arg(long, requires = "lima", conflicts_with = "wsl", value_name = "N", value_parser = clap::value_parser!(u32).range(1..))]
+    pub vm_cpus: Option<u32>,
+    /// With --lima: memory of the VM in GiB when it is created (default 12, at most what this Mac can spare)
+    #[arg(long, requires = "lima", conflicts_with = "wsl", value_name = "GIB", value_parser = clap::value_parser!(u32).range(1..))]
+    pub vm_memory: Option<u32>,
+    /// With --lima: disk of the VM in GiB when it is created (default 100, at most what this Mac can spare)
+    #[arg(long, requires = "lima", conflicts_with = "wsl", value_name = "GIB", value_parser = clap::value_parser!(u32).range(1..))]
+    pub vm_disk: Option<u32>,
+    /// With --lima: mount the macOS home in the VM writable instead of read-only
+    #[arg(long, requires = "lima", conflicts_with = "wsl")]
+    pub vm_home_writable: bool,
 }
 
 /// Flags of `rayx doctor`.

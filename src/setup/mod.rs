@@ -8,6 +8,7 @@ pub mod android;
 pub mod gpu;
 pub mod guest;
 pub mod ios;
+pub mod lima;
 pub mod linux;
 pub mod machine;
 pub mod macos;
@@ -844,6 +845,9 @@ pub fn environment_for(host: HostFacts, project: Option<&Project>, yes: bool) ->
 pub fn run(args: &SetupArgs) -> u8 {
     if args.wsl {
         return wsl::run(args);
+    }
+    if args.lima {
+        return lima::run(args);
     }
     let host = crate::host::facts();
     let mut runner = if args.check {
