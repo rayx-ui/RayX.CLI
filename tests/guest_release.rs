@@ -10,6 +10,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use rayx_cli::cli::{Cli, Command, SetupArgs};
+use rayx_cli::host::path_env::{MemoryPathStore, UserPath};
 use rayx_cli::host::{Arch, CommandSpec, HostFacts, Os, Outcome, Runner};
 use rayx_cli::release::{self, Release};
 use rayx_cli::setup::FakeMachine;
@@ -18,6 +19,7 @@ use rayx_cli::setup::lima::sizing::{Prompter, ScriptedPrompter};
 use rayx_cli::setup::lima::{LimaError, LimaRequest, VmFlags, run_with as lima_run};
 use rayx_cli::setup::records::read_guests_at;
 use rayx_cli::setup::refresh::{GuestOutcome, RefreshOptions, RefreshReport, refresh_guests};
+use rayx_cli::setup::update::run_with as update_run;
 use rayx_cli::setup::wsl::{
     WslError, WslRequest, distribution, migrate_older_guest, run_with_prompter as wsl_run,
 };
@@ -442,7 +444,9 @@ fn yes_skips_the_downgrade_question_and_no_terminal_without_yes_refuses() {
         .expect_err("no terminal");
     assert!(silent.asked.is_empty(), "nobody can answer");
     assert!(
-        error.to_string().contains("repeat it with `--yes`"),
+        error
+            .to_string()
+            .contains("needs an answer: repeat it with `--yes` to confirm without a terminal"),
         "{error}"
     );
     assert!(installs(&runner).is_empty());
@@ -450,7 +454,9 @@ fn yes_skips_the_downgrade_question_and_no_terminal_without_yes_refuses() {
     let mut runner = mac(Published::Yes, Some("1.3.0"));
     let error = lima(&lima_request(Some("1.0.1")), &mut runner, None).expect_err("no prompter");
     assert!(
-        error.to_string().contains("repeat it with `--yes`"),
+        error
+            .to_string()
+            .contains("needs an answer: repeat it with `--yes` to confirm without a terminal"),
         "{error}"
     );
 }
@@ -485,7 +491,9 @@ fn check_still_probes_the_release_and_only_prints_the_downgrade_subject() {
     assert_eq!(existence_probes(&runner).len(), 1, "the probe only reads");
     assert!(prompter.asked.is_empty(), "--check asks nothing");
     assert!(
-        out.contains("Install rayx 1.0.1 in rayx over 1.3.0, an older release?"),
+        out.contains(
+            "rayx has rayx 1.3.0; installing 1.0.1 is a downgrade and would ask: Install rayx 1.0.1 in rayx over 1.3.0, an older release?"
+        ),
         "{out}"
     );
 
@@ -695,7 +703,9 @@ fn wsl_asks_before_a_downgrade_and_refuses_without_an_answer() {
     let mut runner = windows_runner(Published::Yes, Some("1.3.0"));
     let error = wsl(&wsl_request(Some("1.0.1")), &mut runner, None).expect_err("nobody to ask");
     assert!(
-        error.to_string().contains("repeat it with `--yes`"),
+        error
+            .to_string()
+            .contains("needs an answer: repeat it with `--yes` to confirm without a terminal"),
         "{error}"
     );
 
@@ -761,6 +771,14 @@ fn wsl_probes_the_release_before_an_older_distribution_is_replaced() {
         wsl_changes(&runner),
         Vec::<String>::new(),
         "no distribution was installed or retired"
+    );
+    assert!(
+        runner
+            .specs()
+            .iter()
+            .all(|spec| !spec.args.iter().any(|a| a == "-d")),
+        "the old distribution was not even asked a question (which starts it): {:?}",
+        runner.lines()
     );
 }
 
@@ -1064,4 +1082,143 @@ fn nothing_about_the_release_is_written_by_a_refresh() {
         .expect("dir")
         .collect();
     assert_eq!(left.len(), 1, "nothing else was written next to it");
+}
+
+// ---------------------------------------------------------------------------------------------
+// setup --update --release: the order of the host part, the probe and the refresh
+// ---------------------------------------------------------------------------------------------
+
+fn update_args(release: &str, check: bool) -> SetupArgs {
+    SetupArgs {
+        update: true,
+        check,
+        release: Some(release.to_string()),
+        ..SetupArgs::default()
+    }
+}
+
+/// A machine whose `setup.json` has work for the host part, and one recorded Lima VM.
+fn machine_with_host_work() -> FakeMachine {
+    refresh_machine().with_text(
+        format!("{HOME}/.config/rayx/setup.json"),
+        r#"{"version":1,"sets":["base","web"],"roots":[]}"#,
+    )
+}
+
+fn update_run_with(
+    args: &SetupArgs,
+    options: &RefreshOptions,
+    os: Os,
+    runner: &mut Runner,
+    machine: &FakeMachine,
+) -> (u8, String) {
+    let mut out = Vec::new();
+    let mut user_path = UserPath::Windows(Box::new(MemoryPathStore::new(None)));
+    let mut prompter = ScriptedPrompter::always(true);
+    let mut confirm = |_: &str| true;
+    let code = update_run(
+        args,
+        options,
+        &host(os),
+        runner,
+        machine,
+        &mut user_path,
+        Some(&mut confirm),
+        Some(&mut prompter),
+        &mut out,
+    );
+    (code, String::from_utf8(out).expect("UTF-8"))
+}
+
+#[test]
+fn a_missing_release_stops_setup_update_before_the_host_part_runs() {
+    for (published, why) in [
+        (Published::No, "release 9.9.9 was not found"),
+        (
+            Published::Unreachable,
+            "cannot check whether release 9.9.9 exists: curl exited with 6",
+        ),
+    ] {
+        let mut runner = mac(published, Some("1.0.0"));
+
+        let (code, out) = update_run_with(
+            &update_args("9.9.9", false),
+            &options(Some("9.9.9"), true, false),
+            Os::MacOs,
+            &mut runner,
+            &machine_with_host_work(),
+        );
+
+        assert_eq!(code, 1, "{why}");
+        assert!(out.is_empty(), "nothing was reported as done: {out}");
+        let programs: Vec<&str> = runner.specs().iter().map(|s| s.program.as_str()).collect();
+        assert_eq!(
+            programs,
+            ["curl"],
+            "{why}: only the probe ran, neither the host part nor a guest ({:?})",
+            runner.lines()
+        );
+    }
+}
+
+#[test]
+fn setup_update_probes_the_release_before_the_host_part_and_the_refresh_follows() {
+    let mut runner = mac(Published::Yes, Some("1.0.0"));
+    let mut check = options(Some("1.1.0"), true, true);
+    check.yes = true;
+
+    let (code, out) = update_run_with(
+        &update_args("1.1.0", true),
+        &check,
+        Os::MacOs,
+        &mut runner,
+        &machine_with_host_work(),
+    );
+
+    let _ = code; // the fake Mac lacks Homebrew, so the host part reports it under --check
+    let lines = runner.lines();
+    assert!(
+        lines[0].starts_with("curl ") && lines[0].contains(&installer("1.1.0")),
+        "the probe comes first: {lines:?}"
+    );
+    assert!(
+        lines.iter().skip(1).any(|l| l.contains("limactl")),
+        "then the work: {lines:?}"
+    );
+    assert_eq!(
+        lines.iter().filter(|l| l.starts_with("curl ")).count(),
+        2,
+        "the refresh probes again, which only reads: {lines:?}"
+    );
+    assert!(!out.contains("nothing recorded"), "{out}");
+}
+
+#[test]
+fn setup_update_refuses_a_release_with_the_override_of_its_host_before_anything_runs() {
+    let mut runner = mac(Published::Yes, Some("1.0.0"));
+    let mut with_override = options(Some("1.0.1"), true, false);
+    with_override.lima_binary = Some("/Users/dev/rayx-linux".to_string());
+
+    let (code, _) = update_run_with(
+        &update_args("1.0.1", false),
+        &with_override,
+        Os::MacOs,
+        &mut runner,
+        &machine_with_host_work(),
+    );
+    assert_eq!(code, 1);
+    assert!(runner.specs().is_empty(), "{:?}", runner.lines());
+
+    let mut windows_runner = windows_runner(Published::Yes, None);
+    let mut with_override = options(Some("1.0.1"), true, false);
+    with_override.wsl_binary = Some("/mnt/c/build/rayx".to_string());
+    let (code, _) = update_run_with(
+        &update_args("1.0.1", false),
+        &with_override,
+        Os::Windows,
+        &mut windows_runner,
+        &machine_with_host_work(),
+    );
+    assert_eq!(code, 1);
+    assert!(windows_runner.specs().is_empty());
 }

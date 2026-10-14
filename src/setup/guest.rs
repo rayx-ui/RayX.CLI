@@ -378,7 +378,7 @@ fn confirm_downgrade(
     if gate.check {
         let _ = writeln!(
             out,
-            "==> {}: {} runs rayx {current}; installing {release} is a downgrade and would ask:              {question}",
+            "==> {}: {} has rayx {current}; installing {release} is a downgrade and would ask: {question}",
             guest.kind.label(),
             guest.name
         );
@@ -399,7 +399,7 @@ fn confirm_downgrade(
             }
         }
         _ => Err(InstallError::Declined(format!(
-            "installing rayx {release} in {} over {current} is a downgrade and needs an answer:              repeat it with `--yes` to confirm without a terminal",
+            "installing rayx {release} in {} over {current} is a downgrade and needs an answer: repeat it with `--yes` to confirm without a terminal",
             guest.name
         ))),
     }

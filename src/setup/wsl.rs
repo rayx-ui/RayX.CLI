@@ -304,6 +304,9 @@ pub fn migrate_older_guest(
     let Some(old) = migrate::outdated_wsl(&file) else {
         return Ok(());
     };
+    // A chosen release is looked for before the old distribution is even asked a question (which
+    // starts it) and long before it is replaced.
+    guest::plan_release(request.release.as_ref(), override_name(request), runner)?;
     // The record can be stale: the guest's own version decides. `--check` never starts a
     // distribution to ask it.
     let inspectable = !check || guest::wsl_is_running(&old.name, runner);
@@ -313,8 +316,6 @@ pub fn migrate_older_guest(
     if live.as_deref().is_some_and(|v| !migrate::older_than_pin(v)) {
         return Ok(());
     }
-    // A chosen release is looked for before the old distribution is replaced.
-    guest::plan_release(request.release.as_ref(), override_name(request), runner)?;
     let options = RefreshOptions {
         version: request.version.clone(),
         release: request.release.clone(),
