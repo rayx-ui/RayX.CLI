@@ -563,6 +563,42 @@ fn an_unreadable_record_is_not_taken_for_an_unrecorded_vm_nor_for_an_empty_recor
     assert!(limactl_lines(&runner).is_empty());
 }
 
+#[test]
+fn an_unreadable_record_stops_a_creation_before_any_vm_exists_and_check_still_reports() {
+    for vm in ["app", "rayx"] {
+        let config = tempfile::tempdir().expect("temp dir");
+        let machine = machine(config.path(), "{ nope");
+        let mut runner = Lab::new(&[("gpux", "Running", "24.04")]).runner();
+
+        let (result, _) = setup_lima(&request(vm, true), &machine, &mut runner, None);
+
+        let error = result.expect_err(vm).to_string();
+        assert!(error.contains("no VM was created"), "{vm}: {error}");
+        assert!(
+            error.contains("guests.json"),
+            "the record problem is named: {error}"
+        );
+        assert!(
+            limactl_lines(&runner).is_empty(),
+            "{vm}: nothing was created or started: {:?}",
+            limactl_lines(&runner)
+        );
+        assert_eq!(
+            std::fs::read_to_string(config.path().join("rayx/guests.json")).expect("file"),
+            "{ nope",
+            "the record is left as it is"
+        );
+    }
+
+    let config = tempfile::tempdir().expect("temp dir");
+    let machine = machine(config.path(), "{ nope");
+    let mut runner = Lab::new(&[]).runner();
+    let mut check = request("app", true);
+    check.check = true;
+    let (result, _) = setup_lima(&check, &machine, &mut runner, None);
+    result.expect("--check prints the plan");
+}
+
 // ---------------------------------------------------------------------------------------------
 // Editing, sizing, memory
 // ---------------------------------------------------------------------------------------------

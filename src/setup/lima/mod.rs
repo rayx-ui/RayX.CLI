@@ -528,6 +528,17 @@ pub fn run_with(
             ),
         }));
     }
+    // A VM that cannot be recorded would be unusable next time (an unrecorded VM is never
+    // adopted), and an unreadable record may hide an interrupted migration: nothing is created
+    // until the record can be read. `--check` only reports.
+    if let Some(error) = &unreadable
+        && existing.is_none()
+        && !request.check
+    {
+        return Err(LimaError::Failed(format!(
+            "{error}; no VM was created, fix or remove that file and run this again"
+        )));
+    }
     let vm = if let Some(old) = pending {
         // An interrupted migration: finish it before anything else.
         match migrate::migrate_lima(&migration, runner, &mut prompter, out, &old)
