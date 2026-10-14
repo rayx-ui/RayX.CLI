@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-releases",
-  "revision": 0,
+  "revision": 6,
   "planRevision": 1,
   "specHashes": {
     "requirements": "65f211f39a94277d6e5596a4705791db542e42ae9d77bd7413edec7caf335a65",
@@ -10,10 +10,16 @@
   },
   "tasks": {
     "t01-dist-config": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     },
     "t02-release-build-proof": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     },
     "t03-release-plz": {
       "status": "pending"
@@ -40,10 +46,118 @@
       "status": "pending"
     }
   },
-  "validationBatches": {},
-  "checkResults": {},
-  "reviews": {},
-  "checkpoints": {},
+  "validationBatches": {
+    "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "86f66ecb82b977090a496b6c5929e2af91fbfaebb7015df095eafbb2f54fc737",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:17:25Z"
+    }
+  },
+  "checkResults": {
+    "s1-release-build/check-release-config/final": {
+      "checkId": "check-release-config",
+      "boundaryId": "s1-release-build",
+      "phase": "final",
+      "batchId": "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8",
+      "definitionHash": "a7a6bfc0f582995be7a6b4488d3931e5a8753f5ffab4aa3b6067aaa76b077501",
+      "basisHash": "ffd437079f7bd0d06ab84145cd3f66a46b19bf50734443ac77ed60c5f757967f",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 5,
+      "durationSeconds": 0.2418,
+      "recordedAt": "2026-10-14T12:17:22Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s1-release-build-final-2b71f8910388.log",
+      "logSha256": "eb4909cf9d7fe26cc6eb377272ffb85824e14a8d1d53c52f1c2fb8405ed3c108",
+      "inputsHash": "48042b3af85a8a0cb47a49568e9916fedfe9266e0ff8ce4016e54a3113e7bfd4"
+    },
+    "s1-release-build/check-dist-plan/final": {
+      "checkId": "check-dist-plan",
+      "boundaryId": "s1-release-build",
+      "phase": "final",
+      "batchId": "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8",
+      "definitionHash": "8698ef13cb0fd496baf114362285969138f23794e1093a6ceab4858204ac8cb2",
+      "basisHash": "c727d379267e56262f83212fbb7be772e70be3de047160b38eb1da0cc30cf56e",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 2.7699,
+      "recordedAt": "2026-10-14T12:17:24Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s1-release-build-final-187d04f901e8.log",
+      "logSha256": "9639bbeae9c4e3aa5972f90a1924461b30ca1f55e2d3f7e5d7d3cd91cf9b75ec",
+      "inputsHash": "7a394641dcfcae0c39fe12c33826b9c65f33e73aa5465916bd30dff8942cd2ba"
+    }
+  },
+  "reviews": {
+    "s1-release-build": {
+      "reviewerId": "reviewer-s1-rayx-cli-releases",
+      "snapshotId": "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8",
+      "criterionIds": [
+        "REL-1",
+        "REL-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "dist-workspace.toml",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "568e182cbedb40c860dd4e57b6eea4f2156e7fa19ba1df262dd7f16d8d06f4d6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release.yml",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1",
+            "REL-2"
+          ],
+          "sha256": "c5e9ff13eaede3d91c4f4fbe4bb04b140c6ef223374b7156dc299309caae214c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_config.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "41061a8e79668d4e4baa5fa6d049fefcd5de0e59f9798c0cad0d59393208f478"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release.yml",
+          "kind": "runtime",
+          "criterionIds": [
+            "REL-2"
+          ],
+          "sha256": "c5e9ff13eaede3d91c4f4fbe4bb04b140c6ef223374b7156dc299309caae214c"
+        }
+      ],
+      "summaryMarkdown": "REL-1: `dist-workspace.toml` carries every required key (dist 0.33.0, six targets, shell/powershell, sha256, install-updater false, github hosting, install-path `[$RAYX_HOME/bin, ~/.rayx/bin]`, attestations, pr-run-mode upload, windows-2022 custom runner with x86_64 host and no container, no allow-dirty). `release.yml` differs from the previous version only by dist's 0.33.0 output (version URL, attestation permissions and `actions/attest` step, rust-cache); tag trigger unchanged. `dist plan` (0.33.0) and `dist generate --check` succeed with a clean tree, and the plan matrix shows six hosted-runner entries, none with a container. The five tests in `tests/release_config.rs` assert the config and the generated workflow and pass. REL-2: Release run 38561390146 on draft PR #1 succeeded for all six build-local-artifacts jobs (aarch64-pc-windows-msvc on windows-2022, Attest step green) plus plan and build-global-artifacts. Re-extracted artifacts: all six `.sha256` match; aarch64 `rayx.exe` is PE32+ Aarch64, x86_64 one is x86-64; both musl binaries are static (static-pie / statically linked); macOS binaries are arm64 and x86_64 Mach-O; installers, sha256.sum and dist manifests are present. Both installers install to `$RAYX_HOME/bin` or `~/.rayx/bin` and write `rayx-cli-receipt.json` for app name `rayx-cli`, matching `APP_NAME` in `src/update.rs`. Rules and decision honoured: no hand edit, no allow-dirty, asset names unchanged, hosted runners only.",
+      "findingIds": [],
+      "recordedAt": "2026-10-14T12:18:23Z"
+    }
+  },
+  "checkpoints": {
+    "s1-release-build": {
+      "snapshotId": "48fa2caa211cb983b755f3ce133486dee828810f8c319434657eb40dff9925e8",
+      "commits": {
+        "rayx-cli": "53100862326d8de71ec45d5c9e5c74eefc1588fb",
+        "rayx": "66875570b2d51a8e7e855114430dbcd96e619b9a"
+      },
+      "reviewHash": "382a2d4b19addb028ca28762e17d238302802b533e7f38b9442aac03a0b1d314",
+      "recordedAt": "2026-10-14T12:18:36Z"
+    }
+  },
   "findings": [],
   "handoffMarkdown": "",
   "protectedPaths": {
