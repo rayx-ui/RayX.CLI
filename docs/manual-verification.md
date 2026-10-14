@@ -101,6 +101,11 @@ the second pass used `RAYX_WSL_BINARY`, a `cargo build --release` of this branch
 distribution (`CARGO_TARGET_DIR` outside the clone) and copied to the Windows disk. The `sudo`
 password was typed by the owner in the terminal.
 
+The refresh failure with the release `rayx` 1.0.0 is a property of this run, not of the product: the
+branch is still versioned 1.0.0, so the host's `rayx 1.0.0` found the guest's released `rayx 1.0.0`
+"matching" and did not replace it, and that binary does not know `setup --update`. A release that
+contains the epic has a higher version, so the refresh installs the matching Linux `rayx` first.
+
 Seen on the way (no change needed for the rows):
 
 - The release installer printed `WARN(B: The following commands are shadowed by other commands in
@@ -134,8 +139,8 @@ First release that contains the epic (MAN-4), from the previous release on the M
 
 | Check | Command | Result |
 |---|---|---|
-| Update offers the refresh | `rayx self update` | open: expect `Refresh this machine's setup and guests with rayx <new>? [y/N]`; `y` runs the new binary's `setup --update` and the guest is refreshed; `n` prints ``run `rayx setup --update` to refresh the setup and guests`` |
-| Unattended | `rayx self update --yes` on the next release | open |
+| Update offers the refresh | `rayx self update` | deferred (owner, 2026-10-14: no release contains the epic yet; follow-up: run these two rows after the first release that does): expect expect `Refresh this machine's setup and guests with rayx <new>? [y/N]`; `y` runs the new binary's `setup --update` and the guest is refreshed; `n` prints ``run `rayx setup --update` to refresh the setup and guests`` |
+| Unattended | `rayx self update --yes` on the next release | deferred (same follow-up) |
 
 ## Linux (hosted CI)
 
