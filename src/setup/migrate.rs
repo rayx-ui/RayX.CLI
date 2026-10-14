@@ -255,7 +255,8 @@ pub fn migrate_lima(
             runner,
             &tool.spec(
                 CommandSpec::new("limactl")
-                    .args(["rename", INSTANCE, &old_name])
+                    // `rename` asks "start the instance now?" in a terminal unless told not to.
+                    .args(["rename", "--tty=false", INSTANCE, &old_name])
                     .interactive(),
             ),
             "renaming the VM",
@@ -271,7 +272,7 @@ pub fn migrate_lima(
                 runner,
                 &tool.spec(
                     CommandSpec::new("limactl")
-                        .args(["rename", &old_name, INSTANCE])
+                        .args(["rename", "--tty=false", &old_name, INSTANCE])
                         .interactive(),
                 ),
                 "undoing the rename",

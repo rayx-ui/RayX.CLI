@@ -82,7 +82,7 @@ impl Lab {
                     })
                     .collect::<String>(),
             )),
-            ("limactl", ["rename", from, to]) => {
+            ("limactl", ["rename", "--tty=false", from, to]) => {
                 for vm in self.vms.borrow_mut().iter_mut().filter(|v| v.name == *from) {
                     vm.name = to.to_string();
                 }
@@ -326,7 +326,7 @@ fn the_lima_migration_runs_stop_rename_create_start_and_restores_the_clones() {
         changes,
         [
             "stop rayx",
-            "rename rayx rayx-22.04",
+            "rename --tty=false rayx rayx-22.04",
             "create --tty=false --name=rayx --vm-type=vz --cpus=6 --memory=12 --disk=100 \
              --mount-only=/Users/dev:w --containerd=none template:ubuntu-24.04",
             "start --tty=false rayx",
@@ -475,7 +475,7 @@ fn yes_replaces_without_asking_and_check_only_prints_the_plan() {
     assert!(
         limactl_lines(&runner)
             .iter()
-            .any(|c| c.starts_with("rename rayx rayx-22.04"))
+            .any(|c| c.starts_with("rename --tty=false rayx rayx-22.04"))
     );
 
     let machine = mac_machine(config.path(), OLD_RECORD);
@@ -546,7 +546,7 @@ fn the_update_refresh_migrates_an_outdated_guest_instead_of_skipping_it() {
     assert!(
         limactl_lines(&runner)
             .iter()
-            .any(|c| c.starts_with("rename rayx rayx-22.04"))
+            .any(|c| c.starts_with("rename --tty=false rayx rayx-22.04"))
     );
 }
 
