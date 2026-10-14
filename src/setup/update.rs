@@ -6,9 +6,10 @@ use std::io::{self, IsTerminal, Write};
 
 use crate::cli::SetupArgs;
 use crate::host::path_env::UserPath;
-use crate::host::{HostFacts, Runner};
+use crate::host::{HostFacts, Os, Runner};
 use crate::project::Project;
 
+use super::guest;
 use super::lima::sizing::TerminalPrompter;
 use super::records::{self, SetupFile};
 use super::refresh::{RefreshOptions, refresh_guests};
@@ -145,6 +146,13 @@ pub fn wsl_binary_for_refresh(
 /// Runs `rayx setup --update` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
+    let release = match guest::chosen_release(args) {
+        Ok(release) => release,
+        Err(error) => {
+            eprintln!("rayx: {error}");
+            return 1;
+        }
+    };
     let mut runner = if args.check {
         Runner::print()
     } else {
@@ -160,17 +168,9 @@ pub fn run(args: &SetupArgs) -> u8 {
     let machine = SystemMachine;
     let interactive = io::stdin().is_terminal() && io::stdout().is_terminal();
     let mut confirm = move |question: &str| interactive && ask_on_terminal(question);
-    let update = update_host(
-        args,
-        &host,
-        &mut runner,
-        &machine,
-        &mut user_path,
-        &mut io::stdout(),
-        Some(&mut confirm),
-    );
     let options = RefreshOptions {
-        version: env!("CARGO_PKG_VERSION").to_string(),
+        version: guest::guest_version(release.as_ref()),
+        release,
         yes: args.yes,
         check: args.check,
         lima_binary: std::env::var("RAYX_LIMA_BINARY")
@@ -180,6 +180,25 @@ pub fn run(args: &SetupArgs) -> u8 {
             eprintln!("rayx: {warning}");
         }),
     };
+    // A chosen release is looked for before the host part changes anything.
+    let override_name = match host.os {
+        Os::MacOs => options.lima_binary.is_some().then_some("RAYX_LIMA_BINARY"),
+        Os::Windows => options.wsl_binary.is_some().then_some("RAYX_WSL_BINARY"),
+        Os::Linux => None,
+    };
+    if let Err(error) = guest::plan_release(options.release.as_ref(), override_name, &mut runner) {
+        eprintln!("rayx: {error}");
+        return 1;
+    }
+    let update = update_host(
+        args,
+        &host,
+        &mut runner,
+        &machine,
+        &mut user_path,
+        &mut io::stdout(),
+        Some(&mut confirm),
+    );
     let mut prompter = TerminalPrompter {
         terminal: interactive,
     };
@@ -194,6 +213,7 @@ pub fn run(args: &SetupArgs) -> u8 {
     if !update.recorded
         && !update.unreadable
         && !refreshed.unreadable
+        && refreshed.refused.is_none()
         && refreshed.guests.is_empty()
     {
         println!("nothing recorded: run `rayx setup` first");

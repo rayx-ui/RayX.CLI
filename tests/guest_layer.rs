@@ -436,6 +436,7 @@ fn setup_wsl_runs_the_same_sequence_on_the_guest_layer() {
         clone: Some(String::new()),
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         windows_gpu: None,
     };
     let checkout = Checkout {

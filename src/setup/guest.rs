@@ -10,11 +10,13 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use super::Machine;
+use super::lima::sizing::Prompter;
 use super::records::{self, CloneRecord, GuestUpdate, VmRecord};
 use crate::cli::SetupArgs;
 use crate::host::Os;
 use crate::host::{Arch, CommandSpec, Outcome, Runner};
 use crate::project::pins::DEFAULTS;
+use crate::release::{self, Direction, Existence, Release};
 
 /// Where the Linux `rayx` goes inside a guest: the release installer's own location, so the
 /// install receipt next to it lets `rayx self update` work there.
@@ -266,6 +268,141 @@ pub fn ensure_linux_binary(
          test -x \"{LINUX_BINARY}\""
     );
     run_inside(guest, runner, &script, "installing the Linux rayx")
+}
+
+/// The release `--release` names, validated; `None` without the flag. A bad name is an error with
+/// an example, so it is refused before anything has run.
+pub fn chosen_release(args: &SetupArgs) -> Result<Option<Release>, String> {
+    args.release
+        .as_deref()
+        .map(release::parse)
+        .transpose()
+        .map_err(|error| error.to_string())
+}
+
+/// The version a guest's Linux `rayx` must report: the chosen release, else this `rayx`'s own.
+pub fn guest_version(release: Option<&Release>) -> String {
+    release.map_or_else(|| env!("CARGO_PKG_VERSION").to_string(), Release::to_string)
+}
+
+/// Checks a chosen release before anything is changed: it cannot be combined with a binary
+/// override (`RAYX_LIMA_BINARY`, `RAYX_WSL_BINARY`; `override_name` names the one in use), and it
+/// must be published. The probe only reads, so `--check` runs it too.
+pub fn plan_release(
+    release: Option<&Release>,
+    override_name: Option<&str>,
+    runner: &mut Runner,
+) -> Result<(), String> {
+    let Some(release) = release else {
+        return Ok(());
+    };
+    if let Some(name) = override_name {
+        return Err(format!(
+            "{name} is set and --release {release} names a release: choose one"
+        ));
+    }
+    match release::exists(runner, release) {
+        Existence::Exists => Ok(()),
+        Existence::Missing => Err(format!("release {release} was not found")),
+        Existence::Unknown(reason) => Err(format!(
+            "cannot check whether release {release} exists: {reason}"
+        )),
+    }
+}
+
+/// Who answers the question that replacing a guest's `rayx` with an older release raises.
+pub struct DowngradeGate<'a> {
+    /// `--yes`: no question.
+    pub yes: bool,
+    /// `--check`: the question's subject is printed, nothing is asked.
+    pub check: bool,
+    /// The terminal; `None` or one without a terminal cannot answer.
+    pub prompter: Option<&'a mut dyn Prompter>,
+}
+
+/// Why the guest's `rayx` was not put in place.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum InstallError {
+    /// A downgrade nobody confirmed: the guest was left as it is.
+    Declined(String),
+    Failed(String),
+}
+
+impl std::fmt::Display for InstallError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InstallError::Declined(message) | InstallError::Failed(message) => f.write_str(message),
+        }
+    }
+}
+
+/// Like [`ensure_linux_binary`], and for a chosen `release` first asks when the guest's `rayx` is
+/// newer than it (`Install rayx X in <guest> over Y, an older release?`): `--yes` skips the
+/// question, no terminal and no `--yes` refuses, a no leaves the guest alone. An equal or older
+/// guest, or one that reports nothing, needs no question.
+pub fn ensure_release_binary(
+    guest: &Guest,
+    binary: &LinuxBinary,
+    release: Option<&Release>,
+    gate: &mut DowngradeGate<'_>,
+    runner: &mut Runner,
+    out: &mut dyn Write,
+) -> Result<(), InstallError> {
+    if let Some(release) = release.filter(|_| binary.override_path.is_none()) {
+        confirm_downgrade(guest, release, gate, runner, out)?;
+    }
+    ensure_linux_binary(guest, binary, runner, out).map_err(InstallError::Failed)
+}
+
+fn confirm_downgrade(
+    guest: &Guest,
+    release: &Release,
+    gate: &mut DowngradeGate<'_>,
+    runner: &mut Runner,
+    out: &mut dyn Write,
+) -> Result<(), InstallError> {
+    let Some(current) = linux_binary_version(guest, runner)
+        .as_deref()
+        .and_then(|text| text.strip_prefix("rayx "))
+        .and_then(|text| semver::Version::parse(text.trim()).ok())
+    else {
+        return Ok(());
+    };
+    if release.direction_from(&current) != Direction::Downgrade {
+        return Ok(());
+    }
+    let question = format!(
+        "Install rayx {release} in {} over {current}, an older release?",
+        guest.name
+    );
+    if gate.check {
+        let _ = writeln!(
+            out,
+            "==> {}: {} runs rayx {current}; installing {release} is a downgrade and would ask:              {question}",
+            guest.kind.label(),
+            guest.name
+        );
+        return Ok(());
+    }
+    if gate.yes {
+        return Ok(());
+    }
+    match gate.prompter.as_deref_mut() {
+        Some(prompter) if prompter.interactive() => {
+            if prompter.confirm(&question) {
+                Ok(())
+            } else {
+                Err(InstallError::Declined(format!(
+                    "the guest {} keeps rayx {current}: nothing was changed",
+                    guest.name
+                )))
+            }
+        }
+        _ => Err(InstallError::Declined(format!(
+            "installing rayx {release} in {} over {current} is a downgrade and needs an answer:              repeat it with `--yes` to confirm without a terminal",
+            guest.name
+        ))),
+    }
 }
 
 /// The Linux directory `--clone` uses: the requested one, else `~/<checkout name>`.

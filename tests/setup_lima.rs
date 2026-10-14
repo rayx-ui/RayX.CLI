@@ -51,6 +51,7 @@ fn request() -> LimaRequest {
         clone: None,
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         vm: VmFlags::default(),
         check: false,
         yes: false,

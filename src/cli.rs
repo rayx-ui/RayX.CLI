@@ -50,7 +50,10 @@ pub enum Command {
 
 /// Flags of `rayx setup`.
 #[derive(Debug, Default, Args)]
-#[command(group(ArgGroup::new("guest").args(["wsl", "lima"])))]
+#[command(
+    group(ArgGroup::new("guest").args(["wsl", "lima"])),
+    group(ArgGroup::new("release_target").args(["wsl", "lima", "update"]).multiple(true))
+)]
 pub struct SetupArgs {
     /// Also install the web set: wasm target, wasm-bindgen and the browser tooling
     #[arg(long)]
@@ -91,6 +94,9 @@ pub struct SetupArgs {
         ]
     )]
     pub update: bool,
+    /// With --lima, --wsl or --update: put exactly this release (X.Y.Z, for example 1.0.1, also an older one) of the Linux rayx in the guest instead of this rayx's version; it is not remembered
+    #[arg(long, requires = "release_target", value_name = "RELEASE")]
+    pub release: Option<String>,
     /// With --wsl or --lima: clone the current checkout into the guest (default `~/<checkout name>`)
     #[arg(
         long,

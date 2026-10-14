@@ -8,17 +8,24 @@ use std::io::Write;
 use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 
 use super::Machine;
-use super::guest::{self, Guest, GuestKind, LinuxBinary, pinned_ubuntu};
+use super::guest::{
+    self, DowngradeGate, Guest, GuestKind, InstallError, LinuxBinary, pinned_ubuntu,
+};
 use super::lima::sizing::Prompter;
 use super::lima::{INSTANCE, Tool, VmFlags, lima_path_dir, list_instances, list_instances_strict};
 use super::migrate::{LimaMigration, LimaOld, Migration, WslMigration, migrate_lima, migrate_wsl};
 use super::records::{self, GuestRecord};
+use crate::release::{MIN_REFRESH_RELEASE, Release};
 
 /// What a refresh needs besides the host and the guests.
 #[derive(Clone, Debug)]
 pub struct RefreshOptions {
-    /// The version of the running `rayx`, which every guest must have.
+    /// The version of the Linux `rayx` every guest must have: the running `rayx`'s own, or the
+    /// chosen release.
     pub version: String,
+    /// `--release`: the chosen release, probed before any change, asked about when it is a
+    /// downgrade of a guest, and never recorded.
+    pub release: Option<Release>,
     /// `--yes`: no questions, `-y` for apt.
     pub yes: bool,
     /// `--check`: report, change nothing, start nothing.
@@ -50,6 +57,9 @@ pub struct RefreshReport {
     pub guests: Vec<(String, GuestOutcome)>,
     /// `guests.json` exists but could not be used, so no guest could be looked at.
     pub unreadable: bool,
+    /// A chosen release that cannot be used (not published, not checkable, or combined with a
+    /// binary override): no guest was touched.
+    pub refused: Option<String>,
 }
 
 impl RefreshReport {
@@ -61,7 +71,7 @@ impl RefreshReport {
                 GuestOutcome::Refreshed | GuestOutcome::NotInspected | GuestOutcome::Migrated(_)
             )
         });
-        u8::from(self.unreadable || unfinished)
+        u8::from(self.unreadable || self.refused.is_some() || unfinished)
     }
 }
 
@@ -96,6 +106,15 @@ pub fn refresh_guests(
             return report;
         }
     };
+    let override_name = match kind {
+        records::LIMA => options.lima_binary.is_some().then_some("RAYX_LIMA_BINARY"),
+        _ => options.wsl_binary.is_some().then_some("RAYX_WSL_BINARY"),
+    };
+    if let Err(why) = guest::plan_release(options.release.as_ref(), override_name, runner) {
+        eprintln!("rayx: {why}");
+        report.refused = Some(why);
+        return report;
+    }
     let path_dir = lima_path_dir(machine);
     for record in recorded.iter().filter(|g| g.kind == kind && !g.retired) {
         let guest = match record.kind.as_str() {
@@ -267,7 +286,7 @@ fn refresh_one(
             &version,
             out,
         ),
-        None => refresh_inside(options, host, runner, guest, out),
+        None => refresh_inside(options, host, runner, &mut prompter, guest, out),
     };
     if started {
         let _ = writeln!(
@@ -280,24 +299,71 @@ fn refresh_one(
     result
 }
 
+/// Puts the Linux `rayx` (the chosen release, asking first when that is a downgrade of the guest)
+/// in a guest that is up.
+fn install_binary(
+    options: &RefreshOptions,
+    host: &HostFacts,
+    runner: &mut Runner,
+    prompter: &mut Option<&mut dyn Prompter>,
+    guest: &Guest,
+    out: &mut dyn Write,
+) -> Result<(), InstallError> {
+    let mut gate = DowngradeGate {
+        yes: options.yes,
+        check: options.check,
+        prompter: prompter.as_deref_mut().map(|p| p as &mut dyn Prompter),
+    };
+    guest::ensure_release_binary(
+        guest,
+        &binary(options, host, guest),
+        options.release.as_ref(),
+        &mut gate,
+        runner,
+        out,
+    )
+}
+
+/// Whether the inner `rayx setup --update` exists in the Linux `rayx` the guest has now: a chosen
+/// release older than the first one with the refresh does not have it.
+fn inner_update_exists(options: &RefreshOptions) -> bool {
+    options
+        .release
+        .as_ref()
+        .is_none_or(|release| *release >= MIN_REFRESH_RELEASE)
+}
+
+fn predates_refresh(options: &RefreshOptions) -> String {
+    let release = options.release.as_ref().map(Release::to_string);
+    format!(
+        "rayx {} predates the guest refresh: the inner update was skipped",
+        release.unwrap_or_else(|| options.version.clone())
+    )
+}
+
 /// The refresh of a guest that is up.
 fn refresh_inside(
     options: &RefreshOptions,
     host: &HostFacts,
     runner: &mut Runner,
+    prompter: &mut Option<&mut dyn Prompter>,
     guest: &Guest,
     out: &mut dyn Write,
 ) -> GuestOutcome {
-    if let Err(error) =
-        guest::ensure_linux_binary(guest, &binary(options, host, guest), runner, out)
-    {
-        return GuestOutcome::Failed(error);
+    match install_binary(options, host, runner, prompter, guest, out) {
+        Ok(()) => {}
+        Err(InstallError::Declined(why)) => return GuestOutcome::NotUpdated(why),
+        Err(InstallError::Failed(why)) => return GuestOutcome::Failed(why),
     }
     let yes = if options.yes { " -y" } else { "" };
     let upgrade = format!("sudo apt-get update && sudo apt-get upgrade{yes}");
     let _ = writeln!(out, "==> {}: {upgrade}", guest.kind.label());
     if let Err(error) = runner.run_checked(&guest.script(&upgrade).interactive()) {
         return GuestOutcome::Failed(format!("upgrading the packages: {error}"));
+    }
+    if !inner_update_exists(options) {
+        let _ = writeln!(out, "{}", predates_refresh(options));
+        return GuestOutcome::Refreshed;
     }
     match guest::run_setup_inside(guest, &inner_flags(options), None, runner, out) {
         Ok(()) => GuestOutcome::Refreshed,
@@ -418,8 +484,13 @@ fn check_one(
     let inside = guest::linux_binary_version(guest, runner);
     let _ = writeln!(
         out,
-        "rayx in the guest: {} (this rayx is {})",
+        "rayx in the guest: {} ({} {})",
         inside.as_deref().unwrap_or("missing"),
+        if options.release.is_some() {
+            "release asked for is"
+        } else {
+            "this rayx is"
+        },
         options.version
     );
     let ubuntu = guest::os_version(guest, runner);
@@ -437,10 +508,14 @@ fn check_one(
             pinned_ubuntu()
         ));
     }
-    let _ = guest::ensure_linux_binary(guest, &binary(options, host, guest), runner, out);
+    let _ = install_binary(options, host, runner, &mut None, guest, out);
     let yes = if options.yes { " -y" } else { "" };
     let upgrade = format!("sudo apt-get update && sudo apt-get upgrade{yes}");
     let _ = runner.run_checked(&guest.script(&upgrade).interactive());
+    if !inner_update_exists(options) {
+        let _ = writeln!(out, "{}", predates_refresh(options));
+        return GuestOutcome::Refreshed;
+    }
     let mut flags = inner_flags(options);
     flags.push("--check".to_string());
     let script = format!("\"{}\" setup {}", guest::LINUX_BINARY, flags.join(" "));

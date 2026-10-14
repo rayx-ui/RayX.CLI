@@ -181,6 +181,7 @@ fn request(yes: bool, check: bool) -> LimaRequest {
         clone: None,
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         vm: VmFlags::default(),
         check,
         yes,
@@ -520,6 +521,7 @@ fn the_update_refresh_migrates_an_outdated_guest_instead_of_skipping_it() {
     let mut runner = lab.runner();
     let options = RefreshOptions {
         version: "1.0.0".into(),
+        release: None,
         yes: true,
         check: false,
         lima_binary: None,
@@ -606,6 +608,7 @@ fn wsl_request() -> WslRequest {
         clone: None,
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         windows_gpu: None,
     }
 }
@@ -862,6 +865,7 @@ fn the_update_refresh_reports_an_interrupted_migration_instead_of_exiting_0() {
     let mut runner = Lab::new(&[("rayx-22.04", "Stopped", "22.04")]).runner();
     let options = RefreshOptions {
         version: "1.0.0".into(),
+        release: None,
         yes: true,
         check: false,
         lima_binary: None,

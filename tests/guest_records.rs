@@ -508,6 +508,7 @@ fn lima_request(check: bool) -> LimaRequest {
         clone: None,
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         vm: VmFlags::default(),
         check,
         yes: true,
@@ -670,6 +671,7 @@ fn a_wsl_run_records_the_distribution_and_its_clone_but_check_does_not() {
         clone: Some(String::new()),
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         windows_gpu: None,
     };
     let checkout = Checkout {

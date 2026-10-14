@@ -40,6 +40,7 @@ fn request() -> WslRequest {
         clone: None,
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         windows_gpu: None,
     }
 }

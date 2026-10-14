@@ -183,6 +183,7 @@ fn request(yes: bool, check: bool) -> LimaRequest {
         clone: None,
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         vm: VmFlags::default(),
         check,
         yes,
@@ -487,6 +488,7 @@ fn after_a_migration_the_refresh_stops_the_vm_it_started_and_says_why() {
     let mut runner = lab.runner();
     let options = RefreshOptions {
         version: "1.0.0".into(),
+        release: None,
         yes: true,
         check: false,
         lima_binary: None,

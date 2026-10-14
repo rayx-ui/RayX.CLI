@@ -29,6 +29,7 @@ fn host(os: Os) -> HostFacts {
 fn options(yes: bool, check: bool) -> RefreshOptions {
     RefreshOptions {
         version: "1.0.0".into(),
+        release: None,
         yes,
         check,
         lima_binary: None,

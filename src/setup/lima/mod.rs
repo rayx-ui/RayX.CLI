@@ -14,13 +14,15 @@ use crate::cli::SetupArgs;
 use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 
 use super::guest::{
-    self, Checkout, CloneSource, Guest, LinuxBinary, lima_template, pinned_ubuntu, setup_flags,
+    self, Checkout, CloneSource, DowngradeGate, Guest, InstallError, LinuxBinary, lima_template,
+    pinned_ubuntu, setup_flags,
 };
 use super::macos::brew_in;
 use super::migrate::{self, LimaMigration, LimaOld, Migration};
 use super::records::{self, CloneRecord, VmRecord};
 use super::refresh::RefreshOptions;
 use super::{Machine, SystemMachine};
+use crate::release::Release;
 
 pub mod edit;
 pub mod sizing;
@@ -93,8 +95,10 @@ pub struct LimaRequest {
     pub clone: Option<String>,
     /// `RAYX_LIMA_BINARY`: a Linux `rayx` readable inside the VM, used instead of the installer.
     pub binary_override: Option<String>,
-    /// The version of this `rayx`, which the Linux binary must match.
+    /// The version of the Linux `rayx` the VM gets: this `rayx`'s own, or the chosen release.
     pub version: String,
+    /// `--release`: the chosen release, probed before any change and never recorded.
+    pub release: Option<Release>,
     /// The `--vm-*` flags.
     pub vm: VmFlags,
     pub check: bool,
@@ -104,11 +108,13 @@ pub struct LimaRequest {
 impl LimaRequest {
     /// The request of a command line; the environment names the optional binary.
     pub fn from_args(args: &SetupArgs, binary_override: Option<String>) -> Self {
+        let release = guest::chosen_release(args).ok().flatten();
         Self {
             flags: setup_flags(args),
             clone: args.clone.clone(),
             binary_override,
-            version: env!("CARGO_PKG_VERSION").to_string(),
+            version: guest::guest_version(release.as_ref()),
+            release,
             vm: VmFlags::from_args(args),
             check: args.check,
             yes: args.yes,
@@ -261,6 +267,10 @@ pub fn lima_path_dir(machine: &dyn Machine) -> Option<PathBuf> {
 /// Runs `rayx setup --lima` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
+    if let Err(error) = guest::chosen_release(args) {
+        eprintln!("rayx: {error}");
+        return 1;
+    }
     let binary = std::env::var("RAYX_LIMA_BINARY")
         .ok()
         .filter(|path| !path.trim().is_empty());
@@ -443,6 +453,16 @@ pub fn run_with(
     // Sizing is read and the flags are checked against it before any `limactl` command runs.
     let capacity = sizing::read_capacity(runner, machine, &home)?;
     let sized = sizing::effective(&VmSettings::default(), &capacity, &request.vm)?;
+    // A chosen release is looked for (read only) before Lima or the VM is touched.
+    guest::plan_release(
+        request.release.as_ref(),
+        request
+            .binary_override
+            .is_some()
+            .then_some("RAYX_LIMA_BINARY"),
+        runner,
+    )
+    .map_err(LimaError::Failed)?;
     ensure_lima(request, &brew, &tool, runner, &mut prompter, out)?;
 
     let instances = list_instances(&tool, runner)?;
@@ -454,6 +474,7 @@ pub fn run_with(
         check: request.check,
         lima_binary: request.binary_override.clone(),
         wsl_binary: None,
+        release: request.release.clone(),
     };
     let migration = LimaMigration {
         options: &migration_options,
@@ -629,7 +650,23 @@ pub fn run_with(
         arch: host.arch,
         override_path: request.binary_override.clone(),
     };
-    guest::ensure_linux_binary(&guest, &binary, runner, out).map_err(LimaError::Failed)?;
+    let mut gate = DowngradeGate {
+        yes: request.yes,
+        check: request.check,
+        prompter,
+    };
+    guest::ensure_release_binary(
+        &guest,
+        &binary,
+        request.release.as_ref(),
+        &mut gate,
+        runner,
+        out,
+    )
+    .map_err(|error| match error {
+        InstallError::Declined(why) => LimaError::Declined(why),
+        InstallError::Failed(why) => LimaError::Failed(why),
+    })?;
     let directory = match &clone {
         Some((requested, source)) => Some(
             guest::clone_checkout(&guest, requested, source, runner, out)
