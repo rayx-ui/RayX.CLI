@@ -1,6 +1,6 @@
 [package]
 name = "rayx-cli"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2024"
 rust-version = "1.95"
 description = "The RayX command-line tool: machine setup, doctor, WSL, self update and the app pipeline for any RayX app."
