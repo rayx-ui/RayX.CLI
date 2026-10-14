@@ -2,14 +2,15 @@
 agentx:
   kind: decision
   scope: decisions/setup
-  status: current
+  status: superseded
   created: 2026-10-08T12:00:00+02:00
   updated: 2026-10-08T12:00:00+02:00
   topics:
     - wsl
     - clone
   supersedes: []
-  superseded_by: []
+  superseded_by:
+    - 2026-10-14-setup-wsl-release-installer.md
 ---
 
 ## Decision: Set WSL up from Windows and clone only the current checkout

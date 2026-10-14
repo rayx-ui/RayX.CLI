@@ -25,6 +25,7 @@ Read before repository-level work: manifests and dependency policy, commits, cro
 
 ## Backlinks
 
+- 2026-10-14 current [Decision: one package, dependencies anyone can fetch](../../decisions/repository/2026-10-14-repository-dependency-sources-public-git.md)
 - [Package manifest](../../../../Cargo.toml)
 - [Package layout test](../../../../tests/package_layout.rs)
 - [Repository instructions](../../../../AGENTS.md)

@@ -2,14 +2,15 @@
 agentx:
   kind: decision
   scope: decisions/repository
-  status: current
+  status: superseded
   created: 2026-10-08T12:00:00+02:00
   updated: 2026-10-08T12:00:00+02:00
   topics:
     - package
     - modules
   supersedes: []
-  superseded_by: []
+  superseded_by:
+    - 2026-10-14-repository-dependency-sources-public-git.md
 ---
 
 ## Decision: Ship rayx as one Cargo package with a library and a thin binary
