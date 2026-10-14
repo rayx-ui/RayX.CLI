@@ -5,6 +5,11 @@ All notable changes to `rayx` are documented in this file. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). It is generated from
 Conventional Commits by release-plz.
 
+## [1.2.0] - 2026-10-14
+
+### Features
+- *(update)* install a chosen release with rayx self update --release ([#5](https://github.com/rayx-ui/RayX.CLI/pull/5))
+
 ## [1.1.0] - 2026-10-14
 
 ### Documentation
