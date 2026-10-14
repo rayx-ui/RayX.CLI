@@ -38,6 +38,7 @@ App commands use the engine through `src/app/prereqs.rs` (`Step::prompts`, `Step
 
 ## Backlinks
 
+- 2026-10-14 current [Decision: WSL release installer](../../decisions/setup/2026-10-14-setup-wsl-release-installer.md)
 - [Setup engine](../../../../src/setup/mod.rs), [Linux](../../../../src/setup/linux.rs), [Windows](../../../../src/setup/windows.rs), [macOS](../../../../src/setup/macos.rs), [Rust steps](../../../../src/setup/rust.rs)
 - [Setup tests](../../../../tests/setup_engine.rs)
 - [Epic design (`d-setup-plan`, `d-wsl`)](../../../tasks/rayx-cli-foundation/design.json)

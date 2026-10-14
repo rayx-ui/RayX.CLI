@@ -26,6 +26,7 @@ Implemented by the epic `rayx-cli-foundation` (design decision `d-release`, spri
 
 ## Backlinks
 
+- 2026-10-14 current [Decision: release-plz tags, dist builds](../../decisions/distribution/2026-10-14-distribution-release-plz-tags-dist-releases.md)
 - [CI workflow](../../../../.github/workflows/ci.yml)
 - [Epic design (`d-release`)](../../../tasks/rayx-cli-foundation/design.json)
 - [Epic requirements (REL)](../../../tasks/rayx-cli-foundation/requirements.json)

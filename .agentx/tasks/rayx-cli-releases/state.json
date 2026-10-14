@@ -1,12 +1,12 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-releases",
-  "revision": 33,
-  "planRevision": 1,
+  "revision": 53,
+  "planRevision": 3,
   "specHashes": {
-    "requirements": "65f211f39a94277d6e5596a4705791db542e42ae9d77bd7413edec7caf335a65",
+    "requirements": "b0278cc9f095e099b428b45648fee819a7facf2caacc776925e081e3d72a97d2",
     "design": "59af04afb3da430461479d70ed144b0ecfdd908161ab6ff8e232eb1262443205",
-    "plan": "dd6453a76d5c61917755a0759bc152c193aa7b30dda9413a94adcdc80fd63dc6"
+    "plan": "9e815ea44ea7ad234ffab9627c02471fd11e2fee506b0b85617941e8ba7b1a21"
   },
   "tasks": {
     "t01-dist-config": {
@@ -52,13 +52,22 @@
       ]
     },
     "t08-first-release": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     },
     "t09-host-installs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     },
     "t10-rayx-ci": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     }
   },
   "validationBatches": {
@@ -111,6 +120,24 @@
         }
       },
       "recordedAt": "2026-10-14T12:31:39Z"
+    },
+    "ade17bda6eab9299eb08dd24eb73ad4c4d9acb4f36984b1191c4889f353fb721": {
+      "snapshot": {
+        "specHash": "613a17be3b82e74cdb4d7286385d27bd61f87cc92408085a26b4cd833ea52843",
+        "repositories": {
+          "rayx-cli": "bf964b5b3c68d7358f79485ed0f53ae7836332cd9086881c5945c1a1eedb6b22"
+        }
+      },
+      "recordedAt": "2026-10-14T13:05:00Z"
+    },
+    "027c9b4c5da548e833da21f5fc4ccb662c99b7891ff4717276643a0380a1e68c": {
+      "snapshot": {
+        "specHash": "613a17be3b82e74cdb4d7286385d27bd61f87cc92408085a26b4cd833ea52843",
+        "repositories": {
+          "rayx-cli": "c0ed9a9edffa6168b5bcd8ba17e885ead58f0af30fafc4821859873e455ca6ed"
+        }
+      },
+      "recordedAt": "2026-10-14T13:21:51Z"
     }
   },
   "checkResults": {
@@ -215,6 +242,156 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-releases/s4-wsl-installer-final-c7aadd12ba5c.log",
       "logSha256": "1116c6850916e858f27ea00670955fcf00aafeeab9d0e434bdf87d2a6efcaf59",
       "inputsHash": "113a24ff1d13d90404a356c3faa951b2412e6a890d4dbc36a261183a12211553"
+    },
+    "final/check-release-config/final": {
+      "checkId": "check-release-config",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "ade17bda6eab9299eb08dd24eb73ad4c4d9acb4f36984b1191c4889f353fb721",
+      "definitionHash": "a7a6bfc0f582995be7a6b4488d3931e5a8753f5ffab4aa3b6067aaa76b077501",
+      "basisHash": "58f69385c9cd6bc599febeba192c331603399cf2766beb34b276c237b10484c7",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 5,
+      "durationSeconds": 0.1266,
+      "recordedAt": "2026-10-14T13:04:53Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/final-final-8ea1f6610a72.log",
+      "logSha256": "c7b0a611883f358b50f75fb21e7470a36f8780dcfcb6c7aad2a38f44a42a71fc",
+      "inputsHash": "e94bc57c3621d16cac455b48624ffbaa7c9f98507c0f3ad172d45a884a60ecaf"
+    },
+    "final/check-dist-plan/final": {
+      "checkId": "check-dist-plan",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "027c9b4c5da548e833da21f5fc4ccb662c99b7891ff4717276643a0380a1e68c",
+      "definitionHash": "8698ef13cb0fd496baf114362285969138f23794e1093a6ceab4858204ac8cb2",
+      "basisHash": "fa5f9cfdf069e1cb4c44a6835e77d6a61d89142752454ee50a20429f23eac452",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 1.4187,
+      "recordedAt": "2026-10-14T13:21:50Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/final-final-a59f1832118b.log",
+      "logSha256": "28e5ba4c219103adddb491a90207cffccc0a6b859a56fd458d492d3c5c9c1d9c",
+      "inputsHash": "b74b4609b00a0679159edef964ad994edcbc60645ba0aebdb9749626e9249ef0"
+    },
+    "final/check-release-automation/final": {
+      "checkId": "check-release-automation",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "ade17bda6eab9299eb08dd24eb73ad4c4d9acb4f36984b1191c4889f353fb721",
+      "definitionHash": "9339bc185341db6f21a38c1cd6503ac029a84f45b65f2fff2e400a897a2a4bb2",
+      "basisHash": "e7a1808523a031521787c0b69f84c5f81aef6e4ec626f4fe0923d40000318228",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 0.1263,
+      "recordedAt": "2026-10-14T13:04:54Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/final-final-5705553b4a9c.log",
+      "logSha256": "12127b800d983aa8a5fbd3e11c5825e9d794104fa3fd480a30743e3c2d0140d1",
+      "inputsHash": "1552ca1627ba2c240ef4d7f7cca8858f052d5bd734013080aab84a2346651369"
+    },
+    "final/check-workflow-yaml/final": {
+      "checkId": "check-workflow-yaml",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "ade17bda6eab9299eb08dd24eb73ad4c4d9acb4f36984b1191c4889f353fb721",
+      "definitionHash": "5d97c92f67920924f92680123165eb1a59cfdf281d19966e8fdaddfef412f855",
+      "basisHash": "6dc375c78d6c3fd70fd7fe9bd18b0fceb4738e97f131f28b0a38363b9c7ad32b",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.0773,
+      "recordedAt": "2026-10-14T13:04:54Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/final-final-2dd7370b39d8.log",
+      "logSha256": "b5ef34948d119b8c9a2a83ea3fa7be28686336c326ed4fa8cbd531bc51a84a27",
+      "inputsHash": "5eb0a7772f6407b614dd5ed78d5fbd40267115bb31040efa96ecca50c5df578f"
+    },
+    "final/check-dependency-sources/final": {
+      "checkId": "check-dependency-sources",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "ade17bda6eab9299eb08dd24eb73ad4c4d9acb4f36984b1191c4889f353fb721",
+      "definitionHash": "4a9123e61feb52783b5b0aed05d540b38cbc0c0efd81fad7dfc54b9c87d357bf",
+      "basisHash": "1bf8c54d256a03dec0499fbbb29de7f06e69e4252ba62434678c504ed1cb4201",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 13,
+      "durationSeconds": 0.7271,
+      "recordedAt": "2026-10-14T13:04:55Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/final-final-5995e6797507.log",
+      "logSha256": "d929e3df770c09949a5f43f257cf17dc61e998a45a5164b8b471324e21f7123f",
+      "inputsHash": "0b577601c58a40aebe9cde97f17db91bc776350993efec03634b7112e3494cd9"
+    },
+    "final/check-wsl-install/final": {
+      "checkId": "check-wsl-install",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "ade17bda6eab9299eb08dd24eb73ad4c4d9acb4f36984b1191c4889f353fb721",
+      "definitionHash": "2b9b586f89234e7a25120e537854e2759540fa140ca1a9c15e978c7b3d18cdb5",
+      "basisHash": "0fc20f9f5f86ddcd96284a2356e59992380fe89d973364bb0fd823303d6043d6",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 0.6622,
+      "recordedAt": "2026-10-14T13:04:56Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/final-final-7702a4f0a440.log",
+      "logSha256": "6f746e33b11293d17f4ee2247f1d730dfd199900f81bdc7a4120e8b10c6aa4f6",
+      "inputsHash": "113a24ff1d13d90404a356c3faa951b2412e6a890d4dbc36a261183a12211553"
+    },
+    "final/final-fmt/final": {
+      "checkId": "final-fmt",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "027c9b4c5da548e833da21f5fc4ccb662c99b7891ff4717276643a0380a1e68c",
+      "definitionHash": "cad08a41cb27413316b8857bf97d25d107f1d3450f588c3b2bea80c3d0ecef7c",
+      "basisHash": "ec63c6dde066d4f2da5d31c91caa3f2dc2d1a133882ffefeca85b88dad34f1d0",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2386,
+      "recordedAt": "2026-10-14T13:21:50Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/final-final-0e9708a54af2.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final/final-clippy/final": {
+      "checkId": "final-clippy",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "027c9b4c5da548e833da21f5fc4ccb662c99b7891ff4717276643a0380a1e68c",
+      "definitionHash": "879d4627305fb3b0a2ac3e26cfbae5cae6d0470c49dde0ae6150164b54b79213",
+      "basisHash": "1ff5a7f6a91c21fd5a6aa6846db9bcfa1c156f7c42a7b5524644b02132d0108a",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2391,
+      "recordedAt": "2026-10-14T13:21:51Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/final-final-450a3ab00bce.log",
+      "logSha256": "fecede7c2157efe2f16c8c8b9dce94b0fb4dd384dca8207046c8bf7636eb0ffe"
+    },
+    "final/final-touched-tests/final": {
+      "checkId": "final-touched-tests",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "027c9b4c5da548e833da21f5fc4ccb662c99b7891ff4717276643a0380a1e68c",
+      "definitionHash": "d12257db08ac460f82235480dfd41366f9e5b01b89a85aa887772907edb5b62e",
+      "basisHash": "30079898663785bad2d15872ff1984b8b6e46dbc9826818ccce4d0195cec6c1d",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 67,
+      "durationSeconds": 0.8895,
+      "recordedAt": "2026-10-14T13:21:51Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/final-final-8334a3fdcdb8.log",
+      "logSha256": "3fa4ec3c20c1d9e2fc515c5b38027fd1c99180c6e056df00b8d587e6430b9822"
     }
   },
   "reviews": {
@@ -454,6 +631,313 @@
       "summaryMarkdown": "WSL-1 holds. `LINUX_BINARY` is `$HOME/.rayx/bin/rayx` for the probe, the copy override and the inner `setup`. A non-matching version runs `set -o pipefail; curl --proto '=https' --tlsv1.2 -LsSf <v<version>/rayx-cli-installer.sh> | env -u RAYX_HOME sh && test -x <binary>` through `--exec bash -lc`; hand extraction into `~/.local/bin` is gone. Checked against the s1 generated installer: it has no prompts or /dev/tty reads (only `read -r RECEIPT` from a heredoc), installs to `$RAYX_HOME/bin` else `$HOME/.rayx/bin` (so dropping RAYX_HOME matches LINUX_BINARY), writes the receipt, edits PATH profiles itself, and `pipefail` makes a failed curl fail the step. The unsupported-architecture check precedes any download with the existing message; a matching version is not reinstalled. `wsl_install` (8) and `wsl_plan` (18) pass and assert the real script text and argv. The print-mode test is a sound proxy: `Runner::query` rejects interactive specs and is the only call that runs for real in print mode, and every mutating command (install, copy, inner setup, `--install`) is asserted interactive.",
       "findingIds": [],
       "recordedAt": "2026-10-14T12:32:43Z"
+    },
+    "s5-first-release": {
+      "reviewerId": "reviewer-s5-rayx-cli-releases",
+      "snapshotId": "ade17bda6eab9299eb08dd24eb73ad4c4d9acb4f36984b1191c4889f353fb721",
+      "criterionIds": [
+        "FIRST-1",
+        "FIRST-2",
+        "FIRST-3",
+        "WSL-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release-plz.yml",
+          "kind": "source",
+          "criterionIds": [
+            "FIRST-1"
+          ],
+          "sha256": "d13603b9d8ef14facb769bf64f0c854f672ccd569c66f89a1c24c748e076f86d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md",
+          "kind": "source",
+          "criterionIds": [
+            "FIRST-1"
+          ],
+          "sha256": "7b1afe21511ac79bfd4dc377957f97bdcdf9eab805dd0c6fb540562b90f166b3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CHANGELOG.md",
+          "kind": "runtime",
+          "criterionIds": [
+            "FIRST-1"
+          ],
+          "sha256": "e26459a2c204c12a5d445afc266acbabcba62344e230b4ddb6e92b58b267b920"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "source",
+          "criterionIds": [
+            "FIRST-1",
+            "FIRST-2",
+            "WSL-2",
+            "FIRST-3"
+          ],
+          "sha256": "7f995b012819fbb3a4a70921ff0cb63e795ae229c9d7d93acdd07a2a5f6f458a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "runtime",
+          "criterionIds": [
+            "FIRST-2",
+            "WSL-2",
+            "FIRST-3"
+          ],
+          "sha256": "7f995b012819fbb3a4a70921ff0cb63e795ae229c9d7d93acdd07a2a5f6f458a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "WSL-2"
+          ],
+          "sha256": "e661a31d8ea59d7002960e1478ffe6b9fb140e5fb647dfc284413be6ba41eb4b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "dist-workspace.toml",
+          "kind": "source",
+          "criterionIds": [
+            "FIRST-3"
+          ],
+          "sha256": "568e182cbedb40c860dd4e57b6eea4f2156e7fa19ba1df262dd7f16d8d06f4d6"
+        }
+      ],
+      "summaryMarkdown": "All four criteria hold against their amended wording. FIRST-1: `gh release view v1.0.0` shows a non-draft, non-prerelease release marked Latest with six archives plus `.sha256`, both installers, `sha256.sum` and notes equal to the CHANGELOG 1.0.0 section; Release-plz run 38565396101 (push to main, 03617fb) and Release run 38565448357 (tag v1.0.0 on the same commit, all 10 jobs green) are successful; `gh attestation verify` passes for the Windows x64, macOS ARM64, Windows ARM64 and Linux x64 archives and fails for a modified copy. The 'first run directly performs' variant is covered by the criterion text and is documented in docs/releasing.md and the manual-verification record; the 'ci.yml on the release PR' clause applies only to the PR variant, which did not occur. FIRST-2: on this Mac `~/.rayx/bin/rayx --version` prints `rayx 1.0.0`, `rayx self update --check` reports up to date, a login zsh resolves only `~/.rayx/bin/rayx` (no shadowing copy in ~/.cargo/bin), env.sh is sourced from .zshrc/.profile/.bash_profile; Windows x64 and Linux x64 are explicitly listed as pending follow-ups. WSL-2: the pending item lists the exact expected results and the installer is covered by tests/wsl_install.rs. FIRST-3: RayX commit 86b6d16 (branch feature/rayx-cli-release-pin, PR #2 open against master) replaces RAYX_CLI_REV and both cargo-install steps with RAYX_CLI_VERSION 1.0.0, the versioned installer and `~/.rayx/bin` on GITHUB_PATH in both jobs, updates the comment, docs and memory decision, and leaves no remaining reference to the old pin; the PR's jobs failed to start with the billing/spending-limit annotation (confirmed via the API), and the outstanding green run is recorded as pending. Minor note, not a finding: the doc lists Windows ARM64 rather than Windows x64 among attested archives; Windows x64 was verified here independently. Re-verified after plan revision 3 (rayx is now a reference repository, snapshot ade17bda): the delta is plan-only, the rayx-cli source is unchanged at b1278fa, and RayX PR #2 still has head 86b6d16 and is open. FIRST-3 evidence (RayX commit 86b6d16 and PR #2, reviewed in full, jobs parsed and queued but not started because of billing) is carried as a reference-repository artifact and is anchored in rayx-cli through the pending record in docs/manual-verification.md and the release installer contract in dist-workspace.toml; the dropped `final-rayx-workflow-yaml` check is replaced by GitHub having listed both jobs by name on PR #2.",
+      "findingIds": [],
+      "recordedAt": "2026-10-14T13:04:38Z"
+    },
+    "final": {
+      "reviewerId": "reviewer-final-rayx-cli-releases",
+      "snapshotId": "027c9b4c5da548e833da21f5fc4ccb662c99b7891ff4717276643a0380a1e68c",
+      "criterionIds": [
+        "REL-1",
+        "REL-2",
+        "RPZ-1",
+        "RPZ-2",
+        "RPZ-3",
+        "RPZ-4",
+        "DEP-1",
+        "DEP-2",
+        "WSL-1",
+        "WSL-2",
+        "DOC-1",
+        "FIRST-1",
+        "FIRST-2",
+        "FIRST-3"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "dist-workspace.toml",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "568e182cbedb40c860dd4e57b6eea4f2156e7fa19ba1df262dd7f16d8d06f4d6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release.yml",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1",
+            "REL-2"
+          ],
+          "sha256": "c5e9ff13eaede3d91c4f4fbe4bb04b140c6ef223374b7156dc299309caae214c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_config.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "41061a8e79668d4e4baa5fa6d049fefcd5de0e59f9798c0cad0d59393208f478"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release.yml",
+          "kind": "runtime",
+          "criterionIds": [
+            "REL-2",
+            "FIRST-1"
+          ],
+          "sha256": "c5e9ff13eaede3d91c4f4fbe4bb04b140c6ef223374b7156dc299309caae214c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-1",
+            "RPZ-3"
+          ],
+          "sha256": "05d064ad32a51a8de9eee1f60148e57908fb8b462de026157b4254d90b236d96"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release-plz.yml",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-2"
+          ],
+          "sha256": "d13603b9d8ef14facb769bf64f0c854f672ccd569c66f89a1c24c748e076f86d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.toml",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-3"
+          ],
+          "sha256": "9282003f56c8b21a905fc71b3f3a65f9fd76b844c4d9f3192a2e599919ec32f3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CHANGELOG.md",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-3",
+            "FIRST-1"
+          ],
+          "sha256": "e26459a2c204c12a5d445afc266acbabcba62344e230b4ddb6e92b58b267b920"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_automation.rs",
+          "kind": "test",
+          "criterionIds": [
+            "RPZ-1",
+            "RPZ-2",
+            "RPZ-3"
+          ],
+          "sha256": "aad162854079437db413b13c8fd7bf99a5273f00595b02b90aaf8137aec36fe5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-4"
+          ],
+          "sha256": "7b1afe21511ac79bfd4dc377957f97bdcdf9eab805dd0c6fb540562b90f166b3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-1",
+            "RPZ-4"
+          ],
+          "sha256": "5767370212b168a434b94084fa5c83764715eb0452261b276c1d63aecf6a12e0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DEP-1"
+          ],
+          "sha256": "ba1dc479f5b95840c3c0d6e46b9c886d6a3347b88bc7ac9e0355581f1803d219"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/package_layout.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-1"
+          ],
+          "sha256": "31489e2d1da54fc641577a0bd027aa8107f56dbd98aad9a00e43ad9f0d23de14"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.lock",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-1"
+          ],
+          "sha256": "0b26d6a4dfd6c7ea1b18439ce6efac0cdddedc4c97b2dbe4762dd2e79a0ee777"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CLAUDE.md",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-1",
+            "DEP-2"
+          ],
+          "sha256": "54c9c2cb89d95375f2af4627555ae68d3c39cd354ce4012800b5b7dbc569c4ec"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-2"
+          ],
+          "sha256": "54c9c2cb89d95375f2af4627555ae68d3c39cd354ce4012800b5b7dbc569c4ec"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "WSL-1",
+            "WSL-2"
+          ],
+          "sha256": "e661a31d8ea59d7002960e1478ffe6b9fb140e5fb647dfc284413be6ba41eb4b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_install.rs",
+          "kind": "test",
+          "criterionIds": [
+            "WSL-1"
+          ],
+          "sha256": "68a29e452b9736078a0d9efe38588ba23ada877c8ff4c0e711bae7ee0fd2cfd9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "runtime",
+          "criterionIds": [
+            "FIRST-1",
+            "FIRST-2",
+            "WSL-2",
+            "FIRST-3"
+          ],
+          "sha256": "0242e02f8584ea475e2c1dc4b0db15c56f0fb2ce73aee4fa93501a2822827a9e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "source",
+          "criterionIds": [
+            "FIRST-1",
+            "FIRST-2",
+            "WSL-2",
+            "FIRST-3"
+          ],
+          "sha256": "0242e02f8584ea475e2c1dc4b0db15c56f0fb2ce73aee4fa93501a2822827a9e"
+        }
+      ],
+      "summaryMarkdown": "Integrated epic passes. Tag form `v<semver>` agrees across release-plz (`git_tag_name`), dist's trigger and `src/setup/wsl.rs` (`{RELEASES}/v{version}/`), asserted in `tests/release_automation.rs` and proven live: release-plz run 38565396101 pushed the annotated tag `v1.0.0` (commit 03617fb), Release run 38565448357 succeeded, and the published release is not draft/prerelease, Latest, with six archives, `.sha256` files, both installers, `sha256.sum` and the CHANGELOG notes; attestations exist for the Windows x64, Windows ARM64 and macOS ARM64 archives (GitHub attestations API). README and `docs/releasing.md` match the actual behaviour (install path, tag-by-release-plz, initial-release behaviour, `release_commits`, token rotation). `CLAUDE.md` and `AGENTS.md` are identical and match the rule enforced by `tests/dependency_sources.rs` (13 tests re-run green). The WSL script (`curl ... | env -u RAYX_HOME sh`, pipefail, binary check, `$HOME/.rayx/bin/rayx`) matches the dist install path and the receipt `rayx self update` reads; the macOS install on this Mac is recorded honestly. Amended FIRST-2, WSL-2 and FIRST-3 are met as amended: the Windows x64/Linux x64/WSL/RayX CI checks are listed as pending with exact expected results in `docs/manual-verification.md`, and RayX commit 86b6d16 (PR rayx-ui/RayX#2, open) pins `RAYX_CLI_VERSION: 1.0.0`, puts `~/.rayx/bin` on `GITHUB_PATH` and updates docs and the validation decision. Non-blocking notes: (1) the recorded `gh attestation verify` list names Windows ARM64, macOS ARM64 and Linux x64 rather than FIRST-1's Windows x64 (an attestation for the Windows x64 zip exists on GitHub); (2) the green RayX CI run and the real Windows/WSL runs remain open follow-ups by owner decision; (3) `pendingSupersession` for the repository single-package and WSL clone decisions, and promotion of d-dependency-sources and d-wsl-release-installer, remain for after `done`; `.agentx/memory/knowledge/repository/rules.md` still states the old registry-only rule until then. Delta: the RayX CI record (run 38567391607) is accurate (Install rayx and the web/test set steps pass with the v1.0.0 installer; Format check and WASM browser validation fail on the missing `../RayX.SignalR` path dependency the workflow never checks out; owner decision not to work around it recorded). F-FINAL-1 (unsupported claim about master) is resolved: the record now says master's earlier runs never got past checkout or startup. `status` shows no checkpoint errors.",
+      "findingIds": [
+        "F-FINAL-1"
+      ],
+      "recordedAt": "2026-10-14T13:22:03Z"
     }
   },
   "checkpoints": {
@@ -492,6 +976,14 @@
       },
       "reviewHash": "d7439278a26cd566e1a2f21309be7bc79065274a9d7d7bae546d9d505a8c5385",
       "recordedAt": "2026-10-14T12:32:52Z"
+    },
+    "s5-first-release": {
+      "snapshotId": "ade17bda6eab9299eb08dd24eb73ad4c4d9acb4f36984b1191c4889f353fb721",
+      "commits": {
+        "rayx-cli": "b1278fa51b09398c21987c6f78ed4590d3cbe86b"
+      },
+      "reviewHash": "fad5bcda114c39911c6db051c13a70485cc87656bd9fb471df70801838d7ec23",
+      "recordedAt": "2026-10-14T13:04:44Z"
     }
   },
   "findings": [
@@ -553,18 +1045,28 @@
           "symbol": "git_rev_must_be_a_commit_hash"
         }
       ]
+    },
+    {
+      "id": "F-FINAL-1",
+      "boundaryId": "final",
+      "criterionIds": [
+        "FIRST-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "`docs/manual-verification.md` (RayX CI bullet, commit 8b12ce6) says \"RayX `master` has failed the same way since 2026-10-08\". The run history does not show that. `gh run list --repo rayx-ui/RayX --branch master` lists five failed runs: the 2026-10-06 runs (e.g. 37487412150) failed in `actions/checkout` (`Not Found`), and the 2026-10-08 runs (e.g. 37829436449) failed after 3 s with no steps run. None reached `cargo fmt --check` or `rayx app ... test wasm`, so none failed on the missing `../RayX.SignalR` sibling. What is verified is only run 38567391607 on PR #2 (both jobs fail at `Format check` / `WASM browser validation` with `failed to read .../RayX.SignalR/Cargo.toml`; `Install rayx` and the web/test set steps pass). Expected: the record states only what the runs show. Repair: replace the sentence with a verified statement, e.g. that `master`'s earlier runs (2026-10-06, 2026-10-08) never got past checkout/startup, so the missing-SignalR failure is first observed on PR #2 and is independent of the pin because the workflow never checks the sibling out; keep the rest of the bullet. Doc-only change; then refresh context and resubmit.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ]
     }
   ],
   "handoffMarkdown": "",
   "protectedPaths": {
     "rayx-cli": {
       ".agentx/tasks/rayx-cli-foundation/**": "195289e41107bb67bba3ca4b2308e643cfd1821052238e1e3856f2546074b5f8"
-    },
-    "rayx": {
-      ".agentx/tasks/rayx-cli-foundation/**": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "rayx:crates/**": "d1c22d0a56840a3b9022087fc8a56c253b447485797e421574304eddccf65944",
-      "rayx:apps/**": "e5ab4711b0ceb561da4834bdf6a3ff6600074e3fddc465319dc275c3c9ff032f",
-      "rayx:.agentx/tasks/**": "d92d223a99c82b9742398b05452477042917508f7f0ca5fa8b30f6bb8b985362"
     }
   }
 }
