@@ -120,7 +120,8 @@ for a modified copy.
 | macOS ARM64 | new shell: `which rayx`, `rayx --version`, `rayx self update --check` | pass: `/Users/dinko/.rayx/bin/rayx`, `rayx 1.0.0`, `installed 1.0.0, latest release 1.0.0: rayx is up to date` |
 | macOS ARM64 | running the installer again | pass: reinstalls in place without error, `rayx 1.0.0` |
 
-Not run by the implementer (they need the owner's Windows PC, which is not reachable from the Mac):
+Pending follow-up (owner decision 2026-10-14: these need the owner's Windows PC and are not part of
+the `rayx-cli-releases` epic; run them and record the results here):
 
 - Windows x64: the PowerShell one-liner on a host without `rayx`; a new terminal finds `rayx` (user
   `Path` has `%USERPROFILE%\.rayx\bin`), `rayx --version` prints `rayx 1.0.0`,
@@ -128,3 +129,7 @@ Not run by the implementer (they need the owner's Windows PC, which is not reach
 - Linux x64 in WSL, and `rayx setup --wsl` from the v1.0.0 Windows `rayx`: installs `rayx 1.0.0` into
   `~/.rayx/bin` of `Ubuntu-24.04`, a new WSL shell finds it, and `rayx self update --check` inside WSL
   reports up to date instead of the no-receipt message.
+- RayX CI: the pull request `rayx-ui/RayX#2` (pins the v1.0.0 installer in `pr-test.yml`) has not
+  run: its jobs were not started because GitHub reported a failed-payment/spending-limit state for
+  the account (2026-10-14). Re-run it once billing or the repository visibility is fixed; both jobs
+  (Rust Workspace, WASM Playwright WebGPU) must pass with the release-installed `rayx`.
