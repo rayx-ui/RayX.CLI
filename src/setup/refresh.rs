@@ -136,6 +136,31 @@ pub fn refresh_guests(
     host: &HostFacts,
     runner: &mut Runner,
     machine: &dyn Machine,
+    prompter: Option<&mut dyn Prompter>,
+    out: &mut dyn Write,
+) -> RefreshReport {
+    refresh_with(options, true, host, runner, machine, prompter, out)
+}
+
+/// Like [`refresh_guests`] for a caller that has already probed the chosen release (and refused
+/// a binary override) before changing anything, so the probe is not repeated.
+pub fn refresh_probed(
+    options: &RefreshOptions,
+    host: &HostFacts,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    prompter: Option<&mut dyn Prompter>,
+    out: &mut dyn Write,
+) -> RefreshReport {
+    refresh_with(options, false, host, runner, machine, prompter, out)
+}
+
+fn refresh_with(
+    options: &RefreshOptions,
+    probe: bool,
+    host: &HostFacts,
+    runner: &mut Runner,
+    machine: &dyn Machine,
     mut prompter: Option<&mut dyn Prompter>,
     out: &mut dyn Write,
 ) -> RefreshReport {
@@ -160,7 +185,8 @@ pub fn refresh_guests(
         records::LIMA => options.lima_binary.is_some().then_some("RAYX_LIMA_BINARY"),
         _ => options.wsl_binary.is_some().then_some("RAYX_WSL_BINARY"),
     };
-    if let Err(why) = guest::plan_release(options.release.as_ref(), override_name, runner) {
+    if probe && let Err(why) = guest::plan_release(options.release.as_ref(), override_name, runner)
+    {
         eprintln!("rayx: {why}");
         report.refused = Some(why);
         return report;
@@ -200,7 +226,7 @@ pub fn refresh_guests(
             .iter()
             .filter(|g| g.kind == kind && g.retired && g.migrating)
         {
-            let Some(name) = VmName::of_retired(&old.name, &old.ubuntu) else {
+            let Some(name) = VmName::of_retired(&old.name) else {
                 continue;
             };
             if !targeted(options, name.as_str())

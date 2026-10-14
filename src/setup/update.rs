@@ -12,7 +12,7 @@ use crate::project::Project;
 use super::guest;
 use super::lima::sizing::{Prompter, TerminalPrompter};
 use super::records::{self, SetupFile};
-use super::refresh::{RefreshOptions, check_targets, refresh_guests};
+use super::refresh::{RefreshOptions, check_targets, refresh_probed};
 use super::wsl;
 use super::{Machine, Set, SystemMachine, ask_on_terminal, environment_for, run_sets};
 
@@ -217,14 +217,17 @@ pub fn run_with(
         eprintln!("rayx: {error}");
         return 1;
     }
-    let override_name = match host.os {
-        Os::MacOs => options.lima_binary.is_some().then_some("RAYX_LIMA_BINARY"),
-        Os::Windows => options.wsl_binary.is_some().then_some("RAYX_WSL_BINARY"),
-        Os::Linux => None,
-    };
-    if let Err(error) = guest::plan_release(options.release.as_ref(), override_name, runner) {
-        eprintln!("rayx: {error}");
-        return 1;
+    // Only a host that drives guests has anything to give the release to; asking about it
+    // elsewhere would make an offline Linux box fail an update it can do.
+    if host.os != Os::Linux && !host.wsl {
+        let override_name = match host.os {
+            Os::MacOs => options.lima_binary.is_some().then_some("RAYX_LIMA_BINARY"),
+            _ => options.wsl_binary.is_some().then_some("RAYX_WSL_BINARY"),
+        };
+        if let Err(error) = guest::plan_release(options.release.as_ref(), override_name, runner) {
+            eprintln!("rayx: {error}");
+            return 1;
+        }
     }
     // Naming guests is an explicit target, not a host run: the host part is skipped.
     let update = if options.targets.is_empty() {
@@ -237,7 +240,7 @@ pub fn run_with(
             unreadable: false,
         }
     };
-    let refreshed = refresh_guests(options, host, runner, machine, prompter, out);
+    let refreshed = refresh_probed(options, host, runner, machine, prompter, out);
     if !update.recorded
         && !update.unreadable
         && !refreshed.unreadable

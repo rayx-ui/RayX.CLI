@@ -64,11 +64,25 @@ impl VmName {
         format!("{}-{ubuntu}", self.0)
     }
 
-    /// The VM a retired `<name>-<version>` entry belongs to, when `entry` has that form for
-    /// `ubuntu` and its prefix is a usable name.
-    pub fn of_retired(entry: &str, ubuntu: &str) -> Option<Self> {
-        let prefix = entry.strip_suffix(ubuntu)?.strip_suffix('-')?;
-        Self::parse(prefix).ok()
+    /// The VM a retired `<name>-<version>` entry belongs to: the text after the last hyphen is a
+    /// dotted version and the rest is a usable name. The recorded Ubuntu is not consulted, because
+    /// the VM is renamed after the version it really ran, which a stale record may not match.
+    pub fn of_retired(entry: &str) -> Option<Self> {
+        let (prefix, version) = entry.rsplit_once('-')?;
+        let dotted = version.contains('.')
+            && version
+                .split('.')
+                .all(|part| !part.is_empty() && part.chars().all(|c| c.is_ascii_digit()));
+        if dotted {
+            Self::parse(prefix).ok()
+        } else {
+            None
+        }
+    }
+
+    /// Whether `entry` is a retired `<name>-<version>` VM of this name.
+    pub fn owns_retired(&self, entry: &str) -> bool {
+        Self::of_retired(entry).is_some_and(|owner| owner == *self)
     }
 
     /// The flags that select this VM in a `rayx setup` command line: `--lima` for the default,

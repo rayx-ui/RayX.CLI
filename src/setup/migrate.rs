@@ -132,7 +132,7 @@ pub fn pending_lima(file: &GuestsFile, instances: &[Instance], name: &VmName) ->
     file.guests
         .iter()
         .filter(|g| {
-            g.kind == records::LIMA && g.retired && g.migrating && g.name == name.retired(&g.ubuntu)
+            g.kind == records::LIMA && g.retired && g.migrating && name.owns_retired(&g.name)
         })
         .find_map(|entry| {
             instances

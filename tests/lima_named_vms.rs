@@ -304,11 +304,16 @@ fn a_vm_name_is_one_to_forty_lowercase_letters_digits_and_hyphens_starting_with_
     assert!(VmName::default().is_default() && !name("app").is_default());
     assert_eq!(name("app").retired("22.04"), "app-22.04");
     assert_eq!(
-        VmName::of_retired("app-22.04", "22.04"),
+        VmName::of_retired("app-22.04"),
         Some(name("app")),
         "the entry names its VM"
     );
-    assert_eq!(VmName::of_retired("rayx-22.04", "20.04"), None);
+    assert_eq!(VmName::of_retired("rayx-app-22.04"), Some(name("rayx-app")));
+    for not_retired in ["app", "app-22", "app-22.", "app-x.y", "-22.04", "App-22.04"] {
+        assert_eq!(VmName::of_retired(not_retired), None, "{not_retired}");
+    }
+    assert!(name("app").owns_retired("app-22.04"));
+    assert!(!name("rayx").owns_retired("rayx-app-22.04"));
 }
 
 #[test]
@@ -776,6 +781,18 @@ fn a_retired_vm_counts_as_an_interrupted_migration_of_its_own_name_only() {
         "a name that merely starts alike does not match"
     );
     assert!(pending_lima(&file, &instances, &name("rayx")).is_none());
+}
+
+#[test]
+fn an_interrupted_migration_resumes_even_when_the_record_kept_another_ubuntu_than_the_rename() {
+    // The VM ran 22.04 and was renamed after that; the record still said 20.04.
+    let stale = retired("app-22.04", "20.04", true);
+    let file: GuestsFile = serde_json::from_str(&record(&[stale])).expect("record");
+    let instances =
+        parse_instances("{\"name\":\"app-22.04\",\"status\":\"Stopped\",\"dir\":\"/x\"}\n");
+
+    assert!(pending_lima(&file, &instances, &name("app")).is_some());
+    assert!(pending_lima(&file, &instances, &VmName::default()).is_none());
 }
 
 #[test]

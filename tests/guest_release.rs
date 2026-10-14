@@ -1193,8 +1193,8 @@ fn setup_update_probes_the_release_before_the_host_part_and_the_refresh_follows(
     );
     assert_eq!(
         lines.iter().filter(|l| l.starts_with("curl ")).count(),
-        2,
-        "the refresh probes again, which only reads: {lines:?}"
+        1,
+        "the release is asked about once, before the host part: {lines:?}"
     );
     assert!(!out.contains("nothing recorded"), "{out}");
 }
@@ -1227,4 +1227,29 @@ fn setup_update_refuses_a_release_with_the_override_of_its_host_before_anything_
     );
     assert_eq!(code, 1);
     assert!(windows_runner.specs().is_empty());
+}
+
+#[test]
+fn a_host_without_guests_does_not_ask_about_the_release() {
+    for os in [Os::Linux] {
+        let mut runner = Runner::record()
+            .with_os(os)
+            .respond(|spec| spec.program == "curl", Outcome::failure(6));
+        let machine = FakeMachine::new().with_home("/home/dev");
+
+        let (code, out) = update_run_with(
+            &update_args("1.0.1", true),
+            &options(Some("1.0.1"), true, true),
+            os,
+            &mut runner,
+            &machine,
+        );
+
+        assert!(
+            existence_probes(&runner).is_empty(),
+            "nothing here could use the release: {:?}",
+            runner.lines()
+        );
+        assert_eq!(code, 0, "{out}");
+    }
 }
