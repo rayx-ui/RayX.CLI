@@ -7,6 +7,7 @@ pub mod doctor;
 pub mod fmt;
 pub mod host;
 pub mod project;
+pub mod release;
 pub mod setup;
 pub mod update;
 pub mod wsl;
@@ -60,8 +61,13 @@ fn dispatch(cli: Cli) -> ExitCode {
             command: LimaCommand::Remove(args),
         } => ExitCode::from(setup::remove::run(setup::guest::GuestKind::Lima, args)),
         Command::SelfCommand {
-            command: SelfCommand::Update { check, yes },
-        } => ExitCode::from(update::run(*check, *yes)),
+            command:
+                SelfCommand::Update {
+                    check,
+                    release,
+                    yes,
+                },
+        } => ExitCode::from(update::run(*check, *yes, release.as_deref())),
         Command::App(args) => run_app(args.args.clone()),
         Command::Fmt(args) => run_fmt(args.args.clone()),
     }

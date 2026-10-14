@@ -1,4 +1,5 @@
-//! `rayx self update [--check]`: replaces the installed binary with the latest GitHub release.
+//! `rayx self update [--check] [--release X.Y.Z]`: replaces the installed binary with the latest
+//! GitHub release, or with exactly the named one.
 //!
 //! The release installers (cargo-dist's shell and PowerShell scripts) leave an install receipt;
 //! `rayx` updates itself only when that receipt is for the running executable. The installer
@@ -10,8 +11,10 @@ use std::cmp::Ordering;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use axoupdater::{AxoUpdater, ReleaseSource, ReleaseSourceType};
+use axoupdater::{AxoUpdater, ReleaseSource, ReleaseSourceType, UpdateRequest};
 use semver::Version;
+
+use crate::release::{self, Direction, Existence, MIN_REFRESH_RELEASE, Release};
 
 /// The cargo-dist application name: the package the releases are built from.
 pub const APP_NAME: &str = "rayx-cli";
@@ -124,6 +127,10 @@ pub trait Backend {
     fn executable(&self) -> PathBuf;
     /// Runs the release installer; the version it installed.
     fn install(&mut self) -> Result<Version, String>;
+    /// Whether `release` is published.
+    fn release_exists(&mut self, release: &Release) -> Existence;
+    /// Runs the installer of exactly `release`, also an older one; the version it installed.
+    fn install_release(&mut self, release: &Release) -> Result<Version, String>;
 }
 
 /// What the refresh after an update needs from the outside world.
@@ -207,6 +214,99 @@ pub fn run_with_refresh(
     }
 }
 
+/// The body of `rayx self update --release <X.Y.Z> [--check] [--yes]`: installs exactly that
+/// release, asking first when it is older than the installed one; returns the exit code. Nothing
+/// is remembered: a later plain `self update` goes to the latest release.
+#[allow(clippy::too_many_arguments)]
+pub fn run_release(
+    requested: &Release,
+    check: bool,
+    yes: bool,
+    installed: &Version,
+    backend: &mut dyn Backend,
+    mut refresher: Option<&mut dyn Refresher>,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+) -> u8 {
+    match backend.release_exists(requested) {
+        Existence::Exists => {}
+        Existence::Missing => {
+            let _ = writeln!(err, "rayx: release {requested} was not found");
+            return 1;
+        }
+        Existence::Unknown(reason) => {
+            let _ = writeln!(
+                err,
+                "rayx: cannot check whether release {requested} exists: {reason}"
+            );
+            return 1;
+        }
+    }
+    let direction = requested.direction_from(installed);
+    if check {
+        let _ = writeln!(
+            out,
+            "installed {installed}, requested release {requested}: {}",
+            direction.word()
+        );
+        return 0;
+    }
+    if direction == Direction::Same {
+        let _ = writeln!(out, "rayx {installed} is already installed.");
+        return 0;
+    }
+    let source = classify(&backend.executable(), backend.receipt_matches());
+    if source != InstallSource::Installer {
+        let _ = writeln!(err, "rayx: {}", source.instructions());
+        return 1;
+    }
+    if direction == Direction::Downgrade && !yes {
+        let question = format!("Install rayx {requested} over {installed}, an older release?");
+        match refresher.as_deref_mut().and_then(|r| r.confirm(&question)) {
+            Some(true) => {}
+            Some(false) => {
+                let _ = writeln!(err, "rayx: nothing was changed");
+                return 1;
+            }
+            None => {
+                let _ = writeln!(
+                    err,
+                    "rayx: installing rayx {requested} over {installed} is a downgrade and needs \
+                     an answer: repeat it with `--yes` to confirm without a terminal"
+                );
+                return 1;
+            }
+        }
+    }
+    // The path this rayx was started from: the refresh must run the executable at the original
+    // path, which is the new one once the install replaced it.
+    let executable = backend.executable();
+    let installed_now = match backend.install_release(requested) {
+        Ok(installed_now) => installed_now,
+        Err(error) => {
+            let _ = writeln!(err, "rayx: the update failed: {error}");
+            return 1;
+        }
+    };
+    let _ = writeln!(out, "Updated rayx {installed} -> {installed_now}.");
+    let has_refresh =
+        Release::from_version(&installed_now).is_some_and(|release| release >= MIN_REFRESH_RELEASE);
+    if !has_refresh {
+        let _ = writeln!(
+            out,
+            "rayx {installed_now} predates the guest refresh: no refresh was offered"
+        );
+        return 0;
+    }
+    if direction == Direction::Downgrade {
+        return 0;
+    }
+    match refresher {
+        Some(refresher) => offer_refresh(yes, &installed_now, &executable, refresher, out),
+        None => 0,
+    }
+}
+
 /// Offers the refresh after an install and runs it when wanted; the refresh's exit code becomes
 /// the command's.
 fn offer_refresh(
@@ -235,14 +335,34 @@ fn offer_refresh(
     0
 }
 
-/// Runs `rayx self update` against GitHub and returns the exit code.
-pub fn run(check: bool, yes: bool) -> u8 {
+/// Runs `rayx self update [--release X.Y.Z]` against GitHub and returns the exit code.
+pub fn run(check: bool, yes: bool, requested: Option<&str>) -> u8 {
     let Ok(installed) = Version::parse(env!("CARGO_PKG_VERSION")) else {
         eprintln!("rayx: this build has no valid version");
         return 1;
     };
+    // The name is checked before the network is asked.
+    let requested = match requested.map(release::parse).transpose() {
+        Ok(requested) => requested,
+        Err(error) => {
+            eprintln!("rayx: {error}");
+            return 1;
+        }
+    };
     let mut backend = GithubBackend::new(&installed);
     let mut refresher = SystemRefresher;
+    if let Some(requested) = requested {
+        return run_release(
+            &requested,
+            check,
+            yes,
+            &installed,
+            &mut backend,
+            Some(&mut refresher),
+            &mut std::io::stdout(),
+            &mut std::io::stderr(),
+        );
+    }
     run_with_refresh(
         check,
         yes,
@@ -359,5 +479,17 @@ impl Backend for GithubBackend {
             .map_err(|error| error.to_string())?
             .ok_or_else(|| "the installer reported nothing to update".to_string())?;
         Version::parse(&result.new_version.to_string()).map_err(|error| error.to_string())
+    }
+
+    fn release_exists(&mut self, release: &Release) -> Existence {
+        release::exists(&mut crate::host::Runner::execute(), release)
+    }
+
+    fn install_release(&mut self, release: &Release) -> Result<Version, String> {
+        // axoupdater refuses to install an older release unless an update is forced.
+        self.updater
+            .configure_version_specifier(UpdateRequest::SpecificVersion(release.to_string()))
+            .always_update(true);
+        self.install()
     }
 }

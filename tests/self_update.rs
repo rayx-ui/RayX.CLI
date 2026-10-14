@@ -48,6 +48,18 @@ impl Backend for Fake {
         self.installed = result.clone().ok();
         result
     }
+    fn release_exists(
+        &mut self,
+        _release: &rayx_cli::release::Release,
+    ) -> rayx_cli::release::Existence {
+        unreachable!("the plain update never asks for a named release")
+    }
+    fn install_release(
+        &mut self,
+        _release: &rayx_cli::release::Release,
+    ) -> Result<Version, String> {
+        unreachable!("the plain update never installs a named release")
+    }
 }
 
 fn run(check: bool, installed: &str, backend: &mut Fake) -> (u8, String, String) {

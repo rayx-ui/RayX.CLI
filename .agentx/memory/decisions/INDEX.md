@@ -28,7 +28,8 @@ Durable architecture choices for `rayx`. Current source remains the first eviden
   - [Run scripts inside WSL with --exec so the login shell does not parse them](setup/2026-10-08-setup-wsl-scripts-run-with-exec.md)
   - [Install Android Studio through its own wizard on Windows](setup/2026-10-08-setup-android-studio-through-its-wizard.md)
   - [Plan setup once and use the plan for setup, setup --check and doctor](setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md)
-  - [Set WSL up from Windows, install the Linux rayx with the release installer and clone only the current checkout](setup/2026-10-14-setup-wsl-release-installer.md)
+  - [Drive Linux guests through one guest layer, record them, refresh them and replace them side by side](setup/2026-10-14-setup-guests-lima-records-and-side-by-side-migration.md)
+  - ~~[Set WSL up from Windows, install the Linux rayx with the release installer and clone only the current checkout](setup/2026-10-14-setup-wsl-release-installer.md)~~ (superseded)
   - ~~[Set WSL up from Windows and clone only the current checkout](setup/2026-10-08-setup-wsl-clones-only-the-current-checkout.md)~~ (superseded)
 
 - app-pipeline

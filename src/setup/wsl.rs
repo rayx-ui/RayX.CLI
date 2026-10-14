@@ -18,8 +18,7 @@ use super::records::{self, CloneRecord};
 use super::refresh::RefreshOptions;
 
 pub use super::guest::{
-    Checkout, LINUX_BINARY, RELEASES, clone_script, detect_checkout, linux_dir, release_asset,
-    setup_flags,
+    Checkout, LINUX_BINARY, clone_script, detect_checkout, linux_dir, release_asset, setup_flags,
 };
 
 /// The distribution `--wsl` sets up: `Ubuntu-<pin>`.
