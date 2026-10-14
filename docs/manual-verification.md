@@ -104,7 +104,9 @@ the Gpux ones:
   sends HTTPS to SSH too, so `brew update` failed until Homebrew was updated with
   `GIT_CONFIG_GLOBAL=/dev/null git fetch` and `git checkout -B stable <tag>`.
 
-## Not verifiable before a release
+## Release installs
 
 The first tagged release (cargo-dist builds of all six targets, the installers) and a real `rayx
-self update` download need a published release; `self update --check` reports that none exists.
+self update` download are verified on real hosts when v1.0.0 is published; the results are recorded
+in this file afterwards, from the checklist of the `rayx-cli-releases` epic (sprint
+`s5-first-release`).
