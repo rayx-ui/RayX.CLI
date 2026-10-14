@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 1,
+  "revision": 5,
   "title": "Linux guests: the Lima VM on macOS (setup --lima), shared guest layer with WSL, setup --update and the refresh after self update, side-by-side Ubuntu migration and guest removal",
   "validationMode": "sprint",
   "repositories": [
@@ -425,12 +425,72 @@
         "--test",
         "project_pins",
         "--test",
-        "setup_macos"
+        "setup_macos",
+        "--test",
+        "guest_repairs_flow",
+        "--test",
+        "guest_repairs_safety"
       ],
       "expected": {
         "exitCode": 0,
         "minimumTests": 120
       }
+    },
+    {
+      "id": "check-repairs-flow",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REP-1",
+        "REP-2",
+        "REP-3"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_repairs_flow.rs`: flags with a migration, early recording and a failed first run, the refresh after a migration.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_repairs_flow"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_repairs_flow.rs"
+      ]
+    },
+    {
+      "id": "check-repairs-safety",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REP-4",
+        "REP-5",
+        "REP-6"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_repairs_safety.rs`: failed reads versus missing guests, `--check` without prompts or starts, honest record reads, clone de-duplication.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_repairs_safety"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_repairs_safety.rs"
+      ]
     }
   ],
   "finalCheckIds": [
@@ -881,10 +941,92 @@
       ]
     },
     {
+      "id": "s7-integration-repairs",
+      "title": "Integration repairs from the advisory epic review",
+      "dependsOn": [
+        "s5-docs-mac-proof"
+      ],
+      "memoryScopes": [
+        "setup"
+      ],
+      "checkIds": [
+        "check-repairs-flow",
+        "check-repairs-safety"
+      ],
+      "tasks": [
+        {
+          "id": "t15-flow-repairs",
+          "title": "Flags with migration, early recording, refresh after migration",
+          "descriptionMarkdown": "Honour `--vm-*` flags when a migration replaces the VM (no edit of the old VM; effective settings overlaid on the old ones; resumed migrations too), record a guest right after it is created, and make the refresh stop only the VM it started. Write `tests/guest_repairs_flow.rs`.",
+          "criterionIds": [
+            "REP-1",
+            "REP-2",
+            "REP-3"
+          ],
+          "designIds": [
+            "d-integration-repairs"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-repairs-flow"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/lima/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/migrate.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/refresh.rs"
+            }
+          ]
+        },
+        {
+          "id": "t16-honest-reads",
+          "title": "Failed reads, --check without prompts or starts, honest records",
+          "descriptionMarkdown": "Tell a failed `limactl list` from a missing guest, keep `--check` from prompting and from starting a WSL distribution, read records honestly (only NotFound is empty, one reader, unique temp names), de-duplicate clone directories and report an unusable `RAYX_WSL_BINARY`. Write `tests/guest_repairs_safety.rs`.",
+          "criterionIds": [
+            "REP-4",
+            "REP-5",
+            "REP-6"
+          ],
+          "designIds": [
+            "d-integration-repairs"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-repairs-safety"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/refresh.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/remove.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/records.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/wsl.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "s6-owner-hosts",
       "title": "Owner-run: WSL on the Windows PC and self update after the release",
       "dependsOn": [
-        "s5-docs-mac-proof"
+        "s7-integration-repairs"
       ],
       "memoryScopes": [
         "setup",

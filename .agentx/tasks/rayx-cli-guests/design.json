@@ -261,6 +261,47 @@
           "path": "src/wsl.rs"
         }
       ]
+    },
+    {
+      "id": "d-integration-repairs",
+      "requirementIds": [
+        "REP"
+      ],
+      "descriptionMarkdown": "`migrate_lima` takes the effective `VmFlags` (validated by `sizing::effective` against the host capacity and overlaid on the old VM's settings, a smaller disk refused) and `setup::lima::run_with` skips `apply_edit` when the live Ubuntu is older than the pin. A guest is recorded right after it is created (`records::record_guest` with the VM settings, from `run_with` and `wsl::ensure_distribution`). `refresh_one` stops only a VM it started and tracks the new VM after a migration. Reads that can fail are told apart from empty results (`list_instances` returns a typed failure to `refresh` and `remove`). `--check` paths check `wsl --list --running` before querying a distribution and print instead of asking. `records` has one reader keyed on `ErrorKind::NotFound`, unique temporary names (`<file>.<pid>.tmp`) and `wsl::status` de-duplicates clone directories.",
+      "invariantsMarkdown": "- `--check` never prompts, starts, stops, edits, renames or records.\n- A guest `rayx` created is always recorded, so it can be refreshed, reported and removed.\n- A failed read is never presented as an absent guest.",
+      "rationaleMarkdown": "An advisory read of the integrated change found these behaviours; each contradicts an owner decision or an epic invariant (explicit flags are honoured, guests rayx creates are managed, `--check` changes nothing).",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-wsl-scripts-run-with-exec.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/host/2026-10-08-host-facts-and-command-runner.md"
+        }
+      ]
     }
   ]
 }

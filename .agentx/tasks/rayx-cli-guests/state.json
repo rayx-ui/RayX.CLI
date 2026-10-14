@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 46,
-  "planRevision": 1,
+  "revision": 60,
+  "planRevision": 5,
   "specHashes": {
-    "requirements": "bd122f66c7ae5a347f737aa7f4f7803c5f31d4e2803f7fc0bfc6d41f42af6d34",
-    "design": "1d5fb6a44a982407d55e170e3c8fc3339ce5417f67435de71c39335992a594fa",
-    "plan": "90d1f40f9403c4d352a788c73d336aec2be8b470e12f5f878f8e92f4c0f267af"
+    "requirements": "ff8fe8e3dadfcc4260169e6e4a8126ae1ad506eaa8f1c1e1de822cae89569584",
+    "design": "8b77f2a6b2754108bf4b5aa9782aa3e92fe8efe7b2709f881bc2993f7719ad92",
+    "plan": "96b199090ea653dec9592d845a29547e3b8e6d854dc55845f466063f9c978abe"
   },
   "tasks": {
     "t01-guest-layer": {
@@ -86,10 +86,22 @@
       "workerIds": [
         "352b60b3-72ba-43f0-8dc9-9949c7a95973"
       ],
-      "blockerMarkdown": "MAN-3 needs the owner's Windows PC (WSL 2, a local Windows build and RAYX_WSL_BINARY); this session runs on macOS and cannot run it"
+      "blockerMarkdown": "MAN-3 needs the owner's Windows PC (WSL 2, a local Windows build and RAYX_WSL_BINARY); this session runs on macOS"
     },
     "t14-release-proof": {
       "status": "pending"
+    },
+    "t15-flow-repairs": {
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
+    },
+    "t16-honest-reads": {
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     }
   },
   "validationBatches": {
@@ -137,6 +149,15 @@
         }
       },
       "recordedAt": "2026-10-14T16:55:06Z"
+    },
+    "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e": {
+      "snapshot": {
+        "specHash": "c2a3fb4317adf217d3342fa39502a870054e7a216c466cf30fee774edceebe3a",
+        "repositories": {
+          "rayx-cli": "68319096cccec2a9b91f7a538790d2f46d627b190d95d4e02863a799ae1cf5e5"
+        }
+      },
+      "recordedAt": "2026-10-14T17:12:09Z"
     }
   },
   "checkResults": {
@@ -326,6 +347,40 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-guests/s5-docs-mac-proof-final-bd8f778530b6.log",
       "logSha256": "478644e246985aa5c2a65bc267ef2eed347ca6d15c4160e9e0554f0dcaa25ab2",
       "inputsHash": "ceae22148abac119cb470e79a331f1a873dd0fa3fe8239a04a764c4143314d06"
+    },
+    "s7-integration-repairs/check-repairs-flow/final": {
+      "checkId": "check-repairs-flow",
+      "boundaryId": "s7-integration-repairs",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "df74350b1b5e82b48e076982e68aa007b447c36ddf8b10643f3f913d419c36b7",
+      "basisHash": "2956664c57ed6efbc9b538b88d286c126df2ec5db08d707911a3de86bdad16b5",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 10,
+      "durationSeconds": 0.2525,
+      "recordedAt": "2026-10-14T17:12:08Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s7-integration-repairs-final-bbbb628741ab.log",
+      "logSha256": "be312ebdba69c50e38404704a583730d386d26549de3e5416718dede0d3eabff",
+      "inputsHash": "2bc875a35096f7bb345292c9e93ddde1166f2afe562f59513fe2f4893e861afe"
+    },
+    "s7-integration-repairs/check-repairs-safety/final": {
+      "checkId": "check-repairs-safety",
+      "boundaryId": "s7-integration-repairs",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "00d0dda0b0304ddac646df89646d14180442e70437f69b7c85cfb1f06a1b50e6",
+      "basisHash": "a8d6e7c649a275e3f46dee58743ff7ee3b8552889b6cc73218c284f0ff069772",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 11,
+      "durationSeconds": 0.6828,
+      "recordedAt": "2026-10-14T17:12:09Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s7-integration-repairs-final-93ecc5e85b18.log",
+      "logSha256": "3c008b21ac46ba9a951b7f27032945783dbed09e6a1f13e8dddfb0fd58c27f72",
+      "inputsHash": "743d45d2adb77444a8ca9472c4e99fc0b50b7bd397b7c7fc4d81d024e4a925db"
     }
   },
   "reviews": {
@@ -1033,6 +1088,168 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "2c750858371ed702b4c68181ef3610928d05d599936fb560cee04e54cb918237"
       }
+    },
+    "s7-integration-repairs": {
+      "reviewerId": "reviewer-s7-y2lnf4wo",
+      "snapshotId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "criterionIds": [
+        "REP-1",
+        "REP-2",
+        "REP-3",
+        "REP-4",
+        "REP-5",
+        "REP-6"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-1",
+            "REP-2",
+            "REP-5"
+          ],
+          "sha256": "90b44d38d01613d1fd767a56bbb1ec329965302b33f4ee1de5898ce114a6a7ed"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-1",
+            "REP-5"
+          ],
+          "sha256": "f2b78e0275cb9b828830c1dfe2fef9f2db7fd107014dee6930c64784517733cd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_flow.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REP-1",
+            "REP-2",
+            "REP-3"
+          ],
+          "sha256": "2580f850b8d1d9e19c77daaf5b7a118f4f10ed8fbb35b7a0798fd89b16953d3d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-2",
+            "REP-5"
+          ],
+          "sha256": "0bd689e85ac0abc8001f9c05aaa3f2b43d5a8ee1b23a7d9929ac17f6600ee633"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-3",
+            "REP-4"
+          ],
+          "sha256": "c76d4514b598d7b3a88aab688f6d01c0b3968ec16890469ef9e5edd72436575b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/remove.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-4"
+          ],
+          "sha256": "4f6ebfb8afd17dc6b9a76ad9580df81a3de6fd0e1d531eee5034a2ccc37e18da"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-5"
+          ],
+          "sha256": "e812417cf888cda18cf05349f58a432f494dd885753703ff00ef8e755b507298"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_safety.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REP-4",
+            "REP-5",
+            "REP-6"
+          ],
+          "sha256": "dcb941a753d896ed486900683c38ad9cb81fbe566d926db17c2c73201c7a1ab5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-6"
+          ],
+          "sha256": "7f4baa2e30e6308ed3b0f71f0cac0b1fb7125fb74504f57f5d3ffcc8e2750617"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-6"
+          ],
+          "sha256": "d0f1b284c53696a78cb8ac340b94a59e746d43d2afd288fb3e90fa9e5c2bcae3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-6"
+          ],
+          "sha256": "ed9f092cc03be7aa6253f3d80932dbe6a7e1fb55c191a85996be93645ee43de6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_records.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REP-6"
+          ],
+          "sha256": "f4e3a8f108592b033cb1b85be14cc01b2af3f1597ed02f5811e2679b4e0b7819"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/guests.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-4"
+          ],
+          "sha256": "949c48561b82a2a15dd90bbf0d60d36a9ec6abe5269b6bdb9c10185a41285b10"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REP-6"
+          ],
+          "sha256": "ed9f092cc03be7aa6253f3d80932dbe6a7e1fb55c191a85996be93645ee43de6"
+        }
+      ],
+      "summaryMarkdown": "All five findings of the first review are repaired and re-verified: the RAYX_WSL_BINARY report is wired in update::run and tested through the real binary; a running or recorded-older VM is asked for its Ubuntu before any edit and a refused flag is returned before anything starts; doctor shows guests as unknown with `cannot read Lima` on a failing list; REP-4/REP-6 wording matches RecordError::Unreadable. Scoped groups guest_repairs_flow, guest_repairs_safety, doctor, guest_migration, guest_records, setup_lima, setup_lima_edit pass. Residual: a stopped old VM with no record and non-empty --vm-* flags is still edited before its version is known; REP-1 speaks of the running VM, so it is noted, not a defect.",
+      "findingIds": [
+        "F-s7-1",
+        "F-s7-2",
+        "F-s7-3",
+        "F-s7-4",
+        "F-s7-5"
+      ],
+      "recordedAt": "2026-10-14T17:12:46Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "4b196457574881e97995f2747ed741269ca74c6e3ee5ae2ccda9aa4ef3d1aa9b"
+      }
     }
   },
   "checkpoints": {
@@ -1075,6 +1292,14 @@
       },
       "reviewHash": "5e28e95b89f475ea2e7ab17ce4e14ec5b69c229417d9bffea43a0ac49dbffa48",
       "recordedAt": "2026-10-14T16:55:44Z"
+    },
+    "s7-integration-repairs": {
+      "snapshotId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "commits": {
+        "rayx-cli": "c80616f0c231c80b693e204b9a05fb04f1dc38f8"
+      },
+      "reviewHash": "ffca0b1721e1d8b70ee99fc314393c7a072d9cf4f66fb08fd4ad8ee738803815",
+      "recordedAt": "2026-10-14T17:12:59Z"
     }
   },
   "findings": [
@@ -1381,6 +1606,107 @@
           "path": "docs/manual-verification.md"
         }
       ]
+    },
+    {
+      "id": "F-s7-1",
+      "criterionIds": [
+        "REP-6"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "resolved: update::run builds the refresh options through wsl_binary_for_refresh and prints the warning; a real-binary test covers the wiring.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_safety.rs"
+        }
+      ],
+      "boundaryId": "s7-integration-repairs"
+    },
+    {
+      "id": "F-s7-2",
+      "criterionIds": [
+        "REP-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "resolved: a running VM (or one recorded older) is asked for its Ubuntu before any edit.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_flow.rs"
+        }
+      ],
+      "boundaryId": "s7-integration-repairs"
+    },
+    {
+      "id": "F-s7-3",
+      "criterionIds": [
+        "REP-4"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "resolved: doctor marks guests unknown and names the problem.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/guests.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_safety.rs"
+        }
+      ],
+      "boundaryId": "s7-integration-repairs"
+    },
+    {
+      "id": "F-s7-4",
+      "criterionIds": [
+        "REP-1",
+        "REP-5"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "resolved: refused flag returned before any start.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_flow.rs"
+        }
+      ],
+      "boundaryId": "s7-integration-repairs"
+    },
+    {
+      "id": "F-s7-5",
+      "criterionIds": [
+        "REP-6"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "resolved: criterion wording now says unreadable.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_records.rs"
+        }
+      ],
+      "boundaryId": "s7-integration-repairs"
     }
   ],
   "handoffMarkdown": "",

@@ -318,6 +318,57 @@
           "verification": "manual"
         }
       ]
+    },
+    {
+      "id": "REP",
+      "title": "Integration repairs found by the advisory epic review",
+      "descriptionMarkdown": "Cross-sprint defects found by an advisory read of the whole integrated change (2026-10-14): lost flags, unrecorded VMs, misleading failures and read-only promises that `--check` did not keep.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "REP-1",
+          "verification": "automated",
+          "descriptionMarkdown": "`--vm-*` flags given together with a migration are honoured: when the running `rayx` VM is older than the pin, no `limactl edit` (and no stop/start for the sake of an edit) runs on the old VM, and the new VM is created with the effective settings (the old VM's CPUs, memory, disk and home mount overlaid with the validated `--vm-*` flags, the disk too: a new VM may have a smaller disk than the old one, since nothing is shrunk in place). A resumed migration applies the same flags to the VM it creates. The record holds the settings actually used.\n\nVerified by the new group `tests/guest_repairs_flow.rs`."
+        },
+        {
+          "id": "REP-2",
+          "verification": "automated",
+          "descriptionMarkdown": "A guest `rayx` creates is recorded in `guests.json` as soon as it exists, so a first run whose Linux `rayx` install, clone or inner setup fails leaves a guest that `rayx doctor`, `rayx setup --update` and `rayx lima remove`/`rayx wsl remove` know about: Lima right after `limactl create` succeeds (name, Ubuntu version of the pin, VM settings), WSL once `Ubuntu-<pin>` is registered. A rerun updates that entry. `--check` records nothing.\n\nVerified by `tests/guest_repairs_flow.rs`."
+        },
+        {
+          "id": "REP-3",
+          "verification": "automated",
+          "descriptionMarkdown": "When `setup --update` migrates a guest it started only for the refresh, it does not stop the new VM by accident: the refresh stops only the VM it started itself, and after a migration the new VM keeps the state the owner had before (stopped stays stopped by an explicit, reported stop; running stays running).\n\nVerified by `tests/guest_repairs_flow.rs`."
+        },
+        {
+          "id": "REP-4",
+          "verification": "automated",
+          "descriptionMarkdown": "A failed `limactl list` is reported as such (`cannot read Lima: ...`), never as a missing guest: `rayx doctor` shows the guests as `unknown` with the problem named and no removal hint, the refresh does not tell the owner to drop the record, and `rayx lima remove` stops without asking or dropping the record. An empty list still means the guest is missing.\n\nVerified by the new group `tests/guest_repairs_safety.rs`."
+        },
+        {
+          "id": "REP-5",
+          "verification": "automated",
+          "descriptionMarkdown": "`--check` never prompts and never starts anything: `setup --lima --check` with an old Lima prints the `brew upgrade lima` command and continues; `setup --wsl --check` and the `--check` path of a migration query a WSL distribution only when `wsl --list --running` shows it running (a stopped distribution is reported as not inspected).\n\nVerified by `tests/guest_repairs_safety.rs`."
+        },
+        {
+          "id": "REP-6",
+          "verification": "automated",
+          "descriptionMarkdown": "Records and clones are read honestly: only a missing file is an empty record (any other read error is reported and the file left untouched; one reader serves the machine-based and the file-based paths, and a file that cannot be read as text (non-UTF-8, a directory, no permission) is reported as unreadable in both and left untouched); the record temporary file name is unique per process; `wsl status` and `wsl compact --clean` count a clone directory once even when it is in both the guest-neutral and the legacy clones file; a `RAYX_WSL_BINARY` outside a Windows drive is reported by the refresh instead of silently ignored.\n\nVerified by `tests/guest_repairs_safety.rs`."
+        }
+      ]
     }
   ]
 }
