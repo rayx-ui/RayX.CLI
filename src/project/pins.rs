@@ -68,6 +68,9 @@ pub struct Defaults {
     /// The tag of the emulator system image (`google_apis`); the image is `<platform>;<tag>` of
     /// the platform pin, with the host architecture added at install.
     pub android_image_tag: &'static str,
+    /// The Ubuntu version of every guest `rayx` creates (WSL distribution, Lima VM). Guests serve
+    /// every project on the machine, so a project cannot override it.
+    pub ubuntu: &'static str,
 }
 
 /// The one table of default versions.
@@ -80,6 +83,7 @@ pub const DEFAULTS: Defaults = Defaults {
     android_platform: "android-34",
     android_ndk_api: "31",
     android_image_tag: "google_apis",
+    ubuntu: "24.04",
 };
 
 /// What a gpux checkout pins for Android (its lane E).
@@ -115,6 +119,8 @@ pub struct Pins {
     pub android_system_image: Pin,
     /// An exact Xcode version; none means the newest stable Xcode.
     pub xcode: Option<Pin>,
+    /// The guest Ubuntu version; always the built-in default.
+    pub ubuntu: Pin,
 }
 
 impl Pins {
@@ -184,6 +190,7 @@ impl Pins {
                 ),
             },
             xcode: key("xcode").map(|v| Pin::new(v, PinSource::Project)),
+            ubuntu: Pin::new(DEFAULTS.ubuntu, PinSource::Default),
         }
     }
 }

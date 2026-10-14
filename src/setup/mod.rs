@@ -6,6 +6,7 @@
 
 pub mod android;
 pub mod gpu;
+pub mod guest;
 pub mod ios;
 pub mod linux;
 pub mod machine;

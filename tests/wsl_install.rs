@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use rayx_cli::cli::{Cli, Command};
 use rayx_cli::host::{Arch, HostFacts, Os, Outcome, Runner};
 use rayx_cli::setup::FakeMachine;
-use rayx_cli::setup::wsl::{DISTRIBUTION, LINUX_BINARY, WslError, WslRequest, run_with};
+use rayx_cli::setup::wsl::{LINUX_BINARY, WslError, WslRequest, distribution, run_with};
 use rayx_cli::wsl::Distribution;
 
 use clap::Parser;
@@ -27,7 +27,7 @@ fn windows(arch: Arch) -> HostFacts {
 fn machine() -> FakeMachine {
     FakeMachine::new().with_wsl_distributions(vec![Distribution {
         id: "{abc}".into(),
-        name: DISTRIBUTION.into(),
+        name: distribution(),
         base_path: PathBuf::from(r"C:\Users\dev\AppData\Local\wsl\ubuntu"),
         version: Some(2),
         default_uid: Some(1000),
@@ -98,7 +98,7 @@ fn the_versioned_installer_is_piped_to_sh_through_exec_bash() {
         .expect("an install command");
     assert_eq!(
         install.args[..5],
-        ["-d", DISTRIBUTION, "--exec", "bash", "-lc"],
+        ["-d", &distribution(), "--exec", "bash", "-lc"],
         "scripts run with --exec so the login shell does not parse them"
     );
     let script = install.args.last().expect("script");

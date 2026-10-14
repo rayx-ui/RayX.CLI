@@ -276,6 +276,7 @@ fn pin_list(env: &PlanEnv) -> Vec<(&'static str, Pin)> {
     pins.push(("android-ndk-api", p.android_ndk_api.clone()));
     pins.push(("android-system-image", p.android_system_image.clone()));
     optional("xcode", &p.xcode, &mut pins);
+    pins.push(("ubuntu", p.ubuntu.clone()));
     pins
 }
 

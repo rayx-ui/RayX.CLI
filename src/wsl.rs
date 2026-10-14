@@ -201,11 +201,8 @@ use serde_json::json;
 use crate::cli::CompactArgs;
 use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 use crate::setup::Machine;
-use crate::setup::wsl::DISTRIBUTION;
-
-/// Where `setup --wsl --clone` records the directories it created, one per line, inside the
-/// distribution.
-pub const CLONES_FILE: &str = "$HOME/.config/rayx/wsl-clones";
+use crate::setup::guest::{CLONES_FILE, LEGACY_CLONES_FILE};
+use crate::setup::wsl::distribution;
 
 /// The build output directories of a checkout.
 pub const BUILD_OUTPUT: [&str; 3] = ["target", "artifacts", "artifacts-temp"];
@@ -245,9 +242,10 @@ impl DistributionStatus {
 pub fn status_script() -> String {
     format!(
         "printf 'DF\\t'; df -B1 --output=used,avail / | tail -n1 | awk '{{print $1\"\\t\"$2}}'; \
-         f=\"{CLONES_FILE}\"; if [ -f \"$f\" ]; then while IFS= read -r d; do \
+         for f in \"{CLONES_FILE}\" \"{LEGACY_CLONES_FILE}\"; do [ -f \"$f\" ] || continue; \
+         while IFS= read -r d; do \
          for o in {outputs}; do if [ -d \"$d/$o\" ]; then printf 'OUT\\t'; du -sb \"$d/$o\"; fi; done; \
-         done < \"$f\"; fi",
+         done < \"$f\"; done",
         outputs = BUILD_OUTPUT.join(" ")
     )
 }
@@ -597,7 +595,7 @@ pub fn compact_with(
         Some(name) => distributions.iter().find(|d| &d.name == name),
         None => distributions
             .iter()
-            .find(|d| d.name == DISTRIBUTION)
+            .find(|d| d.name == distribution())
             .or_else(|| distributions.iter().find(|d| d.version != Some(1))),
     }
     .cloned()
