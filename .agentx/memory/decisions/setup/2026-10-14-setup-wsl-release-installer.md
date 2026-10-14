@@ -2,7 +2,7 @@
 agentx:
   kind: decision
   scope: decisions/setup
-  status: current
+  status: superseded
   created: 2026-10-14T17:00:00+02:00
   updated: 2026-10-14T17:00:00+02:00
   promoted_from: rayx-cli-releases
@@ -12,7 +12,8 @@ agentx:
     - installer
   supersedes:
     - 2026-10-08-setup-wsl-clones-only-the-current-checkout.md
-  superseded_by: []
+  superseded_by:
+    - 2026-10-14-setup-guests-lima-records-and-side-by-side-migration.md
 ---
 
 ## Decision: Set WSL up from Windows, install the Linux rayx with the release installer and clone only the current checkout

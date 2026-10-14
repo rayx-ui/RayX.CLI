@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 67,
+  "revision": 69,
   "planRevision": 5,
   "specHashes": {
     "requirements": "ff8fe8e3dadfcc4260169e6e4a8126ae1ad506eaa8f1c1e1de822cae89569584",
@@ -160,7 +160,7 @@
           "rayx-cli": "68319096cccec2a9b91f7a538790d2f46d627b190d95d4e02863a799ae1cf5e5"
         }
       },
-      "recordedAt": "2026-10-14T18:00:21Z"
+      "recordedAt": "2026-10-14T18:01:38Z"
     }
   },
   "checkResults": {
@@ -384,6 +384,275 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-guests/s7-integration-repairs-final-93ecc5e85b18.log",
       "logSha256": "3c008b21ac46ba9a951b7f27032945783dbed09e6a1f13e8dddfb0fd58c27f72",
       "inputsHash": "743d45d2adb77444a8ca9472c4e99fc0b50b7bd397b7c7fc4d81d024e4a925db"
+    },
+    "final/check-guest-layer/final": {
+      "checkId": "check-guest-layer",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "8f3ea4c69ceab1c6475bc01381198e83ff88296570c52f366e18e17ffd559dcc",
+      "basisHash": "60784cc507412030fbfc37aae0980efbb4b00445871d0100b6ad0b25ab58aeb8",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 17,
+      "durationSeconds": 2.6073,
+      "recordedAt": "2026-10-14T18:01:13Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-b999af13a9a1.log",
+      "logSha256": "8138292efe3eef1fb9f3bfa692820a5e0891bce9c70a1424a842ed890d5bcc06",
+      "inputsHash": "61dcfec7219e7a1f1ce26fbe3fb95ceb1413a02d2e2544f2b380dfb0c44be7ea"
+    },
+    "final/check-setup-lima/final": {
+      "checkId": "check-setup-lima",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "029418084318e740aec4b1f2a304d86420ba5ff842716f9027eafd75fce5d6cb",
+      "basisHash": "8328adcc5e84264475172b1751e825f3848fbb1a1ca392db77579fa5df408c2c",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 22,
+      "durationSeconds": 1.8524,
+      "recordedAt": "2026-10-14T18:01:15Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-51e4e54f9f38.log",
+      "logSha256": "79dfe12593061bd50a175e152cd7258dbdc0a23ad73fa7ce47b8ee77381789be",
+      "inputsHash": "7d97fa851a6f4084cb2433434de5df362da61c779bd3af8209bf672dc8bfb47f"
+    },
+    "final/check-lima-sizing/final": {
+      "checkId": "check-lima-sizing",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "290a83eb69d69758dbae321d2a3c5ee440e45e3ef8363564598a798b49fbfaa6",
+      "basisHash": "32303fb9e889a24467adfd72e91cbfee01067f5db679489f68bf3103f3145103",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 17,
+      "durationSeconds": 0.7121,
+      "recordedAt": "2026-10-14T18:01:16Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-f2d72fa0ac22.log",
+      "logSha256": "d358696a48af7baeb006a82a2981dd0d86a9e44b44ee82a14d2694330e518d6b",
+      "inputsHash": "f25f3c14d756ee75a28172633b84c6bc221d1a347d5a1f1e019c30687b7002e2"
+    },
+    "final/check-lima-edit/final": {
+      "checkId": "check-lima-edit",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "29c051407754c6ba29d319e9e4b5478781f2c89fb06a755d4e73e5aa6641edd7",
+      "basisHash": "467152d3b9314ef6c4e4d69fa3a141204d1aa613e640a3fb6ff9eb2d5aec48cf",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 0.7817,
+      "recordedAt": "2026-10-14T18:01:17Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-4c41d43bae2d.log",
+      "logSha256": "b17ece631524314b212f0f557c95e97a2471b7e443c2a91310f69ad7f660cb94",
+      "inputsHash": "8a247d00d32ff7047b8e2f2d1a9a0be720fed26609bee0dab809c9cdc279082e"
+    },
+    "final/check-guest-records/final": {
+      "checkId": "check-guest-records",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "c8f5e2328bf87474bc120a5f73946da482856a6003715f2b97781061071ef51e",
+      "basisHash": "54b35cd9947ed446fd2e95feb88d69cd5d8c16f590e5cf28746951451677a90b",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 19,
+      "durationSeconds": 0.8348,
+      "recordedAt": "2026-10-14T18:01:17Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-b55d82d1f471.log",
+      "logSha256": "f3aa18f10ea4c88b7a605f92f9ba11aa6e8b87cdde55ae617fcc6873a7009f3b",
+      "inputsHash": "89e45c926001bbf434761a9792bcf8d228e8905334bf1f095c23e46a6b20bc9b"
+    },
+    "final/check-setup-update/final": {
+      "checkId": "check-setup-update",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "74daf07e76aaaed9b960c3326a4551514aacd12ef83aaf76484955109b997c79",
+      "basisHash": "384e629dff7b4ad5c41d00e4948d6b9f10720dd09021f2db28977808c371c34f",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 14,
+      "durationSeconds": 1.2615,
+      "recordedAt": "2026-10-14T18:01:19Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-28a05219c519.log",
+      "logSha256": "981cca8637852267b385bda8f5d1743e6276dccaa2c05b3878f1f69a11e3089e",
+      "inputsHash": "5e9a65f6e7d070d3f8beb23a2b6518fef3f6e097b150484aec1ec6084c108de6"
+    },
+    "final/check-guest-refresh/final": {
+      "checkId": "check-guest-refresh",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "64c23543b800bc891744de66773c3671c1e7d3b3adae2f4056f0db384f682ba2",
+      "basisHash": "4f3414a85fc32cd957a39575e227ae54e281280c76e19eda753284e62c8a15c5",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 14,
+      "durationSeconds": 0.7664,
+      "recordedAt": "2026-10-14T18:01:19Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-78f06be4dd32.log",
+      "logSha256": "48a661e03edf5d9c9ab74390684c2255f54e5800369a7ae260bdd450e958d976",
+      "inputsHash": "0f1af4d76ea9c78b8d7bf685f1d577ba80581bca6522ba1e77aac0695c4feec1"
+    },
+    "final/check-self-update-refresh/final": {
+      "checkId": "check-self-update-refresh",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "e855f7daeab61b7644eb3c11772caa9b6b1faf526c24341e87472f058157a77e",
+      "basisHash": "0075e0edd445e4b9f693a2e06b777deea7f8eafad8a11a80c57d5d83ba8fa17b",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 7,
+      "durationSeconds": 0.7599,
+      "recordedAt": "2026-10-14T18:01:20Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-939d704bc28e.log",
+      "logSha256": "1c865e6c77c3aabc9da517b090bdd5190f9f903f2404378a7fb90641435b3166",
+      "inputsHash": "065b0e9f75deafd1000b8f8770025bf588115e62d2ed0cd364371dfa8e9b5da2"
+    },
+    "final/check-guest-migration/final": {
+      "checkId": "check-guest-migration",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "6a63beeb307ef7c36d0863f6a0faa81cc5f1639e6445b541e6079811e2e76ad3",
+      "basisHash": "1d87e3091931eb803d0f16231d5aadedb932960b20bc298ac75c7149a5f0f0fc",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 21,
+      "durationSeconds": 0.8947,
+      "recordedAt": "2026-10-14T18:01:21Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-e14bd5491a0d.log",
+      "logSha256": "04b0da2fcfe12dc5e9c56b589525269cb47dc055df371069a9c4a93ed9333c60",
+      "inputsHash": "0ec7bf572c453b7aab13d3cf06b110e2e723b9bd3e99cb4551281eb87542066b"
+    },
+    "final/check-guest-remove/final": {
+      "checkId": "check-guest-remove",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "5684128ec5416dca0ff29ffe3672a032a06e64582ab4f3670e903c0612d8d83b",
+      "basisHash": "092097f02dbde7a6428438cf8a3c752f22bdb1c4a908a5c070924834bf9b0cfb",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 11,
+      "durationSeconds": 1.2599,
+      "recordedAt": "2026-10-14T18:01:22Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-ca9b650104ed.log",
+      "logSha256": "eb59b8a7c5e9ec8e3b2a2b0cf1f9be1d5c506c361b5c311615d40233a4803f86",
+      "inputsHash": "9a55788200fc8867fca1bcd4f7bd39565a8aa8f31515cc55af72c64bddfd2835"
+    },
+    "final/check-readme-guests/final": {
+      "checkId": "check-readme-guests",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "c67b0275e637687158e10a386071036585af9ee190dc6971c92f377699ecd499",
+      "basisHash": "fb776052f74fe857e2917cdac5527f9e71644ab6e9e7421399426a234e253842",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 1.154,
+      "recordedAt": "2026-10-14T18:01:24Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-43d7c4f4544d.log",
+      "logSha256": "97ea3c3450d87cf598cb214c877e43299216ab33b6a485972b4aaf31f6ca4ada",
+      "inputsHash": "09711efd34fb49151df82d7161613162bab1f82fdf63e4608c6ae49586ec37db"
+    },
+    "final/check-repairs-flow/final": {
+      "checkId": "check-repairs-flow",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "df74350b1b5e82b48e076982e68aa007b447c36ddf8b10643f3f913d419c36b7",
+      "basisHash": "2956664c57ed6efbc9b538b88d286c126df2ec5db08d707911a3de86bdad16b5",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 10,
+      "durationSeconds": 0.2525,
+      "recordedAt": "2026-10-14T17:12:08Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s7-integration-repairs-final-bbbb628741ab.log",
+      "logSha256": "be312ebdba69c50e38404704a583730d386d26549de3e5416718dede0d3eabff",
+      "inputsHash": "2bc875a35096f7bb345292c9e93ddde1166f2afe562f59513fe2f4893e861afe"
+    },
+    "final/check-repairs-safety/final": {
+      "checkId": "check-repairs-safety",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "00d0dda0b0304ddac646df89646d14180442e70437f69b7c85cfb1f06a1b50e6",
+      "basisHash": "a8d6e7c649a275e3f46dee58743ff7ee3b8552889b6cc73218c284f0ff069772",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 11,
+      "durationSeconds": 0.6828,
+      "recordedAt": "2026-10-14T17:12:09Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s7-integration-repairs-final-93ecc5e85b18.log",
+      "logSha256": "3c008b21ac46ba9a951b7f27032945783dbed09e6a1f13e8dddfb0fd58c27f72",
+      "inputsHash": "743d45d2adb77444a8ca9472c4e99fc0b50b7bd397b7c7fc4d81d024e4a925db"
+    },
+    "final/final-fmt/final": {
+      "checkId": "final-fmt",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "2d22fc9255aebd0e0fba7b33fe6047d70092342f4504abe410ee35fc2b8243df",
+      "basisHash": "7469f6420a3c60113e0d176c2b85c5d5e303f436e0f0c87a89579fdeee4f0c9d",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2932,
+      "recordedAt": "2026-10-14T18:01:24Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-f691516446cf.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final/final-clippy/final": {
+      "checkId": "final-clippy",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "f3735d46e0b62780a109ae39c3ef3249aeecf56c42209f050e6af0175d7fe4e3",
+      "basisHash": "ba316314ad831946ad69448cf0c9f7b091f38b279e1865a35634aaea9542fa3d",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 2.4873,
+      "recordedAt": "2026-10-14T18:01:26Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-aa73556bb6e9.log",
+      "logSha256": "6823a80cc161a1eafda2b1994582c1f7676f175d0eba05b4d24ae7221aef7ba3"
+    },
+    "final/final-touched-tests/final": {
+      "checkId": "final-touched-tests",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "definitionHash": "0b53da133415d0b47bf3dcef62bfcd9b058e3e5253ed7d00fa529162a2d0fa84",
+      "basisHash": "4cc4a18da90ff57860031b75c926c4d86f2b945bbe9bfab7bc2fe64cf383711d",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 290,
+      "durationSeconds": 11.3953,
+      "recordedAt": "2026-10-14T18:01:38Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-25be118dccf1.log",
+      "logSha256": "aa6fd2f365e07535c12ebe9a5dd22be3201c5723803f31fb3bbc5e40db499ebd"
     }
   },
   "reviews": {
@@ -1315,6 +1584,397 @@
       ],
       "findingIds": [],
       "recordedAt": "2026-10-14T18:00:59Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "f5cc3b0116f9fddd4e50272f5ce1a3451eb43bdba6c3a1ce1fc67dfa59478bfa"
+      }
+    },
+    "final": {
+      "reviewerId": "reviewer-final-zfrnjce6",
+      "snapshotId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "criterionIds": [
+        "PIN-1",
+        "GST-1",
+        "LIMA-1",
+        "LIMA-2",
+        "LIMA-3",
+        "LIMA-4",
+        "LIMA-5",
+        "LIMA-6",
+        "LIMA-7",
+        "REC-1",
+        "REC-2",
+        "DOC-1",
+        "UPD-1",
+        "UPD-2",
+        "SUR-1",
+        "MIG-1",
+        "MIG-2",
+        "MIG-3",
+        "RM-1",
+        "RM-2",
+        "DOCS-1",
+        "MAN-1",
+        "MAN-2",
+        "MAN-3",
+        "REP-1",
+        "REP-2",
+        "REP-3",
+        "REP-4",
+        "REP-5",
+        "REP-6"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "e6fbc371e0cb7dc1c0edb8a593ba7a0077c65eed2dc5a872661f8fe0abdf6d82"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_layer.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1",
+            "GST-1"
+          ],
+          "sha256": "922038222603155d2cf6cbb5c4bc528e93e73ad2192b1d1214d0220e0adb262d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1",
+            "GST-1",
+            "REC-1",
+            "MAN-3"
+          ],
+          "sha256": "e812417cf888cda18cf05349f58a432f494dd885753703ff00ef8e755b507298"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GST-1",
+            "MIG-3",
+            "REP-2",
+            "REP-5",
+            "REP-6",
+            "MAN-3"
+          ],
+          "sha256": "0bd689e85ac0abc8001f9c05aaa3f2b43d5a8ee1b23a7d9929ac17f6600ee633"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GST-1",
+            "REP-6"
+          ],
+          "sha256": "d0f1b284c53696a78cb8ac340b94a59e746d43d2afd288fb3e90fa9e5c2bcae3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-1",
+            "UPD-1",
+            "SUR-1",
+            "RM-1",
+            "DOCS-1"
+          ],
+          "sha256": "d260d08f359369d037f482b11813bb2ec10ebddce733b5b80846f7b2d7db10de"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-1",
+            "LIMA-2",
+            "LIMA-3",
+            "LIMA-4",
+            "LIMA-5",
+            "LIMA-6",
+            "LIMA-7",
+            "REP-1",
+            "REP-2",
+            "REP-5",
+            "MAN-1"
+          ],
+          "sha256": "90b44d38d01613d1fd767a56bbb1ec329965302b33f4ee1de5898ce114a6a7ed"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima.rs",
+          "kind": "test",
+          "criterionIds": [
+            "LIMA-1",
+            "LIMA-2",
+            "LIMA-3",
+            "LIMA-4"
+          ],
+          "sha256": "d4e568dd1902cd7ba20d511c27f85a13fd6313d7a106acad33e97df392000033"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/sizing.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-5",
+            "LIMA-6",
+            "MAN-1"
+          ],
+          "sha256": "6a6028f5d029d90966b16e705ff0a3e870b258636558bcd25c3eadc5a28b8389"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima_sizing.rs",
+          "kind": "test",
+          "criterionIds": [
+            "LIMA-5",
+            "LIMA-6"
+          ],
+          "sha256": "c59cecac05ac06cce5bf5a49fa3b521052ef752299de199ab836863b94a1bea8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/edit.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-7",
+            "MAN-1"
+          ],
+          "sha256": "e275e84d98e541682b6a47d649b2313e65526b301b1e1db2e7f6d778b7773706"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima_edit.rs",
+          "kind": "test",
+          "criterionIds": [
+            "LIMA-7"
+          ],
+          "sha256": "42b42aa98920d82c0267c0df244c08c6f798c6c326bfa91a5996be790fd31be8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REC-1",
+            "REC-2",
+            "REP-6"
+          ],
+          "sha256": "7f4baa2e30e6308ed3b0f71f0cac0b1fb7125fb74504f57f5d3ffcc8e2750617"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_records.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REC-1",
+            "DOC-1"
+          ],
+          "sha256": "f4e3a8f108592b033cb1b85be14cc01b2af3f1597ed02f5811e2679b4e0b7819"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REC-2",
+            "UPD-1"
+          ],
+          "sha256": "3adfad4c486675502befbb4b79d5ea0f828f9ae5fe31354c84b93550aab47759"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_update.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REC-2",
+            "UPD-1"
+          ],
+          "sha256": "3c4ae6a669af42afeeded76ac61587e6ec58e0884d51c32891fcf4ba022ad1b0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/guests.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-1",
+            "REP-4",
+            "MAN-3"
+          ],
+          "sha256": "949c48561b82a2a15dd90bbf0d60d36a9ec6abe5269b6bdb9c10185a41285b10"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "UPD-1",
+            "REP-6",
+            "MAN-2"
+          ],
+          "sha256": "ed9f092cc03be7aa6253f3d80932dbe6a7e1fb55c191a85996be93645ee43de6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "UPD-2",
+            "REP-3",
+            "REP-4",
+            "REP-5",
+            "MAN-2",
+            "MAN-3"
+          ],
+          "sha256": "c76d4514b598d7b3a88aab688f6d01c0b3968ec16890469ef9e5edd72436575b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_refresh.rs",
+          "kind": "test",
+          "criterionIds": [
+            "UPD-2"
+          ],
+          "sha256": "ca0278406bf8cbe9a543b532b02f726a714443ac7047c3f01e74c6bbc0b04c3a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SUR-1"
+          ],
+          "sha256": "bdb28fd325136d00e76353ebbc077a70c083ac82797cb47e54fb212f289fa337"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/self_update_refresh.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SUR-1"
+          ],
+          "sha256": "edc400428956c392fcd42634619a76bc2f318499dc1a631911f27be23ab2824e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MIG-1",
+            "MIG-2",
+            "MIG-3",
+            "REP-1",
+            "REP-3",
+            "REP-5",
+            "MAN-2"
+          ],
+          "sha256": "f2b78e0275cb9b828830c1dfe2fef9f2db7fd107014dee6930c64784517733cd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_migration.rs",
+          "kind": "test",
+          "criterionIds": [
+            "MIG-1",
+            "MIG-2",
+            "MIG-3"
+          ],
+          "sha256": "7d587e5bd6a77e50b4f823df1f236ae2118c1c50b528e2e261bea8be81bb2a03"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/remove.rs",
+          "kind": "source",
+          "criterionIds": [
+            "RM-1",
+            "RM-2",
+            "REP-4",
+            "MAN-2"
+          ],
+          "sha256": "4f6ebfb8afd17dc6b9a76ad9580df81a3de6fd0e1d531eee5034a2ccc37e18da"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_remove.rs",
+          "kind": "test",
+          "criterionIds": [
+            "RM-1",
+            "RM-2"
+          ],
+          "sha256": "9259a47a25c36cfacf83d99032217016b0b14f5c7922c4ebdac3b6035980745b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "aec2b143cfcd72f54ca092f962c181e74a31fad20bc3fe2749ccd2afb4d71be4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_guests.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "a991433dd7f1e6dc96c7754721982c0746e9c1159dd98272d23292075071a441"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_flow.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REP-1",
+            "REP-2",
+            "REP-3"
+          ],
+          "sha256": "2580f850b8d1d9e19c77daaf5b7a118f4f10ed8fbb35b7a0798fd89b16953d3d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_safety.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REP-4",
+            "REP-5",
+            "REP-6"
+          ],
+          "sha256": "dcb941a753d896ed486900683c38ad9cb81fbe566d926db17c2c73201c7a1ab5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "runtime",
+          "criterionIds": [
+            "MAN-1",
+            "MAN-2",
+            "MAN-3"
+          ],
+          "sha256": "10a56f85921c89a26f5e848e8a6a26d6055508fe0397fdbdf0420a84a8845370"
+        }
+      ],
+      "summaryMarkdown": "Integrated review of the current code. All active criteria hold together: one Ubuntu literal (src/project/pins.rs, 24.04) with the WSL name and Lima template derived; the guest layer is shared by --wsl and --lima; records strip --check/--yes from stored flags; --check paths print or query read-only (a stopped distribution or VM is never started or entered); migration, refresh, removal and doctor only touch recorded guests (gpux untouched, proven on the Mac); no host sudo or host apt-get upgrade, no do-release-upgrade, no unversioned template:ubuntu; nothing is deleted without lima/wsl remove and a confirmation or --yes. git diff 0c2ff1f..HEAD shows no unexpected or forbidden files (Cargo.toml only moves serde_yaml_ng to normal dependencies). Reran guest_migration, guest_refresh, guest_repairs_flow and guest_repairs_safety (56 tests, all pass). Manual evidence: MAN-1/MAN-2 recorded with logs for this Mac (2026-10-14; the Linux rayx of the first create came from the release installer, a documented deviation, while RAYX_LIMA_BINARY ran in the refresh and migration rows), MAN-3 recorded as owner-run on Windows (2026-10-14). Dispositions acknowledged: MAN-4 deferred and t14-release-proof withdrawn match the owner's recorded choice, and the follow-up (the two deferred rows in docs/manual-verification.md) is concrete and needs a release that does not exist. Non-blocking observations for the coordinator: (1) doctor labels a guest NEWER than the pin as `outdated` (src/doctor/guests.rs state()), while the struct comment says older-than-pin; only reachable after a CLI downgrade; (2) a Lima migration that fails after creating the new VM leaves it unrecorded until the rerun finishes (the refresh reports the interrupted migration honestly, doctor shows only the retired VM); (3) a STOPPED unrecorded older `rayx` VM given --vm-* flags is edited before its Ubuntu is read; (4) at epic completion record the MAN-4 follow-up in .agentx/memory/knowledge/setup/state.md and promote d-guest-layer (it supersedes the 2026-10-14 WSL release-installer decision).",
+      "acknowledgedDispositions": [
+        "criterion:MAN-4",
+        "task:t14-release-proof"
+      ],
+      "findingIds": [],
+      "recordedAt": "2026-10-14T18:05:44Z",
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "f5cc3b0116f9fddd4e50272f5ce1a3451eb43bdba6c3a1ce1fc67dfa59478bfa"
       }
