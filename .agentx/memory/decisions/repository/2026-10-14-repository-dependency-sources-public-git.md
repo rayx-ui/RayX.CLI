@@ -5,6 +5,7 @@ agentx:
   status: current
   created: 2026-10-14T17:00:00+02:00
   updated: 2026-10-14T17:00:00+02:00
+  promoted_from: rayx-cli-releases
   topics:
     - package
     - modules
