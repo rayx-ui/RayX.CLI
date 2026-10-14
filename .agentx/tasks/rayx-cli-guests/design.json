@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-guests",
+  "memoryDecisionsConsidered": [
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/setup/2026-10-08-setup-android-studio-through-its-wizard.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/distribution/2026-10-14-distribution-release-plz-tags-dist-releases.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/repository/2026-10-07-repository-memory-taxonomy.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/repository/2026-10-08-repository-literal-toolchain-pins-with-one-checklist.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/repository/2026-10-08-repository-rayx-keeps-a-slim-xtask.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/repository/2026-10-14-repository-dependency-sources-public-git.md"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "d-ubuntu-pin",
+      "requirementIds": [
+        "PIN"
+      ],
+      "descriptionMarkdown": "Add the guest Ubuntu version to the built-in defaults table in `project::pins` (`ubuntu: 24.04`, source built-in) and expose it on `Pins`. It is not read from `[workspace.metadata.rayx]`: a guest serves every project on the machine. `setup::guest` derives `Ubuntu-<pin>` and `template:ubuntu-<pin>` from it; the `DISTRIBUTION` constant in `src/setup/wsl.rs` goes away. Version comparison is numeric on `major.minor`.",
+      "invariantsMarkdown": "- One literal Ubuntu version in the repository source, in the pins table.\n- Lima templates are always named with the version; never `template:ubuntu`, `ubuntu-lts` or `default`.",
+      "rationaleMarkdown": "Lima 2.2.1 resolves `template:ubuntu`, `ubuntu-lts` and `default` to Ubuntu 26.04 (checked in `/opt/homebrew/opt/lima/share/lima/templates`, 2026-10-14), while WSL, CI and the setup rules (`t64` package names, NodeSource) assume 24.04. One pin keeps WSL and Lima on the same release and makes a future move one edit, which the migration then carries out.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "symbol": "DISTRIBUTION"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/project/2026-10-08-project-discovery-and-pin-precedence.md"
+        }
+      ]
+    },
+    {
+      "id": "d-guest-layer",
+      "requirementIds": [
+        "GST",
+        "LIMA",
+        "REC"
+      ],
+      "descriptionMarkdown": "New module `setup::guest` with `Guest { kind: GuestKind::{Wsl, Lima}, name }` and one method that builds the `CommandSpec` running a bash script inside (`wsl -d <name> --exec bash -lc <script>` / `limactl shell --workdir / <name> -- bash -lc <script>`). The operations that today live in `src/setup/wsl.rs` move there and take a `Guest`: `ensure_linux_binary` (release installer or override binary), `clone_checkout` + `clone_script`, `run_setup_inside`, plus the version read (`. /etc/os-release; echo $VERSION_ID`) and the dirty-clone query used by migration and removal. `setup::wsl` keeps what is WSL-specific (WSL 2 check, distribution install, first user, Windows GPU first, `/mnt/<drive>` translation) and `setup::lima` what is Lima-specific. The clones file inside a guest becomes `$HOME/.config/rayx/clones`; `src/wsl.rs` reads it and the legacy `wsl-clones`.\n\nGuest records (`guests.json`, `setup.json`) live in a small `setup::records` module: serde types, the config-directory rule, read (missing = empty, unparsable = error reported, file untouched) and atomic write (temporary file + rename), skipped in dry runs.\n\n`--wsl` and `--lima` stay orchestrators outside the step table, as `--wsl` is today: the host's requirements remain steps; a guest is a machine the host drives, not a requirement of the host.",
+      "invariantsMarkdown": "- Never enable WSL sparse disks.\n- Never delete a guest, a clone or build output except through `wsl compact --clean`, `lima remove` or `wsl remove`, and never without confirmation unless `--yes` was given.\n- Never follow a manifest's `path` dependencies to clone, copy or download another repository; `--clone` copies only the current checkout.\n- Guests `rayx` did not record are never started, stopped, edited, refreshed or removed.\n- `--check` downloads, creates, records and installs nothing.",
+      "rationaleMarkdown": "The WSL flow after the distribution exists is exactly what a Lima VM needs; only the way into the guest differs. On 2026-10-14 `limactl shell --workdir / gpux -- bash -lc '<script with quotes, $HOME and double spaces>'` delivered the script intact (Lima escapes the arguments it forwards over ssh), unlike `wsl -d <name> -- ...`, so the WSL `--exec` decision has a Lima counterpart without extra quoting. Without `--workdir` Lima changes into the host's current directory inside the guest, which is wrong for scripts. The guest user has the host's uid (501), so cloning from the read-only home mount needs no ownership workaround. This supersedes the WSL release-installer decision: its installer, clone and inner-setup choices are restated here for both guest kinds, the clones file is renamed, and its no-deletion invariant gains the explicit removal commands.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs",
+          "symbol": "CLONES_FILE"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-wsl-scripts-run-with-exec.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/host/2026-10-08-host-facts-and-command-runner.md"
+        }
+      ],
+      "supersedesMemoryDecisions": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-14-setup-wsl-release-installer.md"
+        }
+      ]
+    },
+    {
+      "id": "d-lima-vm",
+      "requirementIds": [
+        "LIMA"
+      ],
+      "descriptionMarkdown": "`setup::lima::run` (macOS only) in this order: macOS version (`sw_vers -productVersion` >= 13), Homebrew (`macos::brew_program`), Lima (`limactl --version` >= 2.0; `brew install lima` / asked `brew upgrade lima`), state of `rayx` from `limactl list --json` (one object per line: `name`, `status`, `cpus`, `memory` and `disk` in bytes, `dir`), sizing (d-lima-sizing), create when absent (`limactl create --tty=false --name=rayx --vm-type=vz --cpus --memory --disk --mount-only=<home>[:w] --containerd=none template:ubuntu-<pin>`), `limactl start --tty=false rayx` when not running, then the guest layer (Linux `rayx`, clone, inner setup) and the guest record.\n\n`--containerd=none` because nothing here uses Lima's container runtime; `--vm-type=vz` because vz is native on macOS 13+ and QEMU is not installed by Homebrew on macOS. `create` + `start` instead of `start <template>`: `limactl start NAME --cpus ...` silently edits an existing instance. Home writability of an existing VM comes from `<dir>/lima.yaml` mounts (the location equal to `~` or the home path; `writable` absent means false).",
+      "invariantsMarkdown": "- Only the instance named `rayx` (and the retired `rayx-<version>` instances in the record) is ever changed.\n- No `limactl` command runs as root; no step needs `sudo` on the host.\n- The home is mounted read-only unless the owner chose writable.",
+      "rationaleMarkdown": "Research of 2026-10-14 against Lima 2.2.1 (current stable, Homebrew `lima` 2.2.1; arm64 bottles only, Intel Macs build from source): `create` fails on an existing name, `edit` refuses a running instance, disks grow but never shrink, `start` waits until ready (10 min default timeout), `limactl` exits with the guest command's code, the 24.04 arm64 image is a 620 MB download cached under `~/Library/Caches/lima`. The owner's `gpux` VM (vz, 6 CPUs, 12 GiB, 100 GiB, 24.04, home read-only) is the shape these defaults reproduce.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/macos.rs",
+          "symbol": "brew_program"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "symbol": "SetupArgs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/host/2026-10-08-host-facts-and-command-runner.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+        }
+      ]
+    },
+    {
+      "id": "d-lima-sizing",
+      "requirementIds": [
+        "LIMA"
+      ],
+      "descriptionMarkdown": "`VmSettings { cpus, memory_gib, disk_gib, home_writable }` with defaults 6/12/100/false as constants in `setup::lima` (they are VM sizes, not version pins). `HostCapacity { cpus, memory_gib, free_gib }` comes from `sysctl -n hw.ncpu hw.memsize` and `df -k <lima home>` through `Runner::query`. `effective(defaults, capacity, flags)` applies caps to defaults (with notes) and validates explicit values (with the allowed range); the prompt flow edits a `VmSettings` value through a `Prompter` trait (`confirm(question) -> bool`, `ask(question, shown) -> Option<String>`) with a terminal implementation and a scripted one for tests; the existing `Cx::confirm_update` keeps working for outdated questions.\n\nAn existing VM is compared only against explicit flags; the difference becomes an update question and the stop/edit/start sequence.",
+      "invariantsMarkdown": "- A re-run without `--vm-*` flags asks nothing about the VM and changes nothing.\n- No prompt without a terminal; `--yes` never asks.\n- A disk is never shrunk.",
+      "rationaleMarkdown": "12 GiB is not sane on an 8 or 16 GB Mac; Lima's own default is min(4 GiB, half the RAM). Capping at half the RAM and cores minus two keeps macOS usable while giving the owner's 24 GB M5 the full defaults (cap 12 GiB, 8 CPUs). Comparing an existing VM with the defaults would undo a customization made at creation, so only explicit flags change it (owner: offer stop, edit, start).",
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/host/2026-10-08-host-facts-and-command-runner.md"
+        }
+      ]
+    },
+    {
+      "id": "d-records-doctor",
+      "requirementIds": [
+        "REC",
+        "DOC"
+      ],
+      "descriptionMarkdown": "`guests.json` (host) and `setup.json` (every machine) as defined in REC, version field `1`, written by `setup::records`. Doctor reads `guests.json`, joins Lima guests with `limactl list --json` and WSL guests with the registry view in `src/wsl.rs`, and renders a `guests` section (text) / array (JSON) next to the existing WSL findings; it never starts anything.",
+      "invariantsMarkdown": "- Records hold names, versions, flags, paths and sizes only.\n- Doctor stays read-only and exits 0 when the host could be inspected.",
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+        }
+      ],
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs"
+        }
+      ]
+    },
+    {
+      "id": "d-setup-update",
+      "requirementIds": [
+        "UPD",
+        "REC"
+      ],
+      "descriptionMarkdown": "`setup --update` is a third mode of `setup::run` next to the plan run and `--wsl`/`--lima`: read `setup.json`, then for each recorded project root build `environment_for(host, Project::discover(root))`, plan the recorded sets and `run_plan` it (the outdated prompt and `--yes` rules unchanged); then for each current guest of this OS run the guest refresh (ask, Lima start, Ubuntu check, Linux `rayx`, `apt-get update`/`upgrade` inside, inner `rayx setup --update`, Lima stop when it was stopped). Native hosts never get `apt-get upgrade`: the upgrade belongs to the guest refresh, which the host runs inside the guest; an inner `setup --update` is a native-host run and adds none. Exit code 1 when any project run or guest failed or was declined.",
+      "invariantsMarkdown": "- `apt-get upgrade` runs only inside a rayx-managed guest, driven from its host.\n- `--update --check` changes nothing and starts no VM.",
+      "rationaleMarkdown": "Recording sets and project roots on each machine lets the same command refresh the host and, run inside a guest, the guest, without the host knowing the guest's projects. Running the plan per project root applies each project's pins (two checkouts can pin different toolchains).",
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+        }
+      ],
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "symbol": "run_with_prompt"
+        }
+      ]
+    },
+    {
+      "id": "d-self-update-refresh",
+      "requirementIds": [
+        "SUR"
+      ],
+      "descriptionMarkdown": "`update::run_with` gains the refresh after a successful install: a `Backend`-like seam (`refresh(executable, yes) -> u8`) so tests observe it; the real one runs `CommandSpec::new(<executable captured before install>).args([\"setup\", \"--update\"])` (+ `--yes`) interactively through `Runner`. The question and the no-terminal message as in SUR-1.",
+      "invariantsMarkdown": "- The refreshed setup is always done by the newly installed binary, never by the old process.\n- `self update --check` stays read-only.",
+      "rationaleMarkdown": "The old process does not know the new pins, so it must hand over to the new binary. On Windows axoupdater renames the running `rayx.exe` aside, so the path must be captured before the install rather than read from `current_exe()` afterwards.",
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/distribution/2026-10-08-distribution-cargo-dist-and-axoupdater.md"
+        }
+      ],
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs"
+        }
+      ]
+    },
+    {
+      "id": "d-guest-migration",
+      "requirementIds": [
+        "MIG"
+      ],
+      "descriptionMarkdown": "Migration is side by side and driven by the record: (1) warn about dirty clones and ask; (2) Lima: stop, `limactl rename rayx rayx-<old>`, write the record (old entry renamed + retired); WSL: `wsl --install -d Ubuntu-<pin>` (the old entry is retired only after the new guest is set up, since WSL keeps both names); (3) create/start the new guest with the old guest's settings, Linux `rayx`, re-clone each recorded clone from its host source and branch, run `rayx setup <recorded flags>` per clone; (4) record the new guest as current and print the removal command for the old one. Each step checks the record and the live state first, so a rerun resumes.",
+      "invariantsMarkdown": "- Never `do-release-upgrade`, never delete the old guest during migration.\n- The old guest is never refreshed once retired.",
+      "rationaleMarkdown": "Owner decision 2026-10-14: side by side, with commands to remove specific guests. Everything rayx put in a guest is reproducible by `rayx setup` and clones come from host checkouts; an in-place release upgrade of a 100 GiB guest is slow, can leave a half-upgraded system, and vz VMs have no snapshots. WSL names distributions by version, and `limactl rename` (present in 2.2.1) keeps the Lima name `rayx` for the current VM.",
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-wsl-scripts-run-with-exec.md"
+        }
+      ],
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "symbol": "ensure_distribution"
+        }
+      ]
+    },
+    {
+      "id": "d-guest-remove",
+      "requirementIds": [
+        "RM"
+      ],
+      "descriptionMarkdown": "`rayx lima remove <name> [--yes]` (new `lima` command group) and `rayx wsl remove <name> [--yes]` (added to the existing `WslCommand`). Both resolve the name in `guests.json` first, show dirty clones when the guest is running (Lima) or registered (WSL, which starts on demand), confirm through the prompter, run `limactl delete --force <name>` / `wsl --unregister <name>`, then drop the record entry.",
+      "invariantsMarkdown": "- Only recorded guests can be removed.\n- Removal is always confirmed unless `--yes`; without a terminal and without `--yes` it refuses.",
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/host/2026-10-08-host-facts-and-command-runner.md"
+        }
+      ],
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "symbol": "WslCommand"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-guests",
+  "revision": 0,
+  "planRevision": 1,
+  "specHashes": {
+    "requirements": "bd122f66c7ae5a347f737aa7f4f7803c5f31d4e2803f7fc0bfc6d41f42af6d34",
+    "design": "1d5fb6a44a982407d55e170e3c8fc3339ce5417f67435de71c39335992a594fa",
+    "plan": "90d1f40f9403c4d352a788c73d336aec2be8b470e12f5f878f8e92f4c0f267af"
+  },
+  "tasks": {
+    "t01-guest-layer": {
+      "status": "pending"
+    },
+    "t02-setup-lima": {
+      "status": "pending"
+    },
+    "t03-lima-sizing": {
+      "status": "pending"
+    },
+    "t04-lima-edit": {
+      "status": "pending"
+    },
+    "t05-records-doctor": {
+      "status": "pending"
+    },
+    "t06-setup-update": {
+      "status": "pending"
+    },
+    "t07-guest-refresh": {
+      "status": "pending"
+    },
+    "t08-self-update-refresh": {
+      "status": "pending"
+    },
+    "t09-guest-migration": {
+      "status": "pending"
+    },
+    "t10-guest-remove": {
+      "status": "pending"
+    },
+    "t11-docs": {
+      "status": "pending"
+    },
+    "t12-mac-proof": {
+      "status": "pending"
+    },
+    "t13-wsl-proof": {
+      "status": "pending"
+    },
+    "t14-release-proof": {
+      "status": "pending"
+    }
+  },
+  "validationBatches": {},
+  "checkResults": {},
+  "reviews": {},
+  "checkpoints": {},
+  "findings": [],
+  "handoffMarkdown": "",
+  "protectedPaths": {
+    "rayx-cli": {
+      ".agentx/tasks/rayx-cli-foundation/**": "195289e41107bb67bba3ca4b2308e643cfd1821052238e1e3856f2546074b5f8",
+      ".agentx/tasks/rayx-cli-releases/**": "2de43a9ba0297ba54bfb3cb98dd758753fdedb9d42bad96ce5a78afaec66ee94",
+      ".github/workflows/release.yml": "3c495e29befb864e16b3035e5ed65f2527f0048ff06ce1a51e89927fcaeb8156",
+      "dist-workspace.toml": "b26e263d95f7bc675128ba73b3f747a55e8225134e1ae6c05e7d98ac8d36d279"
+    }
+  }
+}
