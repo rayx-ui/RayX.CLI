@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 44,
+  "revision": 46,
   "planRevision": 1,
   "specHashes": {
     "requirements": "bd122f66c7ae5a347f737aa7f4f7803c5f31d4e2803f7fc0bfc6d41f42af6d34",
@@ -82,7 +82,11 @@
       ]
     },
     "t13-wsl-proof": {
-      "status": "pending"
+      "status": "blocked",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ],
+      "blockerMarkdown": "MAN-3 needs the owner's Windows PC (WSL 2, a local Windows build and RAYX_WSL_BINARY); this session runs on macOS and cannot run it"
     },
     "t14-release-proof": {
       "status": "pending"
