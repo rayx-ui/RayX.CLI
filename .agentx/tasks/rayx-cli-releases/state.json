@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-releases",
-  "revision": 19,
+  "revision": 28,
   "planRevision": 1,
   "specHashes": {
     "requirements": "65f211f39a94277d6e5596a4705791db542e42ae9d77bd7413edec7caf335a65",
@@ -40,7 +40,10 @@
       ]
     },
     "t06-dependency-rule": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     },
     "t07-wsl-installer": {
       "status": "pending"
@@ -85,6 +88,16 @@
         }
       },
       "recordedAt": "2026-10-14T12:25:38Z"
+    },
+    "3b30541dd9ee13583830dde4bea8eafa37aece3bf84c2a7828b4b2d613ae05f4": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "29a04292a29c4eafcc75f327be31ac5c6a110d535982606eb67a71bcc1e4fddb",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:29:37Z"
     }
   },
   "checkResults": {
@@ -155,6 +168,23 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-releases/s2-release-automation-final-b6b1016142a1.log",
       "logSha256": "b5ef34948d119b8c9a2a83ea3fa7be28686336c326ed4fa8cbd531bc51a84a27",
       "inputsHash": "5eb0a7772f6407b614dd5ed78d5fbd40267115bb31040efa96ecca50c5df578f"
+    },
+    "s3-dependency-rule/check-dependency-sources/final": {
+      "checkId": "check-dependency-sources",
+      "boundaryId": "s3-dependency-rule",
+      "phase": "final",
+      "batchId": "3b30541dd9ee13583830dde4bea8eafa37aece3bf84c2a7828b4b2d613ae05f4",
+      "definitionHash": "4a9123e61feb52783b5b0aed05d540b38cbc0c0efd81fad7dfc54b9c87d357bf",
+      "basisHash": "7fdcdaf1d97618eb9cb496952f0f0e5db9cb32d3ad1e3ca5d387b6383f86522f",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 13,
+      "durationSeconds": 0.2914,
+      "recordedAt": "2026-10-14T12:29:37Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s3-dependency-rule-final-40c28d977f0b.log",
+      "logSha256": "780382d6c0c91cbcb7b322e28a74cd7ec94531293ecdeda4e6b437f960e01d1b",
+      "inputsHash": "0b577601c58a40aebe9cde97f17db91bc776350993efec03634b7112e3494cd9"
     }
   },
   "reviews": {
@@ -292,6 +322,68 @@
         "F-s2-1"
       ],
       "recordedAt": "2026-10-14T12:26:04Z"
+    },
+    "s3-dependency-rule": {
+      "reviewerId": "reviewer-s3-rayx-cli-releases",
+      "snapshotId": "3b30541dd9ee13583830dde4bea8eafa37aece3bf84c2a7828b4b2d613ae05f4",
+      "criterionIds": [
+        "DEP-1",
+        "DEP-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-1"
+          ],
+          "sha256": "ba1dc479f5b95840c3c0d6e46b9c886d6a3347b88bc7ac9e0355581f1803d219"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DEP-1"
+          ],
+          "sha256": "ba1dc479f5b95840c3c0d6e46b9c886d6a3347b88bc7ac9e0355581f1803d219"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/package_layout.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DEP-1"
+          ],
+          "sha256": "31489e2d1da54fc641577a0bd027aa8107f56dbd98aad9a00e43ad9f0d23de14"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CLAUDE.md",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-2"
+          ],
+          "sha256": "54c9c2cb89d95375f2af4627555ae68d3c39cd354ce4012800b5b7dbc569c4ec"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md",
+          "kind": "source",
+          "criterionIds": [
+            "DEP-2"
+          ],
+          "sha256": "54c9c2cb89d95375f2af4627555ae68d3c39cd354ce4012800b5b7dbc569c4ec"
+        }
+      ],
+      "summaryMarkdown": "DEP-2 holds (CLAUDE.md and AGENTS.md identical, Gpux public, RayX private). DEP-1 holds: the rule function is tested on inline accept/reject manifests and the real manifest, cargo metadata and Cargo.lock. Delta d31fd09 closes both findings: `registry`/`registry-index` keys are rejected in dependency and patch specs, resolved sources accept only the exact crates.io registry source (other registry+/sparse+ rejected), and `rev` must be a 7-40 hex commit in the manifest and in `?rev=...#` of resolved sources; 13 tests pass.",
+      "findingIds": [
+        "s3-f1-alternative-registry",
+        "s3-f2-rev-must-be-a-commit"
+      ],
+      "recordedAt": "2026-10-14T12:29:54Z"
     }
   },
   "checkpoints": {
@@ -312,6 +404,15 @@
       },
       "reviewHash": "025c140a28ca1dcfb83c4570e9b132e651852f8fbd23d903d5cc2959ddda2e27",
       "recordedAt": "2026-10-14T12:26:11Z"
+    },
+    "s3-dependency-rule": {
+      "snapshotId": "3b30541dd9ee13583830dde4bea8eafa37aece3bf84c2a7828b4b2d613ae05f4",
+      "commits": {
+        "rayx-cli": "d31fd09511f6388005866ed51ed8fe8cae061b93",
+        "rayx": "66875570b2d51a8e7e855114430dbcd96e619b9a"
+      },
+      "reviewHash": "c854ac2256fcd67bf3b58061f230973153e36c11f441b9b2ceaeccd675eb56c2",
+      "recordedAt": "2026-10-14T12:30:02Z"
     }
   },
   "findings": [
@@ -337,6 +438,40 @@
         {
           "repositoryId": "rayx-cli",
           "path": "docs/releasing.md"
+        }
+      ]
+    },
+    {
+      "id": "s3-f1-alternative-registry",
+      "boundaryId": "s3-dependency-rule",
+      "criterionIds": [
+        "DEP-1"
+      ],
+      "descriptionMarkdown": "**Expected:** DEP-1 accepts crates.io only (plus pinned public git); a dependency a clean clone cannot fetch must be rejected. **Observed:** a dependency from an alternative (private/other) registry passes both gates. `dependency_violations` never looks at the `registry` / `registry-index` keys, and `source_violation` returns `None` for any source starting with `registry+` (`tests/dependency_sources.rs`, `source_violation`), so `foo = { version = \"1\", registry = \"internal\" }` and a Cargo.lock/`cargo metadata` source `registry+https://private.example/index` are accepted. (Verified by reading the code paths; the previous `package_layout` test had the same `starts_with(\"registry+\")` looseness, but DEP-1 and the DEP-2 rule text say crates.io.)\n\n**Repair:** (1) in `dependency_violations` push a violation when `spec` contains `registry` or `registry-index` (the same for `[patch]` entries, which go through it); (2) in `source_violation` accept only exactly `registry+https://github.com/rust-lang/crates.io-index` (what cargo prints for crates.io, including with the sparse protocol; the real lockfile already uses it) and reject any other `registry+`/`sparse+` source; (3) add inline reject cases: `registry = \"internal\"`, `registry-index = \"https://example.com/index\"` in `[dependencies]` and in a `[patch.crates-io]` entry, and a `source_violation(\"a\", \"registry+https://private.example/index\")` assertion.",
+      "severity": "major",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "symbol": "alternative_registries_are_rejected"
+        }
+      ]
+    },
+    {
+      "id": "s3-f2-rev-must-be-a-commit",
+      "boundaryId": "s3-dependency-rule",
+      "criterionIds": [
+        "DEP-1"
+      ],
+      "descriptionMarkdown": "**Expected:** git dependencies are pinned, not selected by a moving ref (DEP-1: reject `branch`, `tag` or nothing). **Observed:** `rev` is only checked for presence, so `gpux = { git = \"https://github.com/rayx-ui/Gpux\", rev = \"main\" }` (or `rev = \"refs/heads/main\"`/a tag name; cargo accepts any ref in `rev`) is accepted; the lockfile source is then `?rev=main#<sha>`, which `source_violation` also accepts via `contains(\"?rev=\")`. The build is only as reproducible as the lock file, contradicting the rule text 'pinned to a `rev`'.\n\n**Repair:** in `dependency_violations` require the `rev` value to be a string of 7-40 hex digits (`rev.len() in 7..=40 && all ascii hexdigit`), pushing a violation such as 'rev must be a commit hash' otherwise (also for `[patch]` entries), and make `source_violation` check that the text between `?rev=` and `#` is hex the same way. Add reject cases `rev = \"main\"` and `rev = \"refs/heads/main\"` to `git_dependencies_must_be_pinned_by_rev` and a `git+...?rev=main#0123` case to `resolved_sources_are_registry_or_pinned_public_git`; the existing accept samples use `rev = \"abc\"`/`\"a\"`, so lengthen them to real-looking hashes.",
+      "severity": "minor",
+      "status": "resolved",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "symbol": "git_rev_must_be_a_commit_hash"
         }
       ]
     }
