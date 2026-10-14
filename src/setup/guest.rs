@@ -324,6 +324,16 @@ pub fn run_setup_inside(
         .map_err(|error| format!("rayx setup inside {}: {error}", guest.name))
 }
 
+/// The version the guest's Linux `rayx` reports (`rayx 1.0.0`), when it has one.
+pub fn linux_binary_version(guest: &Guest, runner: &mut Runner) -> Option<String> {
+    runner
+        .query(&guest.script(&format!("\"{LINUX_BINARY}\" --version")))
+        .ok()
+        .filter(Outcome::is_success)
+        .map(|outcome| text(&outcome).trim().to_string())
+        .filter(|version| !version.is_empty())
+}
+
 /// The script that prints the guest's `VERSION_ID`.
 pub const OS_VERSION_SCRIPT: &str = ". /etc/os-release; echo $VERSION_ID";
 

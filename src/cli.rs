@@ -77,6 +77,15 @@ pub struct SetupArgs {
     /// Set up the Lima VM `rayx` with the pinned Ubuntu and run the same setup inside it (macOS only)
     #[arg(long)]
     pub lima: bool,
+    /// Re-run setup for the sets and projects recorded on this machine, then refresh the guests
+    #[arg(
+        long,
+        conflicts_with_all = [
+            "web", "test", "android", "ios", "gpu", "all", "wsl", "lima", "clone", "vm_cpus",
+            "vm_memory", "vm_disk", "vm_home_writable"
+        ]
+    )]
+    pub update: bool,
     /// With --wsl or --lima: clone the current checkout into the guest (default `~/<checkout name>`)
     #[arg(
         long,
@@ -143,6 +152,9 @@ pub enum SelfCommand {
         /// Report whether a newer release exists without installing it
         #[arg(long)]
         check: bool,
+        /// Refresh this machine's setup and guests with the new rayx without asking
+        #[arg(long, conflicts_with = "check")]
+        yes: bool,
     },
 }
 

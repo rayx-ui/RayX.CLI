@@ -41,6 +41,9 @@ pub fn guests_path(machine: &dyn Machine, os: Os) -> Option<PathBuf> {
     config_dir(machine, os).map(|dir| dir.join(GUESTS_FILE))
 }
 
+/// The file name of the setup record, kept on every machine `rayx setup` runs on.
+pub const SETUP_FILE: &str = "setup.json";
+
 /// A guest kind as the record spells it.
 pub const WSL: &str = "wsl";
 pub const LIMA: &str = "lima";
@@ -228,6 +231,10 @@ pub fn read_guests(machine: &dyn Machine, os: Os) -> Result<GuestsFile, RecordEr
 
 /// Writes the record with a temporary file and a rename, so a reader never sees half a document.
 pub fn write_guests_at(path: &Path, guests: &GuestsFile) -> Result<(), RecordError> {
+    write_json_atomic(path, guests)
+}
+
+fn write_json_atomic(path: &Path, document: &impl Serialize) -> Result<(), RecordError> {
     let fail = |error: std::io::Error| RecordError::Write {
         path: path.to_path_buf(),
         message: error.to_string(),
@@ -235,7 +242,7 @@ pub fn write_guests_at(path: &Path, guests: &GuestsFile) -> Result<(), RecordErr
     let dir = path.parent().ok_or(RecordError::NoConfigDir)?;
     std::fs::create_dir_all(dir).map_err(fail)?;
     let temporary = path.with_extension("json.tmp");
-    let mut text = serde_json::to_string_pretty(guests).map_err(|error| RecordError::Write {
+    let mut text = serde_json::to_string_pretty(document).map_err(|error| RecordError::Write {
         path: path.to_path_buf(),
         message: error.to_string(),
     })?;
@@ -267,4 +274,111 @@ pub fn record_guest(
     let mut guests = read_guests_at(&path)?;
     guests.upsert(update);
     write_guests_at(&path, &guests)
+}
+
+/// Where `setup.json` is.
+pub fn setup_path(machine: &dyn Machine, os: Os) -> Option<PathBuf> {
+    config_dir(machine, os).map(|dir| dir.join(SETUP_FILE))
+}
+
+/// The `setup.json` document: what `rayx setup` was last asked to keep installed on this machine.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SetupFile {
+    pub version: u32,
+    /// The union of the sets every run installed or checked (`base`, `web`, ...).
+    #[serde(default)]
+    pub sets: Vec<String>,
+    /// The project workspace roots the runs happened in.
+    #[serde(default)]
+    pub roots: Vec<String>,
+}
+
+impl Default for SetupFile {
+    fn default() -> Self {
+        Self {
+            version: VERSION,
+            sets: Vec::new(),
+            roots: Vec::new(),
+        }
+    }
+}
+
+impl SetupFile {
+    pub fn is_empty(&self) -> bool {
+        self.sets.is_empty()
+    }
+
+    /// Adds sets and a root once each.
+    pub fn merge(&mut self, sets: &[String], root: Option<&str>) {
+        for set in sets {
+            if !self.sets.contains(set) {
+                self.sets.push(set.clone());
+            }
+        }
+        if let Some(root) = root
+            && !self.roots.iter().any(|known| known == root)
+        {
+            self.roots.push(root.to_string());
+        }
+    }
+
+    pub fn forget_root(&mut self, root: &str) {
+        self.roots.retain(|known| known != root);
+    }
+}
+
+/// Reads `setup.json` through a machine; a missing file is an empty record.
+pub fn read_setup(machine: &dyn Machine, os: Os) -> Result<SetupFile, RecordError> {
+    let path = setup_path(machine, os).ok_or(RecordError::NoConfigDir)?;
+    match machine.read_to_string(&path) {
+        Some(text) if !text.trim().is_empty() => {
+            serde_json::from_str(&text).map_err(|error| RecordError::Unparsable {
+                path,
+                message: error.to_string(),
+            })
+        }
+        _ => Ok(SetupFile::default()),
+    }
+}
+
+fn read_setup_at(path: &Path) -> Result<SetupFile, RecordError> {
+    match std::fs::read_to_string(path) {
+        Ok(text) if !text.trim().is_empty() => {
+            serde_json::from_str(&text).map_err(|error| RecordError::Unparsable {
+                path: path.to_path_buf(),
+                message: error.to_string(),
+            })
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::InvalidData => {
+            Err(RecordError::Unparsable {
+                path: path.to_path_buf(),
+                message: error.to_string(),
+            })
+        }
+        _ => Ok(SetupFile::default()),
+    }
+}
+
+/// Writes `setup.json` with a temporary file and a rename.
+pub fn write_setup(machine: &dyn Machine, os: Os, setup: &SetupFile) -> Result<(), RecordError> {
+    let path = setup_path(machine, os).ok_or(RecordError::NoConfigDir)?;
+    write_json_atomic(&path, setup)
+}
+
+/// Records what a successful `rayx setup` ran: the sets and the project root. Nothing is written
+/// in a dry run, and an unparsable record is reported and left untouched.
+pub fn record_setup(
+    machine: &dyn Machine,
+    os: Os,
+    sets: &[String],
+    root: Option<&str>,
+    dry_run: bool,
+) -> Result<(), RecordError> {
+    if dry_run {
+        return Ok(());
+    }
+    let path = setup_path(machine, os).ok_or(RecordError::NoConfigDir)?;
+    let mut setup = read_setup_at(&path)?;
+    setup.merge(sets, root);
+    write_json_atomic(&path, &setup)
 }

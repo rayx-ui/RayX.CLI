@@ -126,11 +126,35 @@ pub trait Backend {
     fn install(&mut self) -> Result<Version, String>;
 }
 
-/// The body of `rayx self update [--check]`; returns the exit code.
+/// What the refresh after an update needs from the outside world.
+pub trait Refresher {
+    /// Whether this machine has anything to refresh: a `setup.json` or a `guests.json`.
+    fn records_exist(&mut self) -> bool;
+    /// Asks a yes/no question; `None` when nobody can answer (no terminal).
+    fn confirm(&mut self, question: &str) -> Option<bool>;
+    /// Runs `<executable> setup --update [--yes]` in this console and returns its exit code.
+    fn refresh(&mut self, executable: &Path, yes: bool) -> u8;
+}
+
+/// The body of `rayx self update [--check]` without a refresh; returns the exit code.
 pub fn run_with(
     check: bool,
     installed: &Version,
     backend: &mut dyn Backend,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+) -> u8 {
+    run_with_refresh(check, false, installed, backend, None, out, err)
+}
+
+/// The body of `rayx self update [--check] [--yes]`: after a successful install it offers to
+/// refresh this machine's setup and guests with the new binary; returns the exit code.
+pub fn run_with_refresh(
+    check: bool,
+    yes: bool,
+    installed: &Version,
+    backend: &mut dyn Backend,
+    refresher: Option<&mut dyn Refresher>,
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> u8 {
@@ -165,10 +189,16 @@ pub fn run_with(
         let _ = writeln!(err, "rayx: {}", source.instructions());
         return 1;
     }
+    // The path this rayx was started from: on Windows the old binary is renamed away during the
+    // install, so the refresh must run the executable at the original path, which is the new one.
+    let executable = backend.executable();
     match backend.install() {
         Ok(installed_now) => {
             let _ = writeln!(out, "Updated rayx {installed} -> {installed_now}.");
-            0
+            match refresher {
+                Some(refresher) => offer_refresh(yes, &installed_now, &executable, refresher, out),
+                None => 0,
+            }
         }
         Err(error) => {
             let _ = writeln!(err, "rayx: the update failed: {error}");
@@ -177,20 +207,93 @@ pub fn run_with(
     }
 }
 
+/// Offers the refresh after an install and runs it when wanted; the refresh's exit code becomes
+/// the command's.
+fn offer_refresh(
+    yes: bool,
+    new_version: &Version,
+    executable: &Path,
+    refresher: &mut dyn Refresher,
+    out: &mut dyn Write,
+) -> u8 {
+    if !refresher.records_exist() {
+        return 0;
+    }
+    let wanted = yes
+        || refresher
+            .confirm(&format!(
+                "Refresh this machine's setup and guests with rayx {new_version}?"
+            ))
+            .unwrap_or(false);
+    if wanted {
+        return refresher.refresh(executable, yes);
+    }
+    let _ = writeln!(
+        out,
+        "run `rayx setup --update` to refresh the setup and guests"
+    );
+    0
+}
+
 /// Runs `rayx self update` against GitHub and returns the exit code.
-pub fn run(check: bool) -> u8 {
+pub fn run(check: bool, yes: bool) -> u8 {
     let Ok(installed) = Version::parse(env!("CARGO_PKG_VERSION")) else {
         eprintln!("rayx: this build has no valid version");
         return 1;
     };
     let mut backend = GithubBackend::new(&installed);
-    run_with(
+    let mut refresher = SystemRefresher;
+    run_with_refresh(
         check,
+        yes,
         &installed,
         &mut backend,
+        Some(&mut refresher),
         &mut std::io::stdout(),
         &mut std::io::stderr(),
     )
+}
+
+/// The real refresh: the records on this machine, the terminal, and the new binary.
+struct SystemRefresher;
+
+impl Refresher for SystemRefresher {
+    fn records_exist(&mut self) -> bool {
+        let machine = crate::setup::SystemMachine;
+        let os = crate::host::facts().os;
+        [
+            crate::setup::records::setup_path(&machine, os),
+            crate::setup::records::guests_path(&machine, os),
+        ]
+        .into_iter()
+        .flatten()
+        .any(|path| path.is_file())
+    }
+
+    fn confirm(&mut self, question: &str) -> Option<bool> {
+        use std::io::IsTerminal;
+        (std::io::stdin().is_terminal() && std::io::stdout().is_terminal())
+            .then(|| crate::setup::ask_on_terminal(question))
+    }
+
+    fn refresh(&mut self, executable: &Path, yes: bool) -> u8 {
+        let mut spec = crate::host::CommandSpec::new(executable.display().to_string())
+            .args(["setup", "--update"])
+            .interactive();
+        if yes {
+            spec = spec.arg("--yes");
+        }
+        match crate::host::Runner::execute().run(&spec) {
+            Ok(outcome) => outcome
+                .code
+                .and_then(|code| u8::try_from(code).ok())
+                .unwrap_or(1),
+            Err(error) => {
+                eprintln!("rayx: the refresh could not start: {error}");
+                1
+            }
+        }
+    }
 }
 
 /// The real backend: axoupdater against the GitHub releases of this repository.

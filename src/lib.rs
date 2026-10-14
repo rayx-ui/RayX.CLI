@@ -54,8 +54,8 @@ fn dispatch(cli: Cli) -> ExitCode {
             command: WslCommand::Compact(args),
         } => ExitCode::from(wsl::run_compact(args)),
         Command::SelfCommand {
-            command: SelfCommand::Update { check },
-        } => ExitCode::from(update::run(*check)),
+            command: SelfCommand::Update { check, yes },
+        } => ExitCode::from(update::run(*check, *yes)),
         Command::App(args) => run_app(args.args.clone()),
         Command::Fmt(args) => run_fmt(args.args.clone()),
     }

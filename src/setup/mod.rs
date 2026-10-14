@@ -13,8 +13,10 @@ pub mod linux;
 pub mod machine;
 pub mod macos;
 pub mod records;
+pub mod refresh;
 pub mod rust;
 pub mod test_tools;
+pub mod update;
 pub mod web;
 pub mod windows;
 pub mod wsl;
@@ -62,6 +64,11 @@ impl Set {
         Set::Ios,
         Set::Gpu,
     ];
+
+    /// The set a name stands for (the inverse of [`Set::name`]).
+    pub fn from_name(name: &str) -> Option<Set> {
+        Set::ALL.into_iter().find(|set| set.name() == name)
+    }
 
     pub fn name(self) -> &'static str {
         match self {
@@ -850,6 +857,9 @@ pub fn run(args: &SetupArgs) -> u8 {
     if args.lima {
         return lima::run(args);
     }
+    if args.update {
+        return update::run(args);
+    }
     let host = crate::host::facts();
     let mut runner = if args.check {
         Runner::print()
@@ -869,7 +879,7 @@ pub fn run(args: &SetupArgs) -> u8 {
     // Without a terminal nobody can answer: an outdated requirement is left alone and reported,
     // unless `--yes` said to update.
     let mut confirm = move |question: &str| interactive && ask_on_terminal(question);
-    run_with_prompt(
+    let code = run_with_prompt(
         args,
         &env,
         &mut runner,
@@ -877,7 +887,27 @@ pub fn run(args: &SetupArgs) -> u8 {
         &mut user_path,
         &mut io::stdout(),
         Some(&mut confirm),
-    )
+    );
+    after_run(args, code, &env, &selected_sets(args, &env.host), &machine);
+    code
+}
+
+/// Records the sets a successful run installed and the project it ran in, so `--update` can run
+/// the same again. `--check`, `--update` and a failed run record nothing; a record that cannot be
+/// written is reported and never fails the run.
+pub fn after_run(args: &SetupArgs, code: u8, env: &PlanEnv, sets: &[Set], machine: &dyn Machine) {
+    if code != 0 || args.check || args.update {
+        return;
+    }
+    let names: Vec<String> = sets.iter().map(|set| set.name().to_string()).collect();
+    let root = env
+        .project_root
+        .as_ref()
+        .map(|root| root.display().to_string());
+    if let Err(error) = records::record_setup(machine, env.host.os, &names, root.as_deref(), false)
+    {
+        eprintln!("rayx: {error}");
+    }
 }
 
 /// Asks a yes/no question on the terminal; anything but `y` or `yes` is no.
@@ -914,7 +944,22 @@ pub fn run_with_prompt(
     confirm: Option<&mut dyn FnMut(&str) -> bool>,
 ) -> u8 {
     let sets = selected_sets(args, &env.host);
-    let plan = match plan(env, &sets) {
+    run_sets(args, &sets, env, runner, machine, user_path, out, confirm)
+}
+
+/// Plans `sets` and checks or runs the plan: the body of `rayx setup` for one project.
+#[allow(clippy::too_many_arguments)]
+pub fn run_sets(
+    args: &SetupArgs,
+    sets: &[Set],
+    env: &PlanEnv,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    user_path: &mut UserPath,
+    out: &mut dyn Write,
+    confirm: Option<&mut dyn FnMut(&str) -> bool>,
+) -> u8 {
+    let plan = match plan(env, sets) {
         Ok(plan) => plan,
         Err(error) => {
             eprintln!("rayx: {error}");

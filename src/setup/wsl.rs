@@ -127,14 +127,18 @@ fn wsl_command(args: &[&str]) -> CommandSpec {
     CommandSpec::new("wsl").args(args.iter().copied())
 }
 
+/// `RAYX_WSL_BINARY`: a Linux `rayx` built on this machine, as a Windows path.
+pub fn binary_override_from_env() -> Option<PathBuf> {
+    std::env::var_os("RAYX_WSL_BINARY")
+        .map(PathBuf::from)
+        .map(|path| std::fs::canonicalize(&path).unwrap_or(path))
+        .map(|path| PathBuf::from(path.to_string_lossy().trim_start_matches(r"\?\")))
+}
+
 /// Runs `rayx setup --wsl` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
-    let binary = std::env::var_os("RAYX_WSL_BINARY")
-        .map(PathBuf::from)
-        .map(|path| std::fs::canonicalize(&path).unwrap_or(path))
-        .map(|path| PathBuf::from(path.to_string_lossy().trim_start_matches(r"\?\")));
-    let request = WslRequest::from_args(args, binary);
+    let request = WslRequest::from_args(args, binary_override_from_env());
     let mut runner = if args.check {
         Runner::print()
     } else {
