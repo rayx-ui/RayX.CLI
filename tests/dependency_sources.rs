@@ -13,6 +13,9 @@ fn root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
+/// The only registry a clean clone can always reach.
+const CRATES_IO_SOURCE: &str = "registry+https://github.com/rust-lang/crates.io-index";
+
 /// The private repository nothing may depend on (exactly this one; `RayX.CLI`, `Gpux` and other
 /// public repositories of the organization are fine).
 const PRIVATE_REPOSITORY: &str = "rayx-ui/rayx";
@@ -41,6 +44,13 @@ fn dependency_violations(context: &str, name: &str, spec: &toml::Value, out: &mu
     if spec.contains_key("path") {
         out.push(format!("{context}: {name} is a path dependency"));
     }
+    for registry in ["registry", "registry-index"] {
+        if spec.contains_key(registry) {
+            out.push(format!(
+                "{context}: {name} uses an alternative `{registry}`"
+            ));
+        }
+    }
     let Some(git) = spec.get("git") else {
         return;
     };
@@ -55,11 +65,20 @@ fn dependency_violations(context: &str, name: &str, spec: &toml::Value, out: &mu
             ));
         }
     }
-    if !spec.contains_key("rev") {
-        out.push(format!(
+    match spec.get("rev").map(|rev| rev.as_str().unwrap_or("")) {
+        None => out.push(format!(
             "{context}: {name} is a git dependency without a `rev`"
-        ));
+        )),
+        Some(rev) if !is_commit(rev) => out.push(format!(
+            "{context}: {name} has `rev = {rev:?}`, which is not a commit hash"
+        )),
+        Some(_) => {}
     }
+}
+
+/// Whether `rev` is an (abbreviated) commit hash, so it cannot move like a branch or tag name.
+fn is_commit(rev: &str) -> bool {
+    (7..=40).contains(&rev.len()) && rev.chars().all(|c| c.is_ascii_hexdigit())
 }
 
 /// Walks the manifest for every `*dependencies` table, including `[target.<cfg>.*]` and
@@ -154,15 +173,25 @@ fn manifest_violations(manifest: &str) -> Vec<String> {
 
 /// Violations in a `cargo metadata` / `Cargo.lock` source string (`registry+...`, `git+https://...`).
 fn source_violation(name: &str, source: &str) -> Option<String> {
-    if source.starts_with("registry+") {
+    if source == CRATES_IO_SOURCE {
         return None;
+    }
+    if source.starts_with("registry+") || source.starts_with("sparse+") {
+        return Some(format!("{name}: {source} is not crates.io"));
     }
     if source.starts_with("git+") {
         if let Some(reason) = forbidden_git_url(source) {
             return Some(format!("{name}: {reason}"));
         }
-        return (!source.contains("?rev="))
-            .then(|| format!("{name}: git source {source} is not pinned by `rev`"));
+        let rev = source
+            .split_once("?rev=")
+            .map(|(_, rest)| rest.split('#').next().unwrap_or(rest));
+        return match rev {
+            Some(rev) if is_commit(rev) => None,
+            _ => Some(format!(
+                "{name}: git source {source} is not pinned by a commit `rev`"
+            )),
+        };
     }
     Some(format!("{name}: unsupported source {source:?}"))
 }
@@ -196,9 +225,9 @@ fn public_https_git_dependencies_pinned_by_rev_are_accepted() {
     assert_accepted(&format!(
         "{HEADER}[dependencies]\n\
          gpux = {{ git = \"https://github.com/rayx-ui/Gpux\", rev = \"0123456789abcdef\" }}\n\
-         cli = {{ git = \"https://github.com/rayx-ui/RayX.CLI.git\", rev = \"abc\" }}\n\
+         cli = {{ git = \"https://github.com/rayx-ui/RayX.CLI.git\", rev = \"abcdef0\" }}\n\
          [target.'cfg(windows)'.dependencies]\n\
-         other = {{ git = \"https://github.com/someone/else\", rev = \"abc\" }}\n"
+         other = {{ git = \"https://github.com/someone/else\", rev = \"abcdef0\" }}\n"
     ));
 }
 
@@ -233,16 +262,48 @@ fn git_dependencies_must_be_pinned_by_rev() {
 }
 
 #[test]
+fn git_rev_must_be_a_commit_hash() {
+    for rev in ["main", "refs/heads/main", "v1.0.0", "abc", ""] {
+        assert_rejected(
+            &format!(
+                "{HEADER}[dependencies]\ngpux = {{ git = \"https://github.com/rayx-ui/Gpux\", rev = \"{rev}\" }}\n"
+            ),
+            "not a commit hash",
+        );
+    }
+}
+
+#[test]
+fn alternative_registries_are_rejected() {
+    assert_rejected(
+        &format!("{HEADER}[dependencies]\ninternal = {{ version = \"1\", registry = \"corp\" }}\n"),
+        "alternative `registry`",
+    );
+    assert_rejected(
+        &format!(
+            "{HEADER}[dependencies]\ninternal = {{ version = \"1\", registry-index = \"https://corp.example/index\" }}\n"
+        ),
+        "alternative `registry-index`",
+    );
+    assert_rejected(
+        &format!(
+            "{HEADER}[dependencies]\nanyhow = \"1\"\n\n[patch.crates-io]\n# https://github.com/dtolnay/anyhow/pull/1\nanyhow = {{ version = \"1\", registry = \"corp\" }}\n"
+        ),
+        "alternative `registry`",
+    );
+}
+
+#[test]
 fn git_dependencies_must_use_https() {
     assert_rejected(
         &format!(
-            "{HEADER}[dependencies]\ngpux = {{ git = \"git@github.com:rayx-ui/Gpux.git\", rev = \"a\" }}\n"
+            "{HEADER}[dependencies]\ngpux = {{ git = \"git@github.com:rayx-ui/Gpux.git\", rev = \"abcdef0\" }}\n"
         ),
         "must use https://",
     );
     assert_rejected(
         &format!(
-            "{HEADER}[dependencies]\ngpux = {{ git = \"ssh://git@github.com/rayx-ui/Gpux.git\", rev = \"a\" }}\n"
+            "{HEADER}[dependencies]\ngpux = {{ git = \"ssh://git@github.com/rayx-ui/Gpux.git\", rev = \"abcdef0\" }}\n"
         ),
         "must use https://",
     );
@@ -257,7 +318,7 @@ fn the_private_rayx_repository_is_rejected_but_similar_names_are_not() {
         "https://github.com/RayX-UI/rayx",
     ] {
         assert_rejected(
-            &format!("{HEADER}[dependencies]\nrayx = {{ git = \"{url}\", rev = \"a\" }}\n"),
+            &format!("{HEADER}[dependencies]\nrayx = {{ git = \"{url}\", rev = \"abcdef0\" }}\n"),
             "private rayx-ui/RayX repository",
         );
     }
@@ -267,7 +328,7 @@ fn the_private_rayx_repository_is_rejected_but_similar_names_are_not() {
         "https://github.com/other/RayX",
     ] {
         assert_accepted(&format!(
-            "{HEADER}[dependencies]\nx = {{ git = \"{url}\", rev = \"a\" }}\n"
+            "{HEADER}[dependencies]\nx = {{ git = \"{url}\", rev = \"abcdef0\" }}\n"
         ));
     }
 }
@@ -279,7 +340,7 @@ fn patch_entries_need_the_source_rules_and_an_upstream_link() {
             "{HEADER}[dependencies]\nanyhow = \"1\"\n\n[patch.crates-io]\n{comment}anyhow = {spec}\n"
         )
     };
-    let pinned = "{ git = \"https://github.com/dtolnay/anyhow\", rev = \"abc\" }";
+    let pinned = "{ git = \"https://github.com/dtolnay/anyhow\", rev = \"abcdef0\" }";
 
     assert_accepted(&patch(
         "# Waiting for https://github.com/dtolnay/anyhow/pull/1\n",
@@ -318,7 +379,7 @@ fn patch_entries_need_the_source_rules_and_an_upstream_link() {
 fn replace_is_rejected() {
     assert_rejected(
         &format!(
-            "{HEADER}[dependencies]\nanyhow = \"1\"\n\n[replace]\n\"anyhow:1.0.0\" = {{ git = \"https://github.com/dtolnay/anyhow\", rev = \"a\" }}\n"
+            "{HEADER}[dependencies]\nanyhow = \"1\"\n\n[replace]\n\"anyhow:1.0.0\" = {{ git = \"https://github.com/dtolnay/anyhow\", rev = \"abcdef0\" }}\n"
         ),
         "[replace]",
     );
@@ -326,18 +387,30 @@ fn replace_is_rejected() {
 
 #[test]
 fn resolved_sources_are_registry_or_pinned_public_git() {
-    let registry = "registry+https://github.com/rust-lang/crates.io-index";
-    assert_eq!(source_violation("a", registry), None);
+    assert_eq!(source_violation("a", CRATES_IO_SOURCE), None);
+    for source in [
+        "registry+https://corp.example/index",
+        "sparse+https://corp.example/index/",
+    ] {
+        assert!(
+            source_violation("r", source).is_some(),
+            "{source} should be rejected"
+        );
+    }
     assert_eq!(
-        source_violation("g", "git+https://github.com/rayx-ui/Gpux?rev=abc#0123"),
+        source_violation(
+            "g",
+            "git+https://github.com/rayx-ui/Gpux?rev=abcdef0#0123456789abcdef0123456789abcdef01234567"
+        ),
         None
     );
     for source in [
-        "git+https://github.com/rayx-ui/RayX?rev=abc#0123",
+        "git+https://github.com/rayx-ui/RayX?rev=abcdef0#0123456789abcdef0123456789abcdef01234567",
         "git+https://github.com/rayx-ui/Gpux?branch=main#0123",
         "git+https://github.com/rayx-ui/Gpux?tag=v1#0123",
+        "git+https://github.com/rayx-ui/Gpux?rev=main#0123456789abcdef0123456789abcdef01234567",
         "git+https://github.com/rayx-ui/Gpux#0123",
-        "git+ssh://git@github.com/rayx-ui/Gpux?rev=abc#0123",
+        "git+ssh://git@github.com/rayx-ui/Gpux?rev=abcdef0#0123456789abcdef0123456789abcdef01234567",
         "path+file:///home/x/Gpux",
     ] {
         assert!(
