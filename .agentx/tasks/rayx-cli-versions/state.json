@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-versions",
-  "revision": 0,
+  "revision": 4,
   "planRevision": 1,
   "specHashes": {
     "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
@@ -10,10 +10,16 @@
   },
   "tasks": {
     "t01-release-module": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "claude-man2-win"
+      ]
     },
     "t02-self-update-release": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "claude-man2-win"
+      ]
     },
     "t03-guest-release": {
       "status": "pending"
@@ -34,8 +40,53 @@
       "status": "pending"
     }
   },
-  "validationBatches": {},
-  "checkResults": {},
+  "validationBatches": {
+    "b0c24206e3a607042da67ede3c066ca596d5bb002d6286595e18819502368fea": {
+      "snapshot": {
+        "specHash": "a7930166344d2989a94ba045ddd41a3a7e1ca24bfcdf317453ce3d97ab5bde02",
+        "repositories": {
+          "rayx-cli": "63c25148559e28ab1688dd58a53957ba6a212d40384e6c89a248e9852269b2d5"
+        }
+      },
+      "recordedAt": "2026-10-14T20:17:27Z"
+    }
+  },
+  "checkResults": {
+    "s1-release-core/check-release-module/final": {
+      "checkId": "check-release-module",
+      "boundaryId": "s1-release-core",
+      "phase": "final",
+      "batchId": "b0c24206e3a607042da67ede3c066ca596d5bb002d6286595e18819502368fea",
+      "definitionHash": "01ed32e1334f86947f40892066717c933272d87224cf8e3cf01f83324ada51c5",
+      "basisHash": "f1ec1de1bfa6349212bb66bcb6ae56ce8ca8b04bbef9df750a6bb9f9120e2300",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 11,
+      "durationSeconds": 2.4034,
+      "recordedAt": "2026-10-14T20:17:26Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s1-release-core-final-8b724c269e18.log",
+      "logSha256": "7915e439a698efacf0f77d31575aa043826f25317fbb8b6b4c03e1d1a2220378",
+      "inputsHash": "6c36a941ecfedca386fa5a733b3b1b9e3cb1289936d519a960cf9a779e2dd4fa"
+    },
+    "s1-release-core/check-self-update-release/final": {
+      "checkId": "check-self-update-release",
+      "boundaryId": "s1-release-core",
+      "phase": "final",
+      "batchId": "b0c24206e3a607042da67ede3c066ca596d5bb002d6286595e18819502368fea",
+      "definitionHash": "cdf4646aa83e02edfd1458eb380cc598be1fe711b42a0797c868315619b1b1a7",
+      "basisHash": "7ca644c0dad51fbd609515beed5da2e7df318376366ed0cc20366561fdaf12fe",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 19,
+      "durationSeconds": 0.3894,
+      "recordedAt": "2026-10-14T20:17:27Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s1-release-core-final-3ef4b61c2a07.log",
+      "logSha256": "c2e3eba13a76516fc5e3cbdd1ddb04687657b5f4d5e0e367c961fbf96ad3b055",
+      "inputsHash": "d60c2130b210e63388a03fdf5376b271059371ce8645c99007d6f83e97d85328"
+    }
+  },
   "reviews": {},
   "checkpoints": {},
   "findings": [],
