@@ -75,6 +75,31 @@ Findings fixed while verifying:
 - Without `--clone`, the inner `rayx setup --web` runs in the guest's home, outside any project, so
   it installs a `stable` toolchain and its wasm target; run with `--clone` to set up the project.
 
+## Open: Windows and WSL guest layer, and the first release (owner-run)
+
+Rows without a result are still open (epic `rayx-cli-guests`, MAN-3 and MAN-4). Fill in the date,
+the versions and the result when you run them.
+
+Windows 11 PC with WSL 2 and `Ubuntu-24.04` (MAN-3), with a local Windows build
+(`cargo build --release`) and a Linux build for `RAYX_WSL_BINARY` (built inside the distribution
+with `cargo build --release`, then the `\\wsl$\...` path or a copy on the Windows disk):
+
+| Check | Command | Result |
+|---|---|---|
+| WSL setup on the guest layer | `rayx setup --wsl --web --clone --yes` from a checkout on the Windows disk | open |
+| The guest is recorded | `%LOCALAPPDATA%\rayx\guests.json` lists `Ubuntu-24.04` (kind `wsl`, flags, the clone) and `setup.json` is untouched by `--wsl` | open |
+| The in-guest clones file | `~/.config/rayx/clones` inside the distribution lists the clone; `rayx wsl status` still shows its build output | open |
+| Refresh | `rayx setup --update --yes` | open: expect the Linux `rayx` check, `sudo apt-get update && sudo apt-get upgrade -y`, and the inner `rayx setup --update --yes` |
+| Doctor | `rayx doctor` | open: expect `wsl Ubuntu-24.04: running, disk <size>, Ubuntu 24.04, current` |
+| Removal refusal | `rayx wsl remove Debian` (a distribution `rayx` did not create) | open: expect `Debian was not created by rayx; remove it with wsl --unregister yourself`, exit 1 |
+
+First release that contains the epic (MAN-4), from the previous release on the Mac and on Windows:
+
+| Check | Command | Result |
+|---|---|---|
+| Update offers the refresh | `rayx self update` | open: expect `Refresh this machine's setup and guests with rayx <new>? [y/N]`; `y` runs the new binary's `setup --update` and the guest is refreshed; `n` prints ``run `rayx setup --update` to refresh the setup and guests`` |
+| Unattended | `rayx self update --yes` on the next release | open |
+
 ## Linux (hosted CI)
 
 `rayx setup --web --test --yes` and the ignored heavy groups run on `ubuntu-latest`; `rayx setup
