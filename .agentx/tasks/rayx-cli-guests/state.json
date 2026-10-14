@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 60,
+  "revision": 67,
   "planRevision": 5,
   "specHashes": {
     "requirements": "ff8fe8e3dadfcc4260169e6e4a8126ae1ad506eaa8f1c1e1de822cae89569584",
@@ -82,14 +82,17 @@
       ]
     },
     "t13-wsl-proof": {
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
+    },
+    "t14-release-proof": {
       "status": "blocked",
       "workerIds": [
         "352b60b3-72ba-43f0-8dc9-9949c7a95973"
       ],
-      "blockerMarkdown": "MAN-3 needs the owner's Windows PC (WSL 2, a local Windows build and RAYX_WSL_BINARY); this session runs on macOS"
-    },
-    "t14-release-proof": {
-      "status": "pending"
+      "blockerMarkdown": "needs a published release containing this epic; the owner chose to defer MAN-4"
     },
     "t15-flow-repairs": {
       "status": "done",
@@ -157,7 +160,7 @@
           "rayx-cli": "68319096cccec2a9b91f7a538790d2f46d627b190d95d4e02863a799ae1cf5e5"
         }
       },
-      "recordedAt": "2026-10-14T17:12:09Z"
+      "recordedAt": "2026-10-14T18:00:21Z"
     }
   },
   "checkResults": {
@@ -1250,6 +1253,71 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "4b196457574881e97995f2747ed741269ca74c6e3ee5ae2ccda9aa4ef3d1aa9b"
       }
+    },
+    "s6-owner-hosts": {
+      "reviewerId": "reviewer-s6-f6f9f11e",
+      "snapshotId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "criterionIds": [
+        "MAN-3"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-3"
+          ],
+          "sha256": "e812417cf888cda18cf05349f58a432f494dd885753703ff00ef8e755b507298"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-3"
+          ],
+          "sha256": "0bd689e85ac0abc8001f9c05aaa3f2b43d5a8ee1b23a7d9929ac17f6600ee633"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-3"
+          ],
+          "sha256": "c76d4514b598d7b3a88aab688f6d01c0b3968ec16890469ef9e5edd72436575b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/guests.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-3"
+          ],
+          "sha256": "949c48561b82a2a15dd90bbf0d60d36a9ec6abe5269b6bdb9c10185a41285b10"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "runtime",
+          "criterionIds": [
+            "MAN-3"
+          ],
+          "sha256": "10a56f85921c89a26f5e848e8a6a26d6055508fe0397fdbdf0420a84a8845370"
+        }
+      ],
+      "summaryMarkdown": "MAN-3 is met. The section 'Open: Windows and WSL guest layer' records, for 2026-10-14 on Windows 11 (10.0.26300.9457), WSL 2.6.3.0, `rayx 1.0.0` built from `feat/lima-guests` at `12adb9a` and Ubuntu-24.04 (24.04.4), a concrete result for every clause: `setup --wsl --web --clone --yes` passed twice (release installer, then `RAYX_WSL_BINARY`); `guests.json` lists `Ubuntu-24.04` (kind wsl, flags, clone, retired false); the in-guest clones file and `wsl status`; `rayx doctor` reports `wsl Ubuntu-24.04: running ... Ubuntu 24.04, current`; and the removal refusal. The failed refresh row (release rayx 1.0.0 as the guest binary, `unexpected argument '--update'`, exit 1) is recorded honestly, not as a pass. The explanation holds against the code: `guest::ensure_linux_binary` returns early when `rayx --version` equals `rayx <running version>`, and `refresh_inside` orders binary, then apt upgrade, then inner `setup --update`, which matches 52 packages upgraded and then the flag error. The branch version is 1.0.0 (Cargo.toml), so the guest's released 1.0.0 matched; any release containing the epic has a higher version and installs the matching binary first. The `RAYX_WSL_BINARY` pass shows the clause 'refreshes it (apt upgrade, inner update)' end to end, and I accept it. Dispositions: MAN-4 deferral and t14 withdrawal match the recorded owner decision 'Defer to a follow-up' (decidedBy owner); the follow-up is concrete (run the two MAN-4 rows after the first release containing the epic and record date, versions, results), the doc rows say so, and nothing undecided is hidden. Observations for follow-up, not findings: the stray `(B` comes from the cargo-dist installer's output; `rayx` sets no DEBIAN_FRONTEND, so apt prints a harmless debconf Dialog fallback and `--yes` could run apt non-interactively.",
+      "acknowledgedDispositions": [
+        "criterion:MAN-4",
+        "task:t14-release-proof"
+      ],
+      "findingIds": [],
+      "recordedAt": "2026-10-14T18:00:59Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "f5cc3b0116f9fddd4e50272f5ce1a3451eb43bdba6c3a1ce1fc67dfa59478bfa"
+      }
     }
   },
   "checkpoints": {
@@ -1300,6 +1368,14 @@
       },
       "reviewHash": "ffca0b1721e1d8b70ee99fc314393c7a072d9cf4f66fb08fd4ad8ee738803815",
       "recordedAt": "2026-10-14T17:12:59Z"
+    },
+    "s6-owner-hosts": {
+      "snapshotId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "commits": {
+        "rayx-cli": "8b28c0f44066b24130a81544061d6d84fe36dd3b"
+      },
+      "reviewHash": "a81a318b6c46e6a75edf2e4094a73b300133e90ef269b46acc4c54cfdbc7d08a",
+      "recordedAt": "2026-10-14T18:01:10Z"
     }
   },
   "findings": [
@@ -1717,5 +1793,24 @@
       ".github/workflows/release.yml": "3c495e29befb864e16b3035e5ed65f2527f0048ff06ce1a51e89927fcaeb8156",
       "dist-workspace.toml": "b26e263d95f7bc675128ba73b3f747a55e8225134e1ae6c05e7d98ac8d36d279"
     }
-  }
+  },
+  "dispositions": [
+    {
+      "type": "criterion",
+      "id": "MAN-4",
+      "disposition": "deferred",
+      "reasonMarkdown": "Owner decision (2026-10-14), asked whether MAN-4 should be deferred, waived or waited for: 'Defer to a follow-up'. No release containing this epic exists yet, so `rayx self update` offering the refresh cannot be run on the Mac and on Windows.",
+      "decidedBy": "owner",
+      "recordedAt": "2026-10-14T18:00:21Z",
+      "followUpMarkdown": "After the first release that contains this epic, run the two MAN-4 rows of `docs/manual-verification.md` (`rayx self update` from the previous release on the Mac and on Windows must offer the refresh and update the guest; `--yes` unattended) and record date, versions and results."
+    },
+    {
+      "type": "task",
+      "id": "t14-release-proof",
+      "disposition": "withdrawn",
+      "reasonMarkdown": "Owner decision (2026-10-14), asked whether MAN-4 should be deferred, waived or waited for: 'Defer to a follow-up'. No release containing this epic exists yet, so `rayx self update` offering the refresh cannot be run on the Mac and on Windows.",
+      "decidedBy": "owner",
+      "recordedAt": "2026-10-14T18:00:21Z"
+    }
+  ]
 }
