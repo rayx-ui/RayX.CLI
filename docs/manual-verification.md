@@ -76,6 +76,42 @@ Findings fixed while verifying:
 - Without `--clone`, the inner `rayx setup --web` runs in the guest's home, outside any project, so
   it installs a `stable` toolchain and its wasm target; run with `--clone` to set up the project.
 
+## Chosen releases on Windows (2026-10-14, epic rayx-cli-versions MAN-2)
+
+Windows 11 Pro 10.0.26300 (26H2), WSL 2.6.3.0 (kernel 6.6.87.2-1), Ubuntu 24.04.5 LTS in
+`Ubuntu-24.04`, `rayx` 1.2.0 (LATEST, installed with the official PowerShell installer into
+`%USERPROFILE%\.rayx\bin`) and 1.1.0 (OLDER). Branch `main` at `236940d` (the 1.2.0 release commit).
+The `y/N` questions need a terminal, so they were answered through a ConPTY pseudo-terminal driven by
+a throwaway script; the sudo password was typed by the owner in a Terminal tab. Transcript:
+`rayx-man2.log` (not committed).
+
+| Step | Command | Expected | Result | Key output |
+|---|---|---|---|---|
+| 1 | `rayx --version` | `rayx 1.2.0` | pass | `rayx 1.2.0` |
+| 2 | `rayx self update --release 1.1.0 --check` | installed, requested, `downgrade`; nothing installed | pass | `installed 1.2.0, requested release 1.1.0: downgrade`, exit 0, `rayx 1.2.0` afterwards |
+| 3 | `rayx self update --release 1.1.0`, answer `n`, then `y` | the downgrade question; `n` changes nothing and exits non-zero; `y` installs, no refresh offer | pass | `Install rayx 1.1.0 over 1.2.0, an older release? [y/N]`; `n`: `rayx: nothing was changed`, exit 1, version still 1.2.0; `y`: `Updated rayx 1.2.0 -> 1.1.0.` and no refresh question |
+| 4 | `rayx --version` | `rayx 1.1.0` | pass | `rayx 1.1.0` (no busy `rayx.exe`) |
+| 5 | `rayx self update` (run by 1.1.0), answer `y` | `Updated rayx 1.1.0 -> 1.2.0.`, the refresh question, then the new binary's `setup --update` for the host and the guest, exit 0 | partial | `Updated rayx 1.1.0 -> 1.2.0.`, `Refresh this machine's setup and guests with rayx 1.2.0? [y/N]` (`y`), `Update wsl guest Ubuntu-24.04? [y/N]` (`y`), `==> wsl: refreshing Ubuntu-24.04`, `==> wsl: installing the Linux rayx 1.2.0`, `==> wsl: sudo apt-get update && sudo apt-get upgrade`, then the `[sudo] password` prompt. The pseudo-terminal cannot take the password, so that run was stopped there. The refresh was finished by `rayx setup --update` typed in a Terminal tab (not through `self update`): `apt-get upgrade` (curl 3 packages), `==> wsl: rayx setup --update`, `==> setup --update: /home/dinko/RayX.CLI`, `Nothing to do: everything is installed.` The exit code was not captured, and no `nothing recorded` line for the host appeared (there is no `setup.json`) |
+| 6 | `rayx --version`; the guest's `~/.rayx/bin/rayx --version`; `rayx doctor` | both `rayx 1.2.0`; the guest line current | pass | `rayx 1.2.0`, `rayx 1.2.0`, `wsl Ubuntu-24.04: running, disk 215.0 GiB, Ubuntu 24.04, current` |
+| 7 | `rayx self update --check`; `--release 1.1.0 --check`; list `%LOCALAPPDATA%\rayx` | up to date; still a downgrade; nothing new written | pass | `installed 1.2.0, latest release 1.2.0: rayx is up to date`; `installed 1.2.0, requested release 1.1.0: downgrade`; the directory holds `DevKit`, `storage` (both older than this run) and `guests.json` (written before the run); no `setup.json` and nothing new |
+| 8 | `rayx self update --release 9.9.9 --check`; `--release not-a-version` | clear errors, exit 1, nothing installed | pass | `rayx: release 9.9.9 was not found`; ``rayx: `not-a-version` is not a release name: use the form X.Y.Z, for example 1.0.1``; both exit 1, `rayx 1.2.0` afterwards |
+
+Anything surprising:
+
+- The refresh asks a second question per guest (`Update wsl guest Ubuntu-24.04? [y/N]`) after the
+  `self update` refresh question was answered `y`; the criteria text lists only the first. Accepting
+  the refresh does not pass `--yes` to `setup --update`, so each guest is asked again.
+- Step 5 is only partly proven: the refresh offer, the Linux `rayx` install and the apt step ran
+  from `self update`, but the sudo prompt stopped the pseudo-terminal run, so the inner
+  `setup --update` and the exit code were seen only in a separate `rayx setup --update`. Rerun with
+  `sudo` configured not to ask (or with a driver that can forward the password) to close it.
+- Installing a release prints the installer's `Expand-Archive` progress bar into the console (very
+  wide in a pseudo-terminal; cosmetic).
+- The first attempt at step 3 ran without a terminal and correctly refused (`... is a downgrade and
+  needs an answer: repeat it with `--yes` ...`, exit 1); the first step 5 attempt was stopped at the
+  second question because only one answer was queued. Both were repeated and nothing was changed by
+  the aborted runs.
+
 ## Open: Windows and WSL guest layer, and the first release (owner-run)
 
 Rows without a result are still open (epic `rayx-cli-guests`, MAN-3 and MAN-4). Fill in the date,
