@@ -73,16 +73,16 @@ pub struct SetupArgs {
     /// Report what is missing without installing anything
     #[arg(long)]
     pub check: bool,
-    /// Accept licenses and agreements the installers ask for
+    /// Accept licenses and agreements the installers ask for, update outdated tools and guests without asking
     #[arg(long)]
     pub yes: bool,
     /// Set up WSL 2 with the pinned Ubuntu and run the same setup inside it (Windows only)
     #[arg(long)]
     pub wsl: bool,
-    /// Set up the Lima VM `rayx` with the pinned Ubuntu and run the same setup inside it (macOS only)
+    /// Set up the Lima VM `rayx` with the pinned Ubuntu and run the same setup inside it (macOS only; never part of --all)
     #[arg(long)]
     pub lima: bool,
-    /// Re-run setup for the sets and projects recorded on this machine, then refresh the guests
+    /// Re-run setup for the sets and projects recorded on this machine, then refresh every current guest (apt upgrade and setup --update inside)
     #[arg(
         long,
         conflicts_with_all = [
@@ -100,16 +100,16 @@ pub struct SetupArgs {
         value_name = "LINUX_DIR"
     )]
     pub clone: Option<String>,
-    /// With --lima: CPUs of the VM when it is created (default 6, at most what this Mac has)
+    /// With --lima: CPUs of the VM (default 6, at most all but two of this Mac's; changes an existing VM after asking)
     #[arg(long, requires = "lima", conflicts_with = "wsl", value_name = "N", value_parser = clap::value_parser!(u32).range(1..))]
     pub vm_cpus: Option<u32>,
-    /// With --lima: memory of the VM in GiB when it is created (default 12, at most what this Mac can spare)
+    /// With --lima: memory of the VM in GiB (default 12, 2 up to half of this Mac's; changes an existing VM after asking)
     #[arg(long, requires = "lima", conflicts_with = "wsl", value_name = "GIB", value_parser = clap::value_parser!(u32).range(1..))]
     pub vm_memory: Option<u32>,
-    /// With --lima: disk of the VM in GiB when it is created (default 100, at most what this Mac can spare)
+    /// With --lima: disk of the VM in GiB (default 100, at least 30; an existing VM's disk can only grow)
     #[arg(long, requires = "lima", conflicts_with = "wsl", value_name = "GIB", value_parser = clap::value_parser!(u32).range(1..))]
     pub vm_disk: Option<u32>,
-    /// With --lima: mount the macOS home in the VM writable instead of read-only
+    /// With --lima: mount the macOS home in the VM writable instead of read-only (changes an existing VM after asking)
     #[arg(long, requires = "lima", conflicts_with = "wsl")]
     pub vm_home_writable: bool,
 }
@@ -176,7 +176,7 @@ pub enum SelfCommand {
         /// Report whether a newer release exists without installing it
         #[arg(long)]
         check: bool,
-        /// Refresh this machine's setup and guests with the new rayx without asking
+        /// After installing, refresh this machine's setup and guests with the new rayx without asking
         #[arg(long, conflicts_with = "check")]
         yes: bool,
     },
