@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-versions",
-  "revision": 32,
+  "revision": 35,
   "planRevision": 1,
   "specHashes": {
     "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
@@ -41,10 +41,17 @@
       ]
     },
     "t06-docs": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "claude-impl-91b31a6e"
+      ]
     },
     "t07-mac-proof": {
-      "status": "pending"
+      "status": "blocked",
+      "workerIds": [
+        "claude-impl-91b31a6e"
+      ],
+      "blockerMarkdown": "Needs a real Mac: the real-VM proof with Lima on macOS cannot run on this Windows PC"
     },
     "t08-release-proof": {
       "status": "pending"
