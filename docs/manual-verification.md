@@ -104,9 +104,27 @@ the Gpux ones:
   sends HTTPS to SSH too, so `brew update` failed until Homebrew was updated with
   `GIT_CONFIG_GLOBAL=/dev/null git fetch` and `git checkout -B stable <tag>`.
 
-## Release installs
+## Release v1.0.0
 
-The first tagged release (cargo-dist builds of all six targets, the installers) and a real `rayx
-self update` download are verified on real hosts when v1.0.0 is published; the results are recorded
-in this file afterwards, from the checklist of the `rayx-cli-releases` epic (sprint
-`s5-first-release`).
+Published 2026-10-14 by release-plz and the Release workflow (run 38565448357): the tag `v1.0.0` was
+pushed by the first `release-plz` run on `main` (the untagged `1.0.0` in `Cargo.toml` counts as an
+initial release, so no release pull request was needed for it). The GitHub Release is Latest, not a
+prerelease, with the six archives and their `.sha256` files, `rayx-cli-installer.sh`,
+`rayx-cli-installer.ps1`, `sha256.sum` and the notes of the `CHANGELOG.md` section.
+`gh attestation verify` succeeds for the macOS ARM64, Windows ARM64 and Linux x64 archives and fails
+for a modified copy.
+
+| Host | Check | Result |
+| --- | --- | --- |
+| macOS ARM64 (this Mac) | `curl ... releases/latest/download/rayx-cli-installer.sh \| sh` on a host without `rayx` | pass: `~/.rayx/bin/rayx`, receipt `~/.config/rayx-cli/rayx-cli-receipt.json`, PATH from `~/.config/rayx-cli/env.sh` sourced in `.zshrc`, `.profile` and `.bash_profile` |
+| macOS ARM64 | new shell: `which rayx`, `rayx --version`, `rayx self update --check` | pass: `/Users/dinko/.rayx/bin/rayx`, `rayx 1.0.0`, `installed 1.0.0, latest release 1.0.0: rayx is up to date` |
+| macOS ARM64 | running the installer again | pass: reinstalls in place without error, `rayx 1.0.0` |
+
+Not run by the implementer (they need the owner's Windows PC, which is not reachable from the Mac):
+
+- Windows x64: the PowerShell one-liner on a host without `rayx`; a new terminal finds `rayx` (user
+  `Path` has `%USERPROFILE%\.rayx\bin`), `rayx --version` prints `rayx 1.0.0`,
+  `rayx self update --check` reports up to date, and running the installer again works.
+- Linux x64 in WSL, and `rayx setup --wsl` from the v1.0.0 Windows `rayx`: installs `rayx 1.0.0` into
+  `~/.rayx/bin` of `Ubuntu-24.04`, a new WSL shell finds it, and `rayx self update --check` inside WSL
+  reports up to date instead of the no-receipt message.
