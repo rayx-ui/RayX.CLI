@@ -1231,25 +1231,23 @@ fn setup_update_refuses_a_release_with_the_override_of_its_host_before_anything_
 
 #[test]
 fn a_host_without_guests_does_not_ask_about_the_release() {
-    for os in [Os::Linux] {
-        let mut runner = Runner::record()
-            .with_os(os)
-            .respond(|spec| spec.program == "curl", Outcome::failure(6));
-        let machine = FakeMachine::new().with_home("/home/dev");
+    let mut runner = Runner::record()
+        .with_os(Os::Linux)
+        .respond(|spec| spec.program == "curl", Outcome::failure(6));
+    let machine = FakeMachine::new().with_home("/home/dev");
 
-        let (code, out) = update_run_with(
-            &update_args("1.0.1", true),
-            &options(Some("1.0.1"), true, true),
-            os,
-            &mut runner,
-            &machine,
-        );
+    let (code, out) = update_run_with(
+        &update_args("1.0.1", true),
+        &options(Some("1.0.1"), true, true),
+        Os::Linux,
+        &mut runner,
+        &machine,
+    );
 
-        assert!(
-            existence_probes(&runner).is_empty(),
-            "nothing here could use the release: {:?}",
-            runner.lines()
-        );
-        assert_eq!(code, 0, "{out}");
-    }
+    assert!(
+        existence_probes(&runner).is_empty(),
+        "nothing here could use the release: {:?}",
+        runner.lines()
+    );
+    assert_eq!(code, 0, "{out}");
 }
