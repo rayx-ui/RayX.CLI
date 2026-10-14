@@ -1,0 +1,204 @@
+{
+ "schemaVersion": 7,
+ "epicId": "rayx-cli-versions",
+ "memoryDecisionsConsidered": [
+  {
+   "repositoryId": "rayx-cli",
+   "path": ".agentx/memory/decisions/setup/2026-10-08-setup-android-studio-through-its-wizard.md"
+  },
+  {
+   "repositoryId": "rayx-cli",
+   "path": ".agentx/memory/decisions/distribution/2026-10-14-distribution-release-plz-tags-dist-releases.md"
+  },
+  {
+   "repositoryId": "rayx-cli",
+   "path": ".agentx/memory/decisions/project/2026-10-08-project-discovery-and-pin-precedence.md"
+  },
+  {
+   "repositoryId": "rayx-cli",
+   "path": ".agentx/memory/decisions/repository/2026-10-07-repository-memory-taxonomy.md"
+  },
+  {
+   "repositoryId": "rayx-cli",
+   "path": ".agentx/memory/decisions/repository/2026-10-08-repository-literal-toolchain-pins-with-one-checklist.md"
+  },
+  {
+   "repositoryId": "rayx-cli",
+   "path": ".agentx/memory/decisions/repository/2026-10-08-repository-rayx-keeps-a-slim-xtask.md"
+  },
+  {
+   "repositoryId": "rayx-cli",
+   "path": ".agentx/memory/decisions/repository/2026-10-14-repository-dependency-sources-public-git.md"
+  }
+ ],
+ "decisions": [
+  {
+   "id": "d-release-module",
+   "requirementIds": [
+    "REL"
+   ],
+   "descriptionMarkdown": "`src/release.rs` (public module `release`): `Release` (parsed `semver::Version` without prerelease or build part, `Display` as `X.Y.Z`), `parse(&str) -> Result<Release, ReleaseError>`, `Release::direction(from, to) -> Direction::{Upgrade, Same, Downgrade}`, `installer_url(&Release) -> String`, `MIN_REFRESH_RELEASE`, and `exists(&mut Runner, &Release) -> Existence::{Exists, Missing, Unknown(String)}` over `curl --proto =https --tlsv1.2 -sfIL <url>` (curl exit 22 is a 404). `setup::guest` takes its release base URL and installer URL from here (the `RELEASES` constant moves; `tests/release_automation.rs` keeps checking the `{RELEASES}/v{version}/` form in the file that now owns it). `semver` is already a dependency.",
+   "invariantsMarkdown": "- One definition of the installer URL and of what a release name is.\\n- `exists` only reads (headers), through `Runner::query`.",
+   "rationaleMarkdown": "`self update`, the guest install and the refresh all need to parse, order and check releases; without one owner each would grow its own rules. A HEAD request avoids downloading the installer to learn that a tag exists, and curl is already what the guest install uses.",
+   "sourceRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/setup/guest.rs",
+     "symbol": "RELEASES"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/update.rs",
+     "symbol": "compare"
+    }
+   ],
+   "memoryDecisionRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": ".agentx/memory/decisions/distribution/2026-10-08-distribution-cargo-dist-and-axoupdater.md"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": ".agentx/memory/decisions/host/2026-10-08-host-facts-and-command-runner.md"
+    }
+   ]
+  },
+  {
+   "id": "d-self-update-release",
+   "requirementIds": [
+    "SU"
+   ],
+   "descriptionMarkdown": "`SelfCommand::Update` gains `--release <X.Y.Z>` (not `--version`: `propagate_version` reserves it on every subcommand). `update::Backend` gains `install_release(&Release) -> Result<Version, String>` next to `install()`; the real backend sets `UpdateRequest::SpecificVersion` and `always_update(true)` (axoupdater otherwise refuses a downgrade) before `run_sync`. `run_with_refresh` takes the requested release: it compares with the installed version (`Direction`), asks the downgrade question through the existing `Refresher::confirm`, applies the receipt rule, and offers the refresh only when the new version is at least `MIN_REFRESH_RELEASE`. The plain path (no `--release`) keeps its code and tests. Nothing is persisted.",
+   "invariantsMarkdown": "- A `rayx` without an install receipt is never replaced.\\n- `--check` never installs; a refused downgrade changes nothing.\\n- The refresh runs the executable captured before the install.",
+   "rationaleMarkdown": "axoupdater already supports a specific version and downgrades, so no download or archive code is added; the receipt keeps `self update` safe for development builds.",
+   "sourceRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/update.rs",
+     "symbol": "Backend"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/cli.rs",
+     "symbol": "SelfCommand"
+    }
+   ],
+   "memoryDecisionRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": ".agentx/memory/decisions/distribution/2026-10-08-distribution-cargo-dist-and-axoupdater.md"
+    }
+   ]
+  },
+  {
+   "id": "d-guest-release",
+   "requirementIds": [
+    "GR"
+   ],
+   "descriptionMarkdown": "`--release <X.Y.Z>` on `SetupArgs` (requires `lima`, `wsl` or `update`, conflicts with the sets that make no sense). `LinuxBinary.version` is the chosen release instead of the running version; `guest::ensure_linux_binary` already compares `rayx --version` with it and installs the tag's installer, so a different release (older or newer) is replaced. A `ReleasePlan { release, existence }` is computed once at the start of `setup::lima::run_with`, `setup::wsl::run_with` and `setup::refresh::refresh_guests` by `release::exists`, before any change. The guest downgrade question reuses `Prompter`. In the refresh, the inner `setup --update` is skipped when the release is below `MIN_REFRESH_RELEASE`. The chosen release is not stored in `guests.json` or `setup.json`.",
+   "invariantsMarkdown": "- Existence is checked before any VM, distribution, record or install change.\\n- A release override and a binary override (`RAYX_*_BINARY`) never combine.\\n- Nothing about the chosen release is recorded.",
+   "rationaleMarkdown": "The guest layer already installs by version through the release installer, so the choice is one parameter; skipping the inner update for releases that lack the flag is what the Windows proof of the guest epic showed is needed (`unexpected argument '--update'`).",
+   "sourceRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/setup/guest.rs",
+     "symbol": "ensure_linux_binary"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/setup/refresh.rs",
+     "symbol": "refresh_inside"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/setup/lima/mod.rs",
+     "symbol": "run_with"
+    }
+   ],
+   "memoryDecisionRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": ".agentx/memory/decisions/setup/2026-10-08-setup-wsl-scripts-run-with-exec.md"
+    }
+   ]
+  },
+  {
+   "id": "d-named-vms",
+   "requirementIds": [
+    "VM"
+   ],
+   "supersedesMemoryDecisions": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": ".agentx/memory/decisions/setup/2026-10-14-setup-guests-lima-records-and-side-by-side-migration.md"
+    }
+   ],
+   "descriptionMarkdown": "The Lima instance name becomes a value (`VmName`: validated, default `rayx`, `Display`, derived names `<name>-<version>`) threaded through `setup::lima::{run_with, ensure_lima, apply_edit, record_failed_first_run}`, `setup::migrate::{LimaMigration, LimaOld, pending_lima, migrate_lima}`, `setup::refresh`, `setup::remove`, `doctor::guests` and `guest::Guest::lima(name)`; the `INSTANCE` constant remains only as the default. Before any change `run_with` lists instances strictly and refuses a name that exists in Lima but is not a recorded Lima guest (`never adopt`). `pending_lima` matches retired `migrating` entries named `<name>-<version>` for the given name only. `--vm` is `Vec<String>` on `SetupArgs` (`requires` `lima` or `update`, conflicts with `wsl`); with `setup --lima` more than one value is refused.",
+   "invariantsMarkdown": "- Only recorded guests, and the VM being created under the requested name, are touched.\\n- A name never matches another name's retired or migrating entries.\\n- The default name keeps every earlier behaviour (arguments, messages, records).",
+   "rationaleMarkdown": "The single-VM epic fixed the name `rayx` in many places; the owner wants one VM per project repository. Refusing to adopt unrecorded VMs is the safe generalisation (`gpux`-shaped VMs must be unreachable by a typo), and it supersedes the promoted decision's phrase that only the instance named `rayx` is created and changed.",
+   "sourceRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/setup/lima/mod.rs",
+     "symbol": "INSTANCE"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/setup/migrate.rs",
+     "symbol": "pending_lima"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/setup/remove.rs"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/cli.rs",
+     "symbol": "SetupArgs"
+    }
+   ],
+   "memoryDecisionRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": ".agentx/memory/decisions/host/2026-10-08-host-facts-and-command-runner.md"
+    }
+   ]
+  },
+  {
+   "id": "d-update-target",
+   "requirementIds": [
+    "VM",
+    "GR"
+   ],
+   "descriptionMarkdown": "`setup::update::run` and `refresh_guests` take a target filter (`Option<Vec<VmName>>`): with a filter only the named recorded current guests are refreshed (Lima and WSL alike, matching by recorded name) and `update_host` is skipped; an unknown name is an error listing the recorded current guests, raised before any command. With `--release`, the target guests get that release (d-guest-release). `self update`'s refresh offer keeps refreshing everything.",
+   "invariantsMarkdown": "- An explicit target never touches other guests or the host.\\n- Validation of names happens before the first command.",
+   "rationaleMarkdown": "With one VM per project, refreshing the whole fleet to test one project's release is the wrong default for an explicit request.",
+   "sourceRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/setup/update.rs",
+     "symbol": "run"
+    },
+    {
+     "repositoryId": "rayx-cli",
+     "path": "src/setup/refresh.rs",
+     "symbol": "refresh_guests"
+    }
+   ],
+   "memoryDecisionRefs": [
+    {
+     "repositoryId": "rayx-cli",
+     "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+    }
+   ]
+  }
+ ]
+}

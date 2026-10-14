@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-versions",
+  "revision": 0,
+  "planRevision": 1,
+  "specHashes": {
+    "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
+    "design": "376a365593cd2b8249458e85028271c4add1f6430fc0b08bc286e3f4e3571eaa",
+    "plan": "eddfd568c140d03a054f90f8b0e328ba2495efe0be81f3eb93fcde23ba1a33bf"
+  },
+  "tasks": {
+    "t01-release-module": {
+      "status": "pending"
+    },
+    "t02-self-update-release": {
+      "status": "pending"
+    },
+    "t03-guest-release": {
+      "status": "pending"
+    },
+    "t04-vm-names": {
+      "status": "pending"
+    },
+    "t05-update-target": {
+      "status": "pending"
+    },
+    "t06-docs": {
+      "status": "pending"
+    },
+    "t07-mac-proof": {
+      "status": "pending"
+    },
+    "t08-release-proof": {
+      "status": "pending"
+    }
+  },
+  "validationBatches": {},
+  "checkResults": {},
+  "reviews": {},
+  "checkpoints": {},
+  "findings": [],
+  "handoffMarkdown": "",
+  "protectedPaths": {
+    "rayx-cli": {
+      ".agentx/tasks/rayx-cli-foundation/**": "195289e41107bb67bba3ca4b2308e643cfd1821052238e1e3856f2546074b5f8",
+      ".agentx/tasks/rayx-cli-releases/**": "2de43a9ba0297ba54bfb3cb98dd758753fdedb9d42bad96ce5a78afaec66ee94",
+      ".agentx/tasks/rayx-cli-guests/**": "67d4082689a980e5ebe1aab403f3695a842a2a15ac07d9aa3d4fc8fc43d728e5",
+      ".github/workflows/release.yml": "3c495e29befb864e16b3035e5ed65f2527f0048ff06ce1a51e89927fcaeb8156",
+      "dist-workspace.toml": "b26e263d95f7bc675128ba73b3f747a55e8225134e1ae6c05e7d98ac8d36d279"
+    }
+  }
+}
