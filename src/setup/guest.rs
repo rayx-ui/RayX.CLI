@@ -20,9 +20,6 @@ use crate::project::pins::DEFAULTS;
 /// install receipt next to it lets `rayx self update` work there.
 pub const LINUX_BINARY: &str = "$HOME/.rayx/bin/rayx";
 
-/// The repository releases are published from.
-pub const RELEASES: &str = "https://github.com/rayx-ui/RayX.CLI/releases/download";
-
 /// Where a guest records the directories `--clone` created, one per line.
 pub const CLONES_FILE: &str = "$HOME/.config/rayx/clones";
 
@@ -254,10 +251,7 @@ pub fn ensure_linux_binary(
     // An architecture without a Linux release fails here, before anything is downloaded.
     release_asset(binary.arch)
         .ok_or_else(|| "this CPU architecture has no Linux rayx release".to_string())?;
-    let url = format!(
-        "{RELEASES}/v{version}/rayx-cli-installer.sh",
-        version = binary.version
-    );
+    let url = crate::release::installer_url_for(&binary.version);
     let _ = writeln!(
         out,
         "==> {label}: installing the Linux rayx {}",

@@ -108,10 +108,10 @@ fn the_tag_form_agrees_with_dist_and_the_guest_installer() {
     let release = read(".github/workflows/release.yml");
     assert!(release.contains("- '**[0-9]+.[0-9]+.[0-9]+*'"));
 
-    // The guest installer (WSL and Lima share it) builds its URLs from the same `v<version>` tag.
+    // The release module (the guest installer and `self update --release` use it) builds its URLs from the same `v<version>` tag.
     assert!(
-        read("src/setup/guest.rs").contains("{RELEASES}/v{version}/"),
-        "src/setup/guest.rs downloads from releases/download/v<version>/"
+        read("src/release.rs").contains("{RELEASES}/v{version}/"),
+        "src/release.rs builds the installer URL from releases/download/v<version>/"
     );
 }
 
