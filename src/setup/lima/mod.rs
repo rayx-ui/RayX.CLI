@@ -17,7 +17,13 @@ use super::guest::{
     self, Checkout, CloneSource, Guest, LinuxBinary, lima_template, pinned_ubuntu, setup_flags,
 };
 use super::macos::brew_in;
-use super::{Machine, SystemMachine, ask_on_terminal};
+use super::records::{CloneRecord, VmRecord};
+use super::{Machine, SystemMachine};
+
+pub mod edit;
+pub mod sizing;
+
+use sizing::{Prompter, TerminalPrompter};
 
 /// The VM `rayx` manages.
 pub const INSTANCE: &str = "rayx";
@@ -241,6 +247,15 @@ impl Tool {
     }
 }
 
+/// Homebrew's `bin` when `limactl` is not on this process's `PATH` (it was just installed, or
+/// Homebrew's directory is not on `PATH` yet); the directory to put first for `limactl`.
+pub fn lima_path_dir(machine: &dyn Machine) -> Option<PathBuf> {
+    if machine.which("limactl").is_some() {
+        return None;
+    }
+    brew_in(machine)?.parent().map(Path::to_path_buf)
+}
+
 /// Runs `rayx setup --lima` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
@@ -262,17 +277,22 @@ pub fn run(args: &SetupArgs) -> u8 {
         }
     };
     let interactive = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
-    let mut confirm = move |question: &str| interactive && ask_on_terminal(question);
+    let mut prompter = TerminalPrompter {
+        terminal: interactive,
+    };
     match run_with(
         &request,
         &host,
         &mut runner,
         &machine,
         checkout.as_ref(),
-        Some(&mut confirm),
+        Some(&mut prompter),
         &mut std::io::stdout(),
     ) {
-        Ok(()) => 0,
+        Ok(outcome) => {
+            record_outcome(&request, &host, &machine, &mut runner, &outcome);
+            0
+        }
         Err(error) => {
             eprintln!("rayx: {error}");
             1
@@ -296,17 +316,50 @@ pub fn detect_checkout(
         .and_then(|_| guest::detect_checkout(runner)))
 }
 
-/// The body of `rayx setup --lima` over injectable collaborators. `confirm` answers the question
-/// before an outdated Lima is upgraded; `None` upgrades without asking, as `--yes` does.
+/// What a finished `setup --lima` run tells the guest record.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct LimaOutcome {
+    /// The VM's settings when this run created or changed it.
+    pub vm: Option<VmRecord>,
+    /// The clone this run made or fetched.
+    pub clone: Option<CloneRecord>,
+}
+
+/// Records the VM on this host after a successful run; `--check` records nothing.
+pub fn record_outcome(
+    request: &LimaRequest,
+    host: &HostFacts,
+    machine: &dyn Machine,
+    runner: &mut Runner,
+    outcome: &LimaOutcome,
+) {
+    if request.check {
+        return;
+    }
+    let guest = Guest::lima(INSTANCE).with_path_dir(lima_path_dir(machine));
+    guest::record_run(
+        machine,
+        host.os,
+        &guest,
+        &request.flags,
+        outcome.clone.clone(),
+        outcome.vm,
+        runner,
+    );
+}
+
+/// The body of `rayx setup --lima` over injectable collaborators. `prompter` answers the question
+/// before an outdated Lima is upgraded and the customize questions on creation; `None` upgrades
+/// without asking, as `--yes` does, and creates with the effective settings.
 pub fn run_with(
     request: &LimaRequest,
     host: &HostFacts,
     runner: &mut Runner,
     machine: &dyn Machine,
     checkout: Option<&Checkout>,
-    confirm: Option<&mut dyn FnMut(&str) -> bool>,
+    mut prompter: Option<&mut dyn Prompter>,
     out: &mut dyn Write,
-) -> Result<(), LimaError> {
+) -> Result<LimaOutcome, LimaError> {
     if host.os != Os::MacOs {
         return Err(LimaError::NotMacOs);
     }
@@ -327,19 +380,39 @@ pub fn run_with(
         .transpose()?;
     // Right after `brew install lima`, Homebrew's `bin` may not be on this process's PATH.
     let tool = Tool {
-        path_dir: machine
-            .which("limactl")
-            .is_none()
-            .then(|| brew.parent().map(Path::to_path_buf))
-            .flatten(),
+        path_dir: lima_path_dir(machine),
     };
-    ensure_lima(request, &brew, &tool, runner, confirm, out)?;
+    // Sizing is read and the flags are checked against it before any `limactl` command runs.
+    let capacity = sizing::read_capacity(runner, machine, &home)?;
+    let sized = sizing::effective(&VmSettings::default(), &capacity, &request.vm)?;
+    ensure_lima(request, &brew, &tool, runner, &mut prompter, out)?;
 
     let instances = list_instances(&tool, runner)?;
     let existing = instances.iter().find(|i| i.name == INSTANCE);
-    match existing {
+    let vm = match existing {
         None => {
-            let settings = settings_for_new_vm(&request.vm);
+            let mut notes = sized.notes.clone();
+            sizing::check_free_space(&capacity, &sized.settings, &mut notes)?;
+            let mut settings = sized.settings;
+            // Asked once, in a terminal, unless `--yes` (or `--check`, which creates nothing).
+            if let Some(prompter) = prompter.as_mut()
+                && prompter.interactive()
+                && !request.yes
+                && !request.check
+            {
+                for note in &notes {
+                    let _ = writeln!(out, "note: {note}");
+                }
+                notes.clear();
+                settings = sizing::customize(INSTANCE, settings, &capacity, &mut **prompter, out);
+                sizing::check_free_space(&capacity, &settings, &mut notes)?;
+            }
+            notes.extend(sizing::memory_warning(
+                &instances, &settings, &capacity, INSTANCE,
+            ));
+            for note in &notes {
+                let _ = writeln!(out, "note: {note}");
+            }
             let _ = writeln!(
                 out,
                 "==> lima: creating the VM {INSTANCE} (Ubuntu {}, {} CPUs, {} GiB memory, {} GiB disk, home {})",
@@ -359,10 +432,47 @@ pub fn run_with(
                 "creating the VM",
             )?;
             start_vm(runner, &tool, out)?;
+            Some(VmRecord {
+                cpus: settings.cpus,
+                memory_gib: settings.memory_gib,
+                disk_gib: settings.disk_gib,
+                home_writable: settings.home_writable,
+            })
         }
-        Some(instance) if !instance.is_running() => start_vm(runner, &tool, out)?,
-        Some(_) => {}
-    }
+        Some(instance) => {
+            let edit = edit::plan_edit(instance, &request.vm, machine, &home)?;
+            if edit.is_empty() {
+                if !instance.is_running() {
+                    start_vm(runner, &tool, out)?;
+                }
+            } else {
+                apply_edit(
+                    request,
+                    instance,
+                    &edit,
+                    &home,
+                    &tool,
+                    runner,
+                    &mut prompter,
+                    out,
+                )?;
+            }
+            // What the VM is now, edited or not.
+            let was_writable = machine
+                .read_to_string(&Path::new(&instance.dir).join("lima.yaml"))
+                .is_some_and(|yaml| edit::home_is_writable(&yaml, &home));
+            Some(VmRecord {
+                cpus: edit.cpus.map_or(instance.cpus, |(_, to)| to),
+                memory_gib: edit
+                    .memory_gib
+                    .map_or(instance.memory_gib() as u32, |(_, to)| to),
+                disk_gib: edit
+                    .disk_gib
+                    .map_or(instance.disk_gib() as u32, |(_, to)| to),
+                home_writable: was_writable || edit.home_writable,
+            })
+        }
+    };
 
     let guest = Guest::lima(INSTANCE).with_path_dir(tool.path_dir.clone());
     let binary = LinuxBinary {
@@ -379,18 +489,17 @@ pub fn run_with(
         None => None,
     };
     guest::run_setup_inside(&guest, &request.flags, directory.as_deref(), runner, out)
-        .map_err(LimaError::Failed)
-}
-
-/// What a new VM gets: the defaults, then the `--vm-*` flags.
-fn settings_for_new_vm(flags: &VmFlags) -> VmSettings {
-    let defaults = VmSettings::default();
-    VmSettings {
-        cpus: flags.cpus.unwrap_or(defaults.cpus),
-        memory_gib: flags.memory_gib.unwrap_or(defaults.memory_gib),
-        disk_gib: flags.disk_gib.unwrap_or(defaults.disk_gib),
-        home_writable: flags.home_writable,
-    }
+        .map_err(LimaError::Failed)?;
+    Ok(LimaOutcome {
+        vm,
+        clone: clone.as_ref().and_then(|(requested, source)| {
+            Some(CloneRecord {
+                source: checkout?.root.display().to_string(),
+                branch: source.branch.clone(),
+                target: guest::clone_target(requested, source).ok()?,
+            })
+        }),
+    })
 }
 
 fn require_macos(runner: &mut Runner) -> Result<(), LimaError> {
@@ -417,7 +526,7 @@ fn ensure_lima(
     brew: &Path,
     tool: &Tool,
     runner: &mut Runner,
-    confirm: Option<&mut dyn FnMut(&str) -> bool>,
+    prompter: &mut Option<&mut dyn Prompter>,
     out: &mut dyn Write,
 ) -> Result<(), LimaError> {
     let found = runner
@@ -441,8 +550,8 @@ fn ensure_lima(
         Some(version) => {
             let command = format!("{brew} upgrade lima");
             if !request.yes
-                && let Some(confirm) = confirm
-                && !confirm(&format!(
+                && let Some(prompter) = prompter.as_mut()
+                && !prompter.confirm(&format!(
                     "Lima {version} is older than {MIN_LIMA_MAJOR}.0. Upgrade it now?"
                 ))
             {
@@ -484,6 +593,48 @@ fn list_instances(tool: &Tool, runner: &mut Runner) -> Result<Vec<Instance>, Lim
             "`limactl list --json` failed: Lima is not usable".to_string(),
         )),
     }
+}
+
+/// Applies the changes explicit flags make to the existing VM: asked about as an update (`--yes`
+/// applies without asking, no terminal reports and stops), then stop when running, edit, start.
+#[allow(clippy::too_many_arguments)]
+fn apply_edit(
+    request: &LimaRequest,
+    instance: &Instance,
+    edit: &edit::VmEdit,
+    home: &Path,
+    tool: &Tool,
+    runner: &mut Runner,
+    prompter: &mut Option<&mut dyn Prompter>,
+    out: &mut dyn Write,
+) -> Result<(), LimaError> {
+    let changes = edit.describe();
+    let _ = writeln!(out, "==> lima: changing the VM {INSTANCE}: {changes}");
+    if !request.yes
+        && !request.check
+        && let Some(prompter) = prompter.as_mut()
+        && (!prompter.interactive()
+            || !prompter.confirm(&format!("Change the VM {INSTANCE} ({changes}). Apply now?")))
+    {
+        return Err(LimaError::Declined(format!(
+            "the VM {INSTANCE} was not changed ({changes}): apply it with `rayx setup --lima \
+             --yes` and the same --vm-* flags"
+        )));
+    }
+    if instance.is_running() {
+        let _ = writeln!(out, "==> lima: stopping the VM {INSTANCE}");
+        run_limactl(
+            runner,
+            &tool.spec(
+                CommandSpec::new("limactl")
+                    .args(["stop", INSTANCE])
+                    .interactive(),
+            ),
+            "stopping the VM",
+        )?;
+    }
+    run_limactl(runner, &tool.spec(edit.command(home)), "changing the VM")?;
+    start_vm(runner, tool, out)
 }
 
 fn start_vm(runner: &mut Runner, tool: &Tool, out: &mut dyn Write) -> Result<(), LimaError> {

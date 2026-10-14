@@ -13,6 +13,7 @@ use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 
 use super::Machine;
 use super::guest::{self, CloneSource, Guest, LinuxBinary};
+use super::records::CloneRecord;
 
 pub use super::guest::{
     Checkout, LINUX_BINARY, RELEASES, clone_script, detect_checkout, linux_dir, release_asset,
@@ -149,12 +150,61 @@ pub fn run(args: &SetupArgs) -> u8 {
         checkout.as_ref(),
         &mut std::io::stdout(),
     ) {
-        Ok(()) => 0,
+        Ok(()) => {
+            record_outcome(
+                &request,
+                args.check,
+                &host,
+                &machine,
+                &mut runner,
+                checkout.as_ref(),
+            );
+            0
+        }
         Err(error) => {
             eprintln!("rayx: {error}");
             1
         }
     }
+}
+
+/// Records the distribution on this host after a successful run; `--check` records nothing.
+pub fn record_outcome(
+    request: &WslRequest,
+    check: bool,
+    host: &HostFacts,
+    machine: &dyn Machine,
+    runner: &mut Runner,
+    checkout: Option<&Checkout>,
+) {
+    if check {
+        return;
+    }
+    let guest = Guest::wsl(distribution());
+    guest::record_run(
+        machine,
+        host.os,
+        &guest,
+        &request.flags,
+        clone_record(request, checkout),
+        None,
+        runner,
+    );
+}
+
+/// The clone `--clone` made, as the guest record keeps it.
+fn clone_record(request: &WslRequest, checkout: Option<&Checkout>) -> Option<CloneRecord> {
+    let (requested, checkout) = (request.clone.as_deref()?, checkout?);
+    let source = CloneSource {
+        name: guest::checkout_name(&checkout.root)?,
+        path: to_wsl_path(&checkout.root).ok()?,
+        branch: checkout.branch.clone(),
+    };
+    Some(CloneRecord {
+        source: checkout.root.display().to_string(),
+        branch: checkout.branch.clone(),
+        target: guest::clone_target(requested, &source).ok()?,
+    })
 }
 
 /// The body of `rayx setup --wsl` over injectable collaborators.

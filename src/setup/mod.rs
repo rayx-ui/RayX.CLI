@@ -12,6 +12,7 @@ pub mod lima;
 pub mod linux;
 pub mod machine;
 pub mod macos;
+pub mod records;
 pub mod rust;
 pub mod test_tools;
 pub mod web;

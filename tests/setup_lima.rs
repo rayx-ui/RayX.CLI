@@ -11,6 +11,7 @@ use rayx_cli::cli::{Cli, Command, SetupArgs};
 use rayx_cli::host::{Arch, CommandSpec, HostFacts, Os, Outcome, Runner};
 use rayx_cli::setup::FakeMachine;
 use rayx_cli::setup::guest::Checkout;
+use rayx_cli::setup::lima::sizing::{Prompter, ScriptedPrompter};
 use rayx_cli::setup::lima::{
     INSTANCE, LimaError, LimaRequest, VmFlags, detect_checkout, parse_instances,
     parse_lima_version, run_with,
@@ -85,6 +86,11 @@ impl Mac {
         Runner::record().with_os(Os::MacOs).responder(move |spec| {
             match (spec.program.as_str(), spec.args.as_slice()) {
                 ("sw_vers", _) => Some(Outcome::success().with_stdout(format!("{}\n", mac.macos))),
+                ("sysctl", _) => Some(Outcome::success().with_stdout("10\n34359738368\n")),
+                ("df", _) => Some(Outcome::success().with_stdout(
+                    "Filesystem 1024-blocks Used Available Capacity iused ifree %iused Mounted on\n\
+                     /dev/disk3s5 971350180 400000000 500000000 45% 1 2 0% /System/Volumes/Data\n",
+                )),
                 ("limactl", [flag]) if flag == "--version" => Some(match mac.lima {
                     Some(text) => Outcome::success().with_stdout(text),
                     None => Outcome::failure(127),
@@ -112,18 +118,18 @@ fn run(
     answer: Option<bool>,
 ) -> Result<String, LimaError> {
     let mut out = Vec::new();
-    let mut asked = |_: &str| answer.unwrap_or(false);
-    let confirm: Option<&mut dyn FnMut(&str) -> bool> = answer.map(|_| &mut asked as _);
+    let mut scripted = ScriptedPrompter::always(answer.unwrap_or(false));
+    let prompter: Option<&mut dyn Prompter> = answer.map(|_| &mut scripted as _);
     run_with(
         request,
         &macos(),
         runner,
         &machine(),
         checkout,
-        confirm,
+        prompter,
         &mut out,
     )
-    .map(|()| String::from_utf8(out).expect("UTF-8"))
+    .map(|_| String::from_utf8(out).expect("UTF-8"))
 }
 
 fn lines(runner: &Runner) -> Vec<String> {
@@ -140,7 +146,7 @@ fn changes(runner: &Runner) -> Vec<String> {
             let first = spec.args.first().map(String::as_str);
             match spec.program.as_str() {
                 "limactl" => !matches!(first, Some("list" | "--version" | "shell")),
-                "sw_vers" => false,
+                "sw_vers" | "sysctl" | "df" => false,
                 _ => true,
             }
         })
@@ -699,7 +705,10 @@ fn check_prints_every_command_and_runs_only_reads() {
 
     let output = std::process::Command::new(env!("CARGO_BIN_EXE_rayx"))
         .args(["setup", "--lima", "--check", "--web"])
-        .env("PATH", format!("{}:/usr/bin:/bin", bin.display()))
+        .env(
+            "PATH",
+            format!("{}:/usr/bin:/bin:/usr/sbin:/sbin", bin.display()),
+        )
         .env("HOME", dir.path())
         .current_dir(dir.path())
         .output()
@@ -723,6 +732,10 @@ fn check_prints_every_command_and_runs_only_reads() {
     assert!(
         stdout.contains("\"$HOME/.rayx/bin/rayx\" setup --web --check"),
         "{stdout}"
+    );
+    assert!(
+        !dir.path().join(".config/rayx").exists(),
+        "--check records no guest"
     );
     let calls = std::fs::read_to_string(&log).unwrap_or_default();
     for call in calls.lines() {

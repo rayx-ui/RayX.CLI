@@ -9,7 +9,10 @@
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
+use super::Machine;
+use super::records::{self, CloneRecord, GuestUpdate, VmRecord};
 use crate::cli::SetupArgs;
+use crate::host::Os;
 use crate::host::{Arch, CommandSpec, Outcome, Runner};
 use crate::project::pins::DEFAULTS;
 
@@ -271,6 +274,15 @@ pub fn ensure_linux_binary(
     run_inside(guest, runner, &script, "installing the Linux rayx")
 }
 
+/// The Linux directory `--clone` uses: the requested one, else `~/<checkout name>`.
+pub fn clone_target(requested: &str, source: &CloneSource) -> Result<String, String> {
+    if requested.is_empty() {
+        linux_dir(&format!("~/{}", source.name))
+    } else {
+        linux_dir(requested)
+    }
+}
+
 /// Clones (or fetches) the checkout into the guest and returns the Linux directory it lives in.
 /// `requested` is the `--clone` value: empty for the default `~/<checkout name>`.
 pub fn clone_checkout(
@@ -280,11 +292,7 @@ pub fn clone_checkout(
     runner: &mut Runner,
     out: &mut dyn Write,
 ) -> Result<String, String> {
-    let target = if requested.is_empty() {
-        linux_dir(&format!("~/{}", source.name))
-    } else {
-        linux_dir(requested)
-    }?;
+    let target = clone_target(requested, source)?;
     let script = clone_script(&source.path, source.branch.as_deref(), &target)?;
     let _ = writeln!(
         out,
@@ -399,4 +407,39 @@ pub fn setup_flags(args: &SetupArgs) -> Vec<String> {
     .filter(|(enabled, _)| *enabled)
     .map(|(_, flag)| flag.to_string())
     .collect()
+}
+
+/// Records the guest on this host after a successful, real setup run (callers skip `--check`). A record
+/// that cannot be read or written is reported and never fails the run.
+pub fn record_run(
+    machine: &dyn Machine,
+    host_os: Os,
+    guest: &Guest,
+    flags: &[String],
+    clone: Option<CloneRecord>,
+    vm: Option<VmRecord>,
+    runner: &mut Runner,
+) {
+    let kind = match guest.kind {
+        GuestKind::Wsl => records::WSL,
+        GuestKind::Lima => records::LIMA,
+    };
+    let update = GuestUpdate {
+        kind,
+        name: guest.name.clone(),
+        // A version that cannot be read keeps what the record already says; a guest `rayx` just
+        // made from the pinned image is the pinned version.
+        ubuntu: os_version(guest, runner).unwrap_or_else(|| {
+            records::read_guests(machine, host_os)
+                .ok()
+                .and_then(|file| file.find(kind, &guest.name).map(|g| g.ubuntu.clone()))
+                .unwrap_or_else(|| pinned_ubuntu().to_string())
+        }),
+        flags: flags.to_vec(),
+        clone,
+        vm,
+    };
+    if let Err(error) = records::record_guest(machine, host_os, &update, false) {
+        eprintln!("rayx: {error}");
+    }
 }

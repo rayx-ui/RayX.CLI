@@ -4,6 +4,8 @@
 
 use std::io::Write;
 
+pub mod guests;
+
 use serde_json::{Value, json};
 
 use crate::cli::DoctorArgs;
@@ -58,6 +60,8 @@ pub struct Findings {
     pub wsl: Vec<String>,
     /// On Windows: each WSL distribution with the size of its virtual disk.
     pub wsl_disks: Vec<WslDisk>,
+    /// The guests `rayx` manages from this host (macOS and Windows).
+    pub guests: guests::GuestsReport,
 }
 
 /// A WSL distribution's virtual disk, as seen from Windows.
@@ -138,6 +142,9 @@ impl Report {
                 "vhdx": disk.vhdx.display().to_string(),
                 "bytes": disk.bytes,
             })).collect::<Vec<_>>(),
+            "guests": self.findings.guests.to_json()["guests"].clone(),
+            "lima": self.findings.guests.to_json()["lima"].clone(),
+            "guestsProblem": self.findings.guests.problem,
         })
     }
 
@@ -226,6 +233,7 @@ impl Report {
                 disk.vhdx.display()
             ));
         }
+        out.push_str(&self.findings.guests.to_text());
         out.push_str(&format!(
             "\n{} requirement(s), {} missing or at the wrong version.\n",
             self.requirement_count(),
@@ -419,6 +427,7 @@ pub fn inspect(env: &PlanEnv, project_root: Option<String>, cx: &mut Cx) -> Repo
     } else {
         Vec::new()
     };
+    let guests = guests::inspect(cx);
     Report {
         host: env.host.clone(),
         project_root,
@@ -431,6 +440,7 @@ pub fn inspect(env: &PlanEnv, project_root: Option<String>, cx: &mut Cx) -> Repo
             interactive_desktop: interactive,
             wsl,
             wsl_disks,
+            guests,
         },
     }
 }
