@@ -178,7 +178,13 @@ fn the_mac_is_read_with_sysctl_and_df_on_the_lima_home_volume() {
         lines[0].contains("sysctl -n hw.ncpu hw.memsize"),
         "{lines:?}"
     );
-    assert!(lines[1].ends_with("df -k /Users/dev/.lima"), "{lines:?}");
+    // `Path::join` renders with the host's separator.
+    assert!(
+        lines[1]
+            .replace('\\', "/")
+            .ends_with("df -k /Users/dev/.lima"),
+        "{lines:?}"
+    );
 
     let mut elsewhere = Runner::record().responder(|spec| match spec.program.as_str() {
         "sysctl" => Some(Outcome::success().with_stdout("8\n8589934592\n")),
@@ -190,7 +196,9 @@ fn the_mac_is_read_with_sysctl_and_df_on_the_lima_home_volume() {
         .with_dir("/Volumes/Fast/lima");
     let _ = read_capacity(&mut elsewhere, &machine, std::path::Path::new(HOME));
     assert!(
-        elsewhere.lines()[1].ends_with("df -k /Volumes/Fast/lima"),
+        elsewhere.lines()[1]
+            .replace('\\', "/")
+            .ends_with("df -k /Volumes/Fast/lima"),
         "LIMA_HOME wins"
     );
 
