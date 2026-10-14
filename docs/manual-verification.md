@@ -92,7 +92,7 @@ with `cargo build --release`, then the `\\wsl$\...` path or a copy on the Window
 | The in-guest clones file | `~/.config/rayx/clones` inside the distribution lists the clone; `rayx wsl status` still shows its build output | open |
 | Refresh | `rayx setup --update --yes` | open: expect the Linux `rayx` check, `sudo apt-get update && sudo apt-get upgrade -y`, and the inner `rayx setup --update --yes` |
 | Doctor | `rayx doctor` | open: expect `wsl Ubuntu-24.04: running, disk <size>, Ubuntu 24.04, current` |
-| Removal refusal | `rayx wsl remove Debian` (a distribution `rayx` did not create) | open: expect `Debian was not created by rayx; remove it with wsl --unregister yourself`, exit 1 |
+| Removal refusal | `rayx wsl remove not-a-rayx-guest-test --yes` (a name `rayx` did not create; do not use a real distribution) | open: expect `not-a-rayx-guest-test was not created by rayx; remove it with wsl --unregister yourself`, exit 1 |
 
 Runbook for the Windows rows (PowerShell, from the checkout on the Windows disk; it logs everything
 to `rayx-man3.log` next to you, which you can paste into the table above):
@@ -110,7 +110,7 @@ wsl -d Ubuntu-24.04 --exec bash -lc 'cat ~/.config/rayx/clones'   # row 3 (and `
 & $rayx wsl status
 & $rayx setup --update --yes                      # row 4: refresh (apt upgrade + inner update)
 & $rayx doctor                                    # row 5: the guest report
-& $rayx wsl remove Debian --yes                   # row 6: refused when Debian is not a rayx guest
+& $rayx wsl remove not-a-rayx-guest-test --yes    # row 6: refused (a name rayx did not create); never use a real distribution here
 Stop-Transcript
 ```
 
