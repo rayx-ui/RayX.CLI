@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-releases",
-  "revision": 28,
+  "revision": 33,
   "planRevision": 1,
   "specHashes": {
     "requirements": "65f211f39a94277d6e5596a4705791db542e42ae9d77bd7413edec7caf335a65",
@@ -46,7 +46,10 @@
       ]
     },
     "t07-wsl-installer": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     },
     "t08-first-release": {
       "status": "pending"
@@ -98,6 +101,16 @@
         }
       },
       "recordedAt": "2026-10-14T12:29:37Z"
+    },
+    "e461fad773a3a9a0f90da3640d12fcebdf37a0f6c673660ec6d4cad8855254e7": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "dba3e06a9c34324bc2112ffaf812a50f1e1994e9494f4d41c698478095ecd3c9",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:31:39Z"
     }
   },
   "checkResults": {
@@ -185,6 +198,23 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-releases/s3-dependency-rule-final-40c28d977f0b.log",
       "logSha256": "780382d6c0c91cbcb7b322e28a74cd7ec94531293ecdeda4e6b437f960e01d1b",
       "inputsHash": "0b577601c58a40aebe9cde97f17db91bc776350993efec03634b7112e3494cd9"
+    },
+    "s4-wsl-installer/check-wsl-install/final": {
+      "checkId": "check-wsl-install",
+      "boundaryId": "s4-wsl-installer",
+      "phase": "final",
+      "batchId": "e461fad773a3a9a0f90da3640d12fcebdf37a0f6c673660ec6d4cad8855254e7",
+      "definitionHash": "2b9b586f89234e7a25120e537854e2759540fa140ca1a9c15e978c7b3d18cdb5",
+      "basisHash": "9219f8fdc03c8cce1dd6674fcdd711f4a9c24890107ed56b0cefb7b41d1bd398",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 1.3852,
+      "recordedAt": "2026-10-14T12:31:39Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s4-wsl-installer-final-c7aadd12ba5c.log",
+      "logSha256": "1116c6850916e858f27ea00670955fcf00aafeeab9d0e434bdf87d2a6efcaf59",
+      "inputsHash": "113a24ff1d13d90404a356c3faa951b2412e6a890d4dbc36a261183a12211553"
     }
   },
   "reviews": {
@@ -384,6 +414,46 @@
         "s3-f2-rev-must-be-a-commit"
       ],
       "recordedAt": "2026-10-14T12:29:54Z"
+    },
+    "s4-wsl-installer": {
+      "reviewerId": "reviewer-s4-rayx-cli-releases",
+      "snapshotId": "e461fad773a3a9a0f90da3640d12fcebdf37a0f6c673660ec6d4cad8855254e7",
+      "criterionIds": [
+        "WSL-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "WSL-1"
+          ],
+          "sha256": "e661a31d8ea59d7002960e1478ffe6b9fb140e5fb647dfc284413be6ba41eb4b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_install.rs",
+          "kind": "test",
+          "criterionIds": [
+            "WSL-1"
+          ],
+          "sha256": "68a29e452b9736078a0d9efe38588ba23ada877c8ff4c0e711bae7ee0fd2cfd9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_plan.rs",
+          "kind": "test",
+          "criterionIds": [
+            "WSL-1"
+          ],
+          "sha256": "2dd310a64a8b347193a41ed08d886a218c7b5193221b99ef5963a068f4ab2e89"
+        }
+      ],
+      "summaryMarkdown": "WSL-1 holds. `LINUX_BINARY` is `$HOME/.rayx/bin/rayx` for the probe, the copy override and the inner `setup`. A non-matching version runs `set -o pipefail; curl --proto '=https' --tlsv1.2 -LsSf <v<version>/rayx-cli-installer.sh> | env -u RAYX_HOME sh && test -x <binary>` through `--exec bash -lc`; hand extraction into `~/.local/bin` is gone. Checked against the s1 generated installer: it has no prompts or /dev/tty reads (only `read -r RECEIPT` from a heredoc), installs to `$RAYX_HOME/bin` else `$HOME/.rayx/bin` (so dropping RAYX_HOME matches LINUX_BINARY), writes the receipt, edits PATH profiles itself, and `pipefail` makes a failed curl fail the step. The unsupported-architecture check precedes any download with the existing message; a matching version is not reinstalled. `wsl_install` (8) and `wsl_plan` (18) pass and assert the real script text and argv. The print-mode test is a sound proxy: `Runner::query` rejects interactive specs and is the only call that runs for real in print mode, and every mutating command (install, copy, inner setup, `--install`) is asserted interactive.",
+      "findingIds": [],
+      "recordedAt": "2026-10-14T12:32:43Z"
     }
   },
   "checkpoints": {
@@ -413,6 +483,15 @@
       },
       "reviewHash": "c854ac2256fcd67bf3b58061f230973153e36c11f441b9b2ceaeccd675eb56c2",
       "recordedAt": "2026-10-14T12:30:02Z"
+    },
+    "s4-wsl-installer": {
+      "snapshotId": "e461fad773a3a9a0f90da3640d12fcebdf37a0f6c673660ec6d4cad8855254e7",
+      "commits": {
+        "rayx-cli": "ccc72bc9424ec0fd1b9312f12d6d82e7af36169c",
+        "rayx": "66875570b2d51a8e7e855114430dbcd96e619b9a"
+      },
+      "reviewHash": "d7439278a26cd566e1a2f21309be7bc79065274a9d7d7bae546d9d505a8c5385",
+      "recordedAt": "2026-10-14T12:32:52Z"
     }
   },
   "findings": [
