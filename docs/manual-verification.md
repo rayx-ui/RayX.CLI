@@ -87,12 +87,28 @@ with `cargo build --release`, then the `\\wsl$\...` path or a copy on the Window
 
 | Check | Command | Result |
 |---|---|---|
-| WSL setup on the guest layer | `rayx setup --wsl --web --clone --yes` from a checkout on the Windows disk | open |
-| The guest is recorded | `%LOCALAPPDATA%\rayx\guests.json` lists `Ubuntu-24.04` (kind `wsl`, flags, the clone) and `setup.json` is untouched by `--wsl` | open |
-| The in-guest clones file | `~/.config/rayx/clones` inside the distribution lists the clone; `rayx wsl status` still shows its build output | open |
-| Refresh | `rayx setup --update --yes` | open: expect the Linux `rayx` check, `sudo apt-get update && sudo apt-get upgrade -y`, and the inner `rayx setup --update --yes` |
-| Doctor | `rayx doctor` | open: expect `wsl Ubuntu-24.04: running, disk <size>, Ubuntu 24.04, current` |
-| Removal refusal | `rayx wsl remove not-a-rayx-guest-test --yes` (a name `rayx` did not create; do not use a real distribution) | open: expect `not-a-rayx-guest-test was not created by rayx; remove it with wsl --unregister yourself`, exit 1 |
+| WSL setup on the guest layer | `rayx setup --wsl --web --clone --yes` from a checkout on the Windows disk | pass (2026-10-14, exit 0), twice. First with the Linux `rayx` 1.0.0 from the release installer (`installing the Linux rayx 1.0.0`, `~/.rayx/bin`), then with `RAYX_WSL_BINARY` (`installing the Linux rayx from /mnt/c/...`). The existing clone `~/RayX.CLI` was fetched into, not re-cloned; the inner `rayx setup --web --yes` said `Nothing to do: everything is installed.` |
+| The guest is recorded | `%LOCALAPPDATA%\rayx\guests.json` lists `Ubuntu-24.04` (kind `wsl`, flags, the clone) and `setup.json` is untouched by `--wsl` | pass: `kind` `wsl`, `name` `Ubuntu-24.04`, `ubuntu` `24.04`, `flags` `["--web"]`, one clone (`source` `D:/Work/projects/RayX/RayX.CLI`, `branch` `feat/lima-guests`, `target` `$HOME/RayX.CLI`), `retired` false. No `setup.json` exists in `%LOCALAPPDATA%\rayx` before or after |
+| The in-guest clones file | `~/.config/rayx/clones` inside the distribution lists the clone; `rayx wsl status` still shows its build output | pass: `clones` holds `/home/dinko/RayX.CLI`. `rayx wsl status` said `build output none` until `cargo build --release` ran in the clone, then `build output  381.9 MiB under the cloned checkouts` with `/home/dinko/RayX.CLI/target` |
+| Refresh | `rayx setup --update --yes` | pass with the `RAYX_WSL_BINARY` build (exit 0): `refreshing Ubuntu-24.04`, `installing the Linux rayx from /mnt/c/...`, `sudo apt-get update && sudo apt-get upgrade -y` (0 upgraded, 2 held back by phasing), `rayx setup --update --yes` inside, which printed `==> setup --update: /home/dinko/RayX.CLI` and `Nothing to do: everything is installed.`. **fail** with the release `rayx` 1.0.0 as the Linux `rayx` (first run, exit 1): the apt step upgraded 52 packages, then the inner 1.0.0 does not know the flag: `error: unexpected argument '--update' found` (`exited with code 2`). The first refresh needs a Linux `rayx` that has `setup --update`, so it needs the next release, or `RAYX_WSL_BINARY`. In between, with the inner `setup.json` still missing, the inner step printed `nothing recorded: run `rayx setup` first` and exited 0 |
+| Doctor | `rayx doctor` | pass (three runs, exit 0): `wsl Ubuntu-24.04: running, disk 214.6 GiB, Ubuntu 24.04, current` under `Guests:`, plus a `WSL disk:` line for each distribution. The 1 missing requirement is the Android AVD `rayx-android-34-x86_64`, which is unrelated |
+| Removal refusal | `rayx wsl remove not-a-rayx-guest-test --yes` (a name `rayx` did not create; do not use a real distribution) | pass: `rayx: not-a-rayx-guest-test was not created by rayx; remove it with wsl --unregister yourself`, exit 1; `wsl -l -q` still lists `Ubuntu-24.04` and `docker-desktop` |
+
+Run on 2026-10-14: Windows 10.0.26300.9457 (Windows 11 Pro), WSL 2.6.3.0 (kernel 6.6.87.2-1, WSLg
+1.0.71), `rayx 1.0.0` built from `feat/lima-guests` at `12adb9a`, `Ubuntu-24.04` (24.04.4 LTS, user
+`dinko`, uid 1000). The Linux `rayx` of the first pass came from the release installer (`rayx 1.0.0`);
+the second pass used `RAYX_WSL_BINARY`, a `cargo build --release` of this branch made inside the
+distribution (`CARGO_TARGET_DIR` outside the clone) and copied to the Windows disk. The `sudo`
+password was typed by the owner in the terminal.
+
+Seen on the way (no change needed for the rows):
+
+- The release installer printed `WARN(B: The following commands are shadowed by other commands in
+  your PATH: rayx`, with a stray `(B` (an unreset terminal escape sequence), because an older
+  `~/.local/bin/rayx` (0.1.0) of this distribution is shadowed by `~/.rayx/bin/rayx`.
+- `rayx` sets no `DEBIAN_FRONTEND`, so `apt-get upgrade` in a small terminal printed `debconf: unable
+  to initialize frontend: Dialog` and fell back to Readline; harmless, but `--yes` could run apt
+  non-interactively.
 
 Runbook for the Windows rows (PowerShell, from the checkout on the Windows disk; it logs everything
 to `rayx-man3.log` next to you, which you can paste into the table above):
