@@ -1,7 +1,7 @@
 {
   "schemaVersion": 6,
   "epicId": "rayx-cli-releases",
-  "revision": 6,
+  "revision": 19,
   "planRevision": 1,
   "specHashes": {
     "requirements": "65f211f39a94277d6e5596a4705791db542e42ae9d77bd7413edec7caf335a65",
@@ -22,13 +22,22 @@
       ]
     },
     "t03-release-plz": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     },
     "t04-version-changelog": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     },
     "t05-release-docs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "8c344706-c03e-434a-8258-23edac1e62a0"
+      ]
     },
     "t06-dependency-rule": {
       "status": "pending"
@@ -56,6 +65,26 @@
         }
       },
       "recordedAt": "2026-10-14T12:17:25Z"
+    },
+    "94b765f05134a3f0bfbe4da6109368a01a2bcecf916d240a93b021d6be058d86": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "4759183b15b48d4470ed5e984cce0841b4d9520cf7580c3c3eb5c6dac49d9123",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:21:30Z"
+    },
+    "2b67132bc83aba2a96df5da679305bb500d87b7bca00ea0550e83a6b3eba4338": {
+      "snapshot": {
+        "specHash": "05026a8da81c38f7171f887eee078b5d51bb01000f8f3c5cb22cc76f738875ea",
+        "repositories": {
+          "rayx-cli": "2158f973770681ba754c3319cb38a1dbf49be10ae6eaa279baee987cef5f0fc4",
+          "rayx": "53ee4c4ca6299579be80f73dcef2336ba364def1236552814db87bed870e5a3c"
+        }
+      },
+      "recordedAt": "2026-10-14T12:25:38Z"
     }
   },
   "checkResults": {
@@ -92,6 +121,40 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-releases/s1-release-build-final-187d04f901e8.log",
       "logSha256": "9639bbeae9c4e3aa5972f90a1924461b30ca1f55e2d3f7e5d7d3cd91cf9b75ec",
       "inputsHash": "7a394641dcfcae0c39fe12c33826b9c65f33e73aa5465916bd30dff8942cd2ba"
+    },
+    "s2-release-automation/check-release-automation/final": {
+      "checkId": "check-release-automation",
+      "boundaryId": "s2-release-automation",
+      "phase": "final",
+      "batchId": "2b67132bc83aba2a96df5da679305bb500d87b7bca00ea0550e83a6b3eba4338",
+      "definitionHash": "9339bc185341db6f21a38c1cd6503ac029a84f45b65f2fff2e400a897a2a4bb2",
+      "basisHash": "d185e8485817c610608fc6e14a76ec562225ed7ab2bb74fd112b7faf8a502b0c",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 0.9983,
+      "recordedAt": "2026-10-14T12:25:38Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s2-release-automation-final-81f530b0bdc6.log",
+      "logSha256": "dc2bec7134d2fd595299f777439ea413b34374222d3e96b783775fc845fd8d7e",
+      "inputsHash": "df913f1e51ef69ee5f7eeeed63af7e365e39850d1536b55a69d72e577db21c1e"
+    },
+    "s2-release-automation/check-workflow-yaml/final": {
+      "checkId": "check-workflow-yaml",
+      "boundaryId": "s2-release-automation",
+      "phase": "final",
+      "batchId": "94b765f05134a3f0bfbe4da6109368a01a2bcecf916d240a93b021d6be058d86",
+      "definitionHash": "5d97c92f67920924f92680123165eb1a59cfdf281d19966e8fdaddfef412f855",
+      "basisHash": "3e24f81e6cdddf985d4fe905f9f64d5aeca60f626bc996ab8e881b7f67926ecc",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.0381,
+      "recordedAt": "2026-10-14T12:21:30Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-releases/s2-release-automation-final-b6b1016142a1.log",
+      "logSha256": "b5ef34948d119b8c9a2a83ea3fa7be28686336c326ed4fa8cbd531bc51a84a27",
+      "inputsHash": "5eb0a7772f6407b614dd5ed78d5fbd40267115bb31040efa96ecca50c5df578f"
     }
   },
   "reviews": {
@@ -145,6 +208,90 @@
       "summaryMarkdown": "REL-1: `dist-workspace.toml` carries every required key (dist 0.33.0, six targets, shell/powershell, sha256, install-updater false, github hosting, install-path `[$RAYX_HOME/bin, ~/.rayx/bin]`, attestations, pr-run-mode upload, windows-2022 custom runner with x86_64 host and no container, no allow-dirty). `release.yml` differs from the previous version only by dist's 0.33.0 output (version URL, attestation permissions and `actions/attest` step, rust-cache); tag trigger unchanged. `dist plan` (0.33.0) and `dist generate --check` succeed with a clean tree, and the plan matrix shows six hosted-runner entries, none with a container. The five tests in `tests/release_config.rs` assert the config and the generated workflow and pass. REL-2: Release run 38561390146 on draft PR #1 succeeded for all six build-local-artifacts jobs (aarch64-pc-windows-msvc on windows-2022, Attest step green) plus plan and build-global-artifacts. Re-extracted artifacts: all six `.sha256` match; aarch64 `rayx.exe` is PE32+ Aarch64, x86_64 one is x86-64; both musl binaries are static (static-pie / statically linked); macOS binaries are arm64 and x86_64 Mach-O; installers, sha256.sum and dist manifests are present. Both installers install to `$RAYX_HOME/bin` or `~/.rayx/bin` and write `rayx-cli-receipt.json` for app name `rayx-cli`, matching `APP_NAME` in `src/update.rs`. Rules and decision honoured: no hand edit, no allow-dirty, asset names unchanged, hosted runners only.",
       "findingIds": [],
       "recordedAt": "2026-10-14T12:18:23Z"
+    },
+    "s2-release-automation": {
+      "reviewerId": "reviewer-s2-rayx-cli-releases",
+      "snapshotId": "2b67132bc83aba2a96df5da679305bb500d87b7bca00ea0550e83a6b3eba4338",
+      "criterionIds": [
+        "RPZ-1",
+        "RPZ-2",
+        "RPZ-3",
+        "RPZ-4",
+        "DOC-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-1"
+          ],
+          "sha256": "05d064ad32a51a8de9eee1f60148e57908fb8b462de026157b4254d90b236d96"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release-plz.yml",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-2"
+          ],
+          "sha256": "d13603b9d8ef14facb769bf64f0c854f672ccd569c66f89a1c24c748e076f86d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.toml",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-3"
+          ],
+          "sha256": "9282003f56c8b21a905fc71b3f3a65f9fd76b844c4d9f3192a2e599919ec32f3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CHANGELOG.md",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-3"
+          ],
+          "sha256": "e26459a2c204c12a5d445afc266acbabcba62344e230b4ddb6e92b58b267b920"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md",
+          "kind": "source",
+          "criterionIds": [
+            "RPZ-4"
+          ],
+          "sha256": "7b1afe21511ac79bfd4dc377957f97bdcdf9eab805dd0c6fb540562b90f166b3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-1"
+          ],
+          "sha256": "5767370212b168a434b94084fa5c83764715eb0452261b276c1d63aecf6a12e0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_automation.rs",
+          "kind": "test",
+          "criterionIds": [
+            "RPZ-1",
+            "RPZ-2",
+            "RPZ-3"
+          ],
+          "sha256": "aad162854079437db413b13c8fd7bf99a5273f00595b02b90aaf8137aec36fe5"
+        }
+      ],
+      "summaryMarkdown": "All five criteria are met. F-s2-1 is resolved by ff08766: release-plz.toml sets release_commits = \"^(feat|fix|perf)\", tests/release_automation.rs asserts it, and docs/releasing.md now states which commit types release and that breaking changes must be written feat!/fix!/perf!. A scratch run of release-plz 0.3.172 against ff08766 confirmed docs, chore(agentx) and refactor! commits produce no release, perf gives 1.0.1 and feat gives 1.1.0. Earlier checks stand: no-tag initial release is a no-op for release-pr, the changelog inserts above the hand-written 1.0.0 section, the 9 release_automation tests pass. GitHub cannot list release-plz.yml before it is on main (observed in s5, t08), and RELEASE_PLZ_TOKEN must exist before the first push to main that contains the workflow.",
+      "findingIds": [
+        "F-s2-1"
+      ],
+      "recordedAt": "2026-10-14T12:26:04Z"
     }
   },
   "checkpoints": {
@@ -156,9 +303,44 @@
       },
       "reviewHash": "382a2d4b19addb028ca28762e17d238302802b533e7f38b9442aac03a0b1d314",
       "recordedAt": "2026-10-14T12:18:36Z"
+    },
+    "s2-release-automation": {
+      "snapshotId": "2b67132bc83aba2a96df5da679305bb500d87b7bca00ea0550e83a6b3eba4338",
+      "commits": {
+        "rayx-cli": "ff08766324020adb15885cadf21910fc4e2d4916",
+        "rayx": "66875570b2d51a8e7e855114430dbcd96e619b9a"
+      },
+      "reviewHash": "025c140a28ca1dcfb83c4570e9b132e651852f8fbd23d903d5cc2959ddda2e27",
+      "recordedAt": "2026-10-14T12:26:11Z"
     }
   },
-  "findings": [],
+  "findings": [
+    {
+      "id": "F-s2-1",
+      "boundaryId": "s2-release-automation",
+      "criterionIds": [
+        "RPZ-4",
+        "RPZ-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Expected: docs/releasing.md says `docs:`, `test:`, `ci:`, `chore:`, `refactor:` commits cause 'no release on their own', and release PRs only follow releasable commits. Observed (release-plz 0.3.172, scratch clone of HEAD with tag v1.0.0, `release-plz update --config release-plz.toml`): any commit that touches the package (the package is the whole repository) bumps the patch version: `docs:`, `chore:`, `refactor:`, `ci:`, `test:` and even a `chore(agentx)` commit that only changes `.agentx/memory/a.md` each produce `1.0.0 -> 1.0.1`. So the doc table is wrong, and every `chore(agentx)` sprint sync on main would open or refresh a release PR with an empty or noise-only changelog. Repair: add `release_commits = \"^(feat|fix|perf)\"` to `[workspace]` in release-plz.toml (verified in the scratch clone: docs/chore/chore(agentx) commits then produce no update, `fix` -> 1.0.1, `perf` -> 1.0.1, `feat!` -> 2.0.0, and docs commits are still listed in the changelog when a `fix` triggers the release). Assert the key in tests/release_automation.rs (changelog/config test). Then make docs/releasing.md match: state that only `feat`, `fix` and `perf` commits (and their `!` forms) start a release, that other types are listed in the next one, and that a breaking change must be marked on a `feat!`/`fix!`/`perf!` commit (a `BREAKING CHANGE:` footer on another type does not trigger a release); or widen the regex to `^(feat|fix|perf)|!:` and say so. If the owner prefers every commit to release, instead correct the table to say so and drop the 'no release on their own' row.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_automation.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md"
+        }
+      ]
+    }
+  ],
   "handoffMarkdown": "",
   "protectedPaths": {
     "rayx-cli": {
