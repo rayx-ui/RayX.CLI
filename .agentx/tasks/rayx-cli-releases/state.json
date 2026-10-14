@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 6,
+  "epicId": "rayx-cli-releases",
+  "revision": 0,
+  "planRevision": 1,
+  "specHashes": {
+    "requirements": "65f211f39a94277d6e5596a4705791db542e42ae9d77bd7413edec7caf335a65",
+    "design": "59af04afb3da430461479d70ed144b0ecfdd908161ab6ff8e232eb1262443205",
+    "plan": "dd6453a76d5c61917755a0759bc152c193aa7b30dda9413a94adcdc80fd63dc6"
+  },
+  "tasks": {
+    "t01-dist-config": {
+      "status": "pending"
+    },
+    "t02-release-build-proof": {
+      "status": "pending"
+    },
+    "t03-release-plz": {
+      "status": "pending"
+    },
+    "t04-version-changelog": {
+      "status": "pending"
+    },
+    "t05-release-docs": {
+      "status": "pending"
+    },
+    "t06-dependency-rule": {
+      "status": "pending"
+    },
+    "t07-wsl-installer": {
+      "status": "pending"
+    },
+    "t08-first-release": {
+      "status": "pending"
+    },
+    "t09-host-installs": {
+      "status": "pending"
+    },
+    "t10-rayx-ci": {
+      "status": "pending"
+    }
+  },
+  "validationBatches": {},
+  "checkResults": {},
+  "reviews": {},
+  "checkpoints": {},
+  "findings": [],
+  "handoffMarkdown": "",
+  "protectedPaths": {
+    "rayx-cli": {
+      ".agentx/tasks/rayx-cli-foundation/**": "195289e41107bb67bba3ca4b2308e643cfd1821052238e1e3856f2546074b5f8"
+    },
+    "rayx": {
+      ".agentx/tasks/rayx-cli-foundation/**": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "rayx:crates/**": "d1c22d0a56840a3b9022087fc8a56c253b447485797e421574304eddccf65944",
+      "rayx:apps/**": "e5ab4711b0ceb561da4834bdf6a3ff6600074e3fddc465319dc275c3c9ff032f",
+      "rayx:.agentx/tasks/**": "d92d223a99c82b9742398b05452477042917508f7f0ca5fa8b30f6bb8b985362"
+    }
+  }
+}

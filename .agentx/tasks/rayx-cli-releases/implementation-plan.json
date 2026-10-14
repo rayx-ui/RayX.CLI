@@ -1,0 +1,299 @@
+{
+  "schemaVersion": 6,
+  "epicId": "rayx-cli-releases",
+  "revision": 1,
+  "title": "Versioned rayx releases: cargo-dist builds for six targets, release-plz automation, v1.0.0, installers into ~/.rayx/bin, WSL and RayX CI on the release",
+  "validationMode": "sprint",
+  "repositories": [
+    {"id": "rayx-cli", "path": ".", "role": "execution"},
+    {"id": "rayx", "path": "../RayX", "role": "execution"}
+  ],
+  "boundaries": {
+    "repositoryIds": ["rayx-cli", "rayx"],
+    "forbiddenPaths": [
+      ".agentx/tasks/rayx-cli-foundation/**",
+      "rayx:crates/**",
+      "rayx:apps/**",
+      "rayx:.agentx/tasks/**"
+    ]
+  },
+  "checks": [
+    {
+      "id": "check-release-config",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": ["REL-1"],
+      "descriptionMarkdown": "New group `tests/release_config.rs`: parses `dist-workspace.toml` (dist version, six targets, installers, checksum, install path list, attestations, the Windows ARM64 custom runner and host, `pr-run-mode`, no `allow-dirty`) and checks `release.yml` (tag trigger, no container on the Windows ARM64 entry is dist's output, so assert on the config and the generated header/dist version only).",
+      "argv": ["cargo", "test", "--test", "release_config"],
+      "expected": {"exitCode": 0, "minimumTests": 3},
+      "inputs": ["Cargo.toml", "Cargo.lock", "dist-workspace.toml", ".github/workflows/release.yml", "tests/release_config.rs"]
+    },
+    {
+      "id": "check-dist-plan",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": ["REL-1"],
+      "descriptionMarkdown": "`dist plan` with dist 0.33.0 on PATH (install it into a scratch or user tool directory before the sprint; it is an external tool, so the result is not reused). Fails when the generated CI is out of date with the config.",
+      "argv": ["dist", "plan"],
+      "expected": {"exitCode": 0},
+      "reuse": false,
+      "inputs": ["Cargo.toml", "dist-workspace.toml", ".github/workflows/release.yml"]
+    },
+    {
+      "id": "check-release-automation",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": ["RPZ-1", "RPZ-2", "RPZ-3"],
+      "descriptionMarkdown": "New group `tests/release_automation.rs`: `release-plz.toml` keys and changelog configuration, the tag template agreeing with dist's trigger and `src/setup/wsl.rs`'s `v{version}` URL, `release-plz.yml` structure (trigger, repository guard, two jobs, `fetch-depth: 0`, `RELEASE_PLZ_TOKEN` as the only secret, used for checkout and `GITHUB_TOKEN`), `Cargo.toml` version at least 1.0.0 and a `CHANGELOG.md` section for it.",
+      "argv": ["cargo", "test", "--test", "release_automation"],
+      "expected": {"exitCode": 0, "minimumTests": 4},
+      "inputs": ["Cargo.toml", "Cargo.lock", "release-plz.toml", "CHANGELOG.md", ".github/workflows/**", "src/setup/wsl.rs", "dist-workspace.toml", "tests/release_automation.rs"]
+    },
+    {
+      "id": "check-workflow-yaml",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": ["RPZ-2"],
+      "descriptionMarkdown": "AgentX's workflow YAML checker (duplicate keys GitHub rejects) over the release workflows. The script path is the installed AgentX skill's; adjust it to the local install when resolving the sprint.",
+      "argv": ["ruby", "/Users/dinko/.claude/skills/agentx/scripts/check_workflow_yaml.rb", ".github/workflows/release-plz.yml", ".github/workflows/release.yml"],
+      "expected": {"exitCode": 0},
+      "inputs": [".github/workflows/**"]
+    },
+    {
+      "id": "check-dependency-sources",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": ["DEP-1"],
+      "descriptionMarkdown": "New group `tests/dependency_sources.rs`: the rule function on inline accept/reject manifests (registry, pinned git `rev`, `branch`/`tag`/unpinned git, `path`, `rayx-ui/RayX`, `[patch]` with and without an upstream-link comment, `[replace]`) and on the real `Cargo.toml` and `cargo metadata`.",
+      "argv": ["cargo", "test", "--test", "dependency_sources"],
+      "expected": {"exitCode": 0, "minimumTests": 8},
+      "inputs": ["Cargo.toml", "Cargo.lock", "tests/dependency_sources.rs"]
+    },
+    {
+      "id": "check-wsl-install",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": ["WSL-1"],
+      "descriptionMarkdown": "New group `tests/wsl_install.rs` with the scripted runner: versioned installer URL piped to `sh` through `--exec bash -lc`, `$HOME/.rayx/bin/rayx` for the version probe and the inner `setup`, no reinstall of a matching version, the unsupported-architecture message before any download, `RAYX_WSL_BINARY` copied to `~/.rayx/bin`, nothing run in print mode.",
+      "argv": ["cargo", "test", "--test", "wsl_install"],
+      "expected": {"exitCode": 0, "minimumTests": 5},
+      "inputs": ["Cargo.toml", "Cargo.lock", "src/**", "tests/wsl_install.rs", "tests/common/**"]
+    },
+    {
+      "id": "final-fmt",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": ["REL-1", "RPZ-1", "DEP-1", "WSL-1"],
+      "descriptionMarkdown": "`cargo fmt --check` for the package.",
+      "argv": ["cargo", "fmt", "--check"],
+      "expected": {"exitCode": 0}
+    },
+    {
+      "id": "final-clippy",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": ["REL-1", "RPZ-1", "DEP-1", "WSL-1"],
+      "descriptionMarkdown": "`cargo clippy --all-targets -- -D warnings`, as CI runs it: the new test groups and `src/setup/wsl.rs` must be warning-free.",
+      "argv": ["cargo", "clippy", "--all-targets", "--", "-D", "warnings"],
+      "expected": {"exitCode": 0}
+    },
+    {
+      "id": "final-touched-tests",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": ["REL-1", "RPZ-1", "RPZ-2", "RPZ-3", "DEP-1", "WSL-1"],
+      "descriptionMarkdown": "Every group the epic adds plus the existing groups that exercise touched code: `package_layout` (dependency checks moved out, README assertions), `wsl_plan` (the WSL install path and URL changed), `cli_surface` (`--version` after the 1.0.0 bump). Not the whole suite: the epic touches release configuration, one setup module and tests.",
+      "argv": ["cargo", "test", "--test", "release_config", "--test", "release_automation", "--test", "dependency_sources", "--test", "wsl_install", "--test", "package_layout", "--test", "wsl_plan", "--test", "cli_surface"],
+      "expected": {"exitCode": 0, "minimumTests": 20}
+    },
+    {
+      "id": "final-rayx-workflow-yaml",
+      "repositoryId": "rayx",
+      "kind": "static",
+      "criterionIds": ["FIRST-3"],
+      "descriptionMarkdown": "The changed RayX workflow parses without duplicate keys (AgentX's checker; adjust the script path to the local install).",
+      "argv": ["ruby", "/Users/dinko/.claude/skills/agentx/scripts/check_workflow_yaml.rb", ".github/workflows/pr-test.yml"],
+      "expected": {"exitCode": 0}
+    }
+  ],
+  "finalCheckIds": ["final-fmt", "final-clippy", "final-touched-tests", "final-rayx-workflow-yaml"],
+  "sprints": [
+    {
+      "id": "s1-release-build",
+      "title": "Release build configuration, proven on hosted runners for all six targets",
+      "dependsOn": [],
+      "memoryScopes": ["distribution"],
+      "checkIds": ["check-release-config", "check-dist-plan"],
+      "tasks": [
+        {
+          "id": "t01-dist-config",
+          "title": "dist 0.33.0 configuration and regenerated release workflow",
+          "descriptionMarkdown": "Install dist 0.33.0 locally (official release archive for this host into a user tool directory; not committed). In `dist-workspace.toml` set `cargo-dist-version = \"0.33.0\"`, `install-path = [\"$RAYX_HOME/bin\", \"~/.rayx/bin\"]`, `github-attestations = true`, `pr-run-mode = \"upload\"` and `[dist.github-custom-runners.aarch64-pc-windows-msvc]` with `runner = \"windows-2022\"`, `host = \"x86_64-pc-windows-msvc\"`; keep targets, installers, checksum, `install-updater = false`, `hosting`. Run `dist generate` and commit the regenerated `release.yml` (inspect the diff: Windows ARM64 entry without the cargo-xwin container, attestation steps present, tag trigger unchanged). Confirm in dist's output or docs how the `~/.rayx/bin` mode names the Unix env script and that the receipt path stays `rayx-cli` (`src/update.rs` `APP_NAME`). Write `tests/release_config.rs`.",
+          "criterionIds": ["REL-1"],
+          "designIds": ["d-dist-release-build"],
+          "dependsOn": [],
+          "checkIds": ["check-release-config", "check-dist-plan"],
+          "sourceRefs": [
+            {"repositoryId": "rayx-cli", "path": "dist-workspace.toml"},
+            {"repositoryId": "rayx-cli", "path": ".github/workflows/release.yml"},
+            {"repositoryId": "rayx-cli", "path": "src/update.rs"}
+          ]
+        },
+        {
+          "id": "t02-release-build-proof",
+          "title": "Prove the release build of all six targets on a pull request",
+          "descriptionMarkdown": "With the owner's confirmation, push the epic branch (e.g. `feature/releases`) and open a draft pull request against `main`; later sprints push to the same PR. Watch the Release workflow's `build-local-artifacts` jobs; download the artifacts into an ignored `artifacts-temp/agentx/rayx-cli-releases/` directory and confirm the archive set, the `.sha256` files, both installers, an ARM64 PE `rayx.exe` and static musl binaries. On a Windows ARM64 failure, record the log excerpt as a finding and follow `d-dist-release-build`'s fallback order through a specification amendment (the axoasset step needs the dependency rule of sprint s3 first).",
+          "criterionIds": ["REL-2"],
+          "designIds": ["d-dist-release-build"],
+          "dependsOn": ["t01-dist-config"],
+          "checkIds": [],
+          "sourceRefs": [
+            {"repositoryId": "rayx-cli", "path": ".github/workflows/release.yml"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2-release-automation",
+      "title": "release-plz, version 1.0.0, changelog and release docs",
+      "dependsOn": ["s1-release-build"],
+      "memoryScopes": ["distribution"],
+      "checkIds": ["check-release-automation", "check-workflow-yaml"],
+      "tasks": [
+        {
+          "id": "t03-release-plz",
+          "title": "release-plz configuration and workflow",
+          "descriptionMarkdown": "Add `release-plz.toml` (git-only, tag `v{{ version }}`, no GitHub Release, changelog on, semver check off, no publish, git-cliff `[changelog]` with Conventional Commit groups and `## [X.Y.Z] - YYYY-MM-DD` headings that dist's parser reads; skip `chore(agentx)` and `chore(release)` commits). Add `.github/workflows/release-plz.yml` per RPZ-2, using the current `release-plz/action` major with its `command: release` and `command: release-pr` jobs, `RELEASE_PLZ_TOKEN` for checkout and `GITHUB_TOKEN`, and the toolchain from `rust-toolchain.toml`. Check release-plz's docs for how `git_only` treats a history with no tag (initial release) and record the answer in `docs/releasing.md` (t05). Write `tests/release_automation.rs` (a crates.io YAML dev-dependency is acceptable for parsing the workflow).",
+          "criterionIds": ["RPZ-1", "RPZ-2"],
+          "designIds": ["d-release-plz"],
+          "dependsOn": [],
+          "checkIds": ["check-release-automation", "check-workflow-yaml"],
+          "sourceRefs": [
+            {"repositoryId": "rayx-cli", "path": "release-plz.toml"},
+            {"repositoryId": "rayx-cli", "path": ".github/workflows/release-plz.yml"},
+            {"repositoryId": "rayx-cli", "path": "src/setup/wsl.rs", "symbol": "RELEASES"}
+          ]
+        },
+        {
+          "id": "t04-version-changelog",
+          "title": "Version 1.0.0 and the first changelog section",
+          "descriptionMarkdown": "Set `version = \"1.0.0\"` in `Cargo.toml`, update `Cargo.lock` (`cargo update -p rayx-cli --offline` or a build), and write `CHANGELOG.md` with a header and a hand-written `## [1.0.0]` section summarizing the first release. Extend `tests/release_automation.rs` with the version/changelog invariant of RPZ-3.",
+          "criterionIds": ["RPZ-3"],
+          "designIds": ["d-release-plz"],
+          "dependsOn": ["t03-release-plz"],
+          "checkIds": ["check-release-automation"],
+          "sourceRefs": [
+            {"repositoryId": "rayx-cli", "path": "Cargo.toml"},
+            {"repositoryId": "rayx-cli", "path": "CHANGELOG.md"}
+          ]
+        },
+        {
+          "id": "t05-release-docs",
+          "title": "README install section and docs/releasing.md",
+          "descriptionMarkdown": "Write `docs/releasing.md` (RPZ-4) and rework the README install section (DOC-1). Keep the README strings `tests/package_layout.rs` asserts. Also update `docs/manual-verification.md`'s \"Not verifiable before a release\" note to point at the s5 checklist.",
+          "criterionIds": ["RPZ-4", "DOC-1"],
+          "designIds": ["d-release-plz", "d-dist-release-build"],
+          "dependsOn": ["t03-release-plz", "t04-version-changelog"],
+          "checkIds": [],
+          "sourceRefs": [
+            {"repositoryId": "rayx-cli", "path": "README.md"},
+            {"repositoryId": "rayx-cli", "path": "docs/releasing.md"},
+            {"repositoryId": "rayx-cli", "path": "docs/manual-verification.md"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3-dependency-rule",
+      "title": "Dependency sources anyone can fetch",
+      "dependsOn": [],
+      "memoryScopes": ["repository"],
+      "checkIds": ["check-dependency-sources"],
+      "tasks": [
+        {
+          "id": "t06-dependency-rule",
+          "title": "Relax the dependency rule and enforce it in its own test group",
+          "descriptionMarkdown": "Move the registry-only assertions out of `tests/package_layout.rs` (`assert_registry_only` and the `[patch]`/`[replace]` checks) into the new `tests/dependency_sources.rs` with a rule function per DEP-1, tested on inline sample manifests and the real manifest. Update `CLAUDE.md` and `AGENTS.md` identically per DEP-2 (Layout bullet on dependencies, the intro sentence about private siblings). Memory rules are synced at epic promotion, not here.",
+          "criterionIds": ["DEP-1", "DEP-2"],
+          "designIds": ["d-dependency-sources"],
+          "dependsOn": [],
+          "checkIds": ["check-dependency-sources"],
+          "sourceRefs": [
+            {"repositoryId": "rayx-cli", "path": "tests/package_layout.rs"},
+            {"repositoryId": "rayx-cli", "path": "tests/dependency_sources.rs"},
+            {"repositoryId": "rayx-cli", "path": "CLAUDE.md"},
+            {"repositoryId": "rayx-cli", "path": "AGENTS.md"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4-wsl-installer",
+      "title": "WSL installs the Linux rayx with the release installer",
+      "dependsOn": ["s1-release-build"],
+      "memoryScopes": ["setup"],
+      "checkIds": ["check-wsl-install"],
+      "tasks": [
+        {
+          "id": "t07-wsl-installer",
+          "title": "Versioned installer into ~/.rayx/bin inside the distribution",
+          "descriptionMarkdown": "In `src/setup/wsl.rs` change `LINUX_BINARY` to `$HOME/.rayx/bin/rayx`, replace the archive download/extract script with the versioned installer piped to `sh` (non-interactive; confirm the dist shell installer's flags, e.g. quiet mode, from the generated `rayx-cli-installer.sh` of sprint s1's build), keep the version probe, the architecture pre-check and the `RAYX_WSL_BINARY` copy (to `~/.rayx/bin`). Remove `release_asset` only if nothing needs it any more. Write `tests/wsl_install.rs` and update the `tests/wsl_plan.rs` assertions on the old path and archive URL.",
+          "criterionIds": ["WSL-1"],
+          "designIds": ["d-wsl-release-installer"],
+          "dependsOn": [],
+          "checkIds": ["check-wsl-install"],
+          "sourceRefs": [
+            {"repositoryId": "rayx-cli", "path": "src/setup/wsl.rs", "symbol": "LINUX_BINARY"},
+            {"repositoryId": "rayx-cli", "path": "tests/wsl_plan.rs"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s5-first-release",
+      "title": "Publish v1.0.0, verify installs on real hosts, move RayX CI to the release",
+      "dependsOn": ["s1-release-build", "s2-release-automation", "s3-dependency-rule", "s4-wsl-installer"],
+      "memoryScopes": ["distribution", "rayx:tooling/validation"],
+      "tasks": [
+        {
+          "id": "t08-first-release",
+          "title": "Merge the epic and publish v1.0.0 through release-plz",
+          "descriptionMarkdown": "Owner prerequisite: `RELEASE_PLZ_TOKEN` exists. With the owner's go-ahead, mark the epic PR ready and merge it (after its CI and Release-build runs are green). Follow release-plz: review and merge the release PR (its CI must run), watch the tag push and the Release workflow, then check `gh release view v1.0.0` and `gh attestation verify` per FIRST-1. Use the by-hand tag fallback only if release-plz cannot cut the first release, and record why.",
+          "criterionIds": ["FIRST-1"],
+          "designIds": ["d-release-plz", "d-dist-release-build"],
+          "dependsOn": [],
+          "checkIds": [],
+          "sourceRefs": [
+            {"repositoryId": "rayx-cli", "path": ".github/workflows/release-plz.yml"},
+            {"repositoryId": "rayx-cli", "path": "docs/releasing.md"}
+          ]
+        },
+        {
+          "id": "t09-host-installs",
+          "title": "Install v1.0.0 on real hosts and in WSL",
+          "descriptionMarkdown": "On this Mac run the macOS one-liner; have the owner run the Windows one-liner and `rayx setup --wsl` on their PC; cover Linux x64 in WSL or a container. Check FIRST-2 and WSL-2 and record the results (versions, paths, PATH resolution, `self update --check`) in `docs/manual-verification.md`.",
+          "criterionIds": ["FIRST-2", "WSL-2"],
+          "designIds": ["d-dist-release-build", "d-wsl-release-installer"],
+          "dependsOn": ["t08-first-release"],
+          "checkIds": [],
+          "sourceRefs": [
+            {"repositoryId": "rayx-cli", "path": "docs/manual-verification.md"}
+          ]
+        },
+        {
+          "id": "t10-rayx-ci",
+          "title": "RayX CI and docs install the pinned v1.0.0 release",
+          "descriptionMarkdown": "In `../RayX`, on a new branch from its default branch `master` (not the current `fix/ios-simulator-run`), change `.github/workflows/pr-test.yml` and `docs/src/rayx.md` per FIRST-3 and sync the RayX memory decision text about the pin. Commit with a Conventional Commit naming the RayX.CLI release; with the owner's confirmation push and open the PR, and confirm both jobs pass.",
+          "criterionIds": ["FIRST-3"],
+          "designIds": ["d-rayx-ci-release-pin"],
+          "dependsOn": ["t08-first-release"],
+          "checkIds": [],
+          "sourceRefs": [
+            {"repositoryId": "rayx", "path": ".github/workflows/pr-test.yml"},
+            {"repositoryId": "rayx", "path": "docs/src/rayx.md"}
+          ]
+        }
+      ]
+    }
+  ]
+}

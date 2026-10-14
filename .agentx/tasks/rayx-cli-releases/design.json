@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 6,
+  "epicId": "rayx-cli-releases",
+  "decisions": [
+    {
+      "id": "d-dist-release-build",
+      "requirementIds": [
+        "REL",
+        "DOC"
+      ],
+      "descriptionMarkdown": "cargo-dist stays the owner of the release workflow, archives, checksums, installers and the GitHub Release. This epic changes only its configuration (`dist-workspace.toml`) and regenerates `release.yml` with dist 0.33.0:\n\n- **Install path** `[\"$RAYX_HOME/bin\", \"~/.rayx/bin\"]`: `rayx` lives in its own directory, not in rustup's `~/.cargo/bin` (which `rustup self uninstall` deletes). The installers add it to PATH (`HKCU\\Environment\\Path` with a `WM_SETTINGCHANGE` broadcast on Windows; an `env` script sourced from the shell profiles on Unix) and write the receipt `axoupdater` reads, so `src/update.rs` needs no change.\n- **Windows ARM64** builds on `windows-2022` with host `x86_64-pc-windows-msvc` through `[dist.github-custom-runners]`: MSVC's ARM64 cross tools, no cargo-xwin container, where `aws-lc-sys` (pulled in by `axoupdater` -> `axoasset` -> `reqwest` default TLS) is known to fail. Not `windows-11-arm`: dist publishes no Windows ARM64 build of itself, so its installer cannot run there. ARM64 Linux already builds natively on dist's default `ubuntu-22.04-arm`.\n- **Attestations** (`github-attestations = true`): free Sigstore provenance for every artifact on a public repository.\n- **`pr-run-mode = \"upload\"`**: every pull request builds all six targets, so a broken target shows before a tag, not after.\n\n**Windows ARM64 fallback order** if `windows-2022` fails: (1) a `github-build-setup` step that puts LLVM's `clang-cl` on PATH; (2) an upstream axoasset PR that lets dependents choose the TLS backend (e.g. rustls with `ring`), used through a pinned `[patch]` under `d-dependency-sources` until released; (3) replacing axoupdater only with the owner's decision. Each step is a recorded finding and a scope amendment.",
+      "invariantsMarkdown": "- `release.yml` changes only through `dist generate`; no `allow-dirty`.\n- Asset names and URLs stay `rayx-cli-<triple>.<ext>`, `rayx-cli-installer.{sh,ps1}`, under `releases/download/v<version>/` and `releases/latest/download/`.\n- The build runs on GitHub-hosted runners only.",
+      "rationaleMarkdown": "Research 2026-10-14: dist 0.33.0 (2026-09-10) is the latest release with no breaking changes from 0.32.0; the project is community-maintained and active, Astral's fork is archived. axoupdater 0.10.2 is current. On Windows, axoupdater renames the running `rayx.exe` aside, runs the release's PowerShell installer with the install directory from the receipt, and restores the old exe on failure. The cargo-xwin `aws-lc-sys` failures (dist issues #1576, #1633, #1825) need `XWIN_CROSS_COMPILER=clang`, which dist does not expose. A switch to `ring` is impossible from this crate alone because axoasset enables reqwest's default TLS (rustls with aws-lc-rs) and features only add. Keeping `pr-run-mode = \"upload\"` costs extra minutes per PR on a public repository with free hosted minutes, which the owner's requirement that every platform builds on remote runners justifies.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "dist-workspace.toml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/distribution/2026-10-08-distribution-cargo-dist-and-axoupdater.md"
+        }
+      ]
+    },
+    {
+      "id": "d-release-plz",
+      "requirementIds": [
+        "RPZ",
+        "FIRST"
+      ],
+      "descriptionMarkdown": "release-plz turns Conventional Commits into releases. On every push to `main` it keeps a release PR open with the version bump in `Cargo.toml`/`Cargo.lock` and the new `CHANGELOG.md` section (git-cliff). When the release PR is merged, `release-plz release` pushes the tag `vX.Y.Z`, and the tag starts dist's `release.yml`, which builds and creates the GitHub Release with notes from the matching `CHANGELOG.md` section. release-plz runs with `git_only = true` (versions come from tags, nothing goes to crates.io) and `git_release_enable = false` (dist owns the GitHub Release).\n\nIt authenticates with the fine-grained PAT secret `RELEASE_PLZ_TOKEN` (resource owner `rayx-ui`, only `RayX.CLI`, Contents and Pull requests read/write): events made with the default `GITHUB_TOKEN` start no workflows, so with it the release PR would get no CI (`ci.yml` runs on pull requests only) and the tag would not start `release.yml`.\n\nVersions start at **1.0.0** (`Cargo.toml` and a hand-written first `CHANGELOG.md` section). After that `fix` bumps the patch, `feat` the minor and `feat!`/`BREAKING CHANGE` the major version. If release-plz cannot release the first version from a history without tags, the by-hand fallback (`git tag v1.0.0`, push) cuts it and release-plz continues from that tag.",
+      "invariantsMarkdown": "- Tags have the form `v<semver>` and come from release-plz or the documented by-hand fallback, never from another tool.\n- `RELEASE_PLZ_TOKEN` is the only release secret; it lives in GitHub Actions, never in `rayx` or the repository.\n- `ci.yml` stays pull-request only; `release-plz.yml` is the one workflow that runs on pushes to `main`, and it runs no tests.",
+      "rationaleMarkdown": "release-plz is the Rust-native choice (release-please handles Cargo less well; cargo-release, which dist's docs suggest, needs a local run per release). The owner chose a fine-grained PAT over a GitHub App on 2026-10-14 as simpler; the cost is that release PRs and tags appear as the owner and releases stop silently when the token expires, so `docs/releasing.md` covers rotation. `dispatch-releases` was rejected: it removes the tag trigger release-plz relies on.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".github/workflows/release-plz.yml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CHANGELOG.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.toml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/distribution/2026-10-08-distribution-cargo-dist-and-axoupdater.md"
+        }
+      ]
+    },
+    {
+      "id": "d-dependency-sources",
+      "requirementIds": [
+        "DEP"
+      ],
+      "descriptionMarkdown": "One Cargo package `rayx-cli` at the repository root stays: library `rayx_cli` (`src/lib.rs`) and binary `rayx` (`src/main.rs`, which only calls `rayx_cli::run`), with the modules `cli`, `host`, `project`, `setup` (with `setup::wsl`), `doctor`, `update`, `app`, `fmt` and `wsl`; integration test groups are `tests/<feature>.rs`, fixture projects `tests/fixtures/<name>/` with their own empty `[workspace]` table. A new crate is added only when a second consumer needs a module.\n\nWhat changes is where dependencies may come from. The rule is that anyone who clones the public repository can build it on any machine or CI runner:\n\n- allowed: crates.io; public git repositories over `https://` pinned to a `rev` (Gpux, `rayx-ui/Gpux`, is public under Apache-2.0); `[patch]` for a recorded reason, with a comment linking the upstream issue or PR, removed once upstream releases the change;\n- forbidden: `path` dependencies on sibling checkouts (`../Gpux`, `../RayX`), git dependencies on a moving `branch`/`tag`, any dependency on the private `rayx-ui/RayX` or another private repository, `[replace]`.\n\n`tests/dependency_sources.rs` enforces it with a rule function tested on sample manifests and applied to the real one.",
+      "invariantsMarkdown": "- A clean clone builds with network access to crates.io and public GitHub only.\n- No module reads a compile-time path to decide what to work on (`env!(\"CARGO_MANIFEST_DIR\")` only in tests).",
+      "rationaleMarkdown": "Supersedes the 2026-10-08 single-package decision, whose invariant allowed crates.io only with no `git` and no `[patch]`. The owner (2026-10-14) wants agents able to fix and refactor through upstream code instead of band-aids, and Gpux is now public. The part of the old rule that protects buildability stays: a private or path dependency fails on every CI runner and for every other user.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/package_layout.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CLAUDE.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md"
+        }
+      ],
+      "supersedesMemoryDecisions": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/repository/2026-10-08-repository-single-cargo-package.md"
+        }
+      ]
+    },
+    {
+      "id": "d-wsl-release-installer",
+      "requirementIds": [
+        "WSL"
+      ],
+      "descriptionMarkdown": "`setup::wsl` runs on Windows only and drives `wsl.exe`: `wsl --version` for WSL 2, `wsl -l -q` for the distribution, `wsl --install -d Ubuntu-24.04` when missing, and `id -un` to detect a missing default user. Scripts inside the distribution run with `--exec bash -lc`.\n\nThe Linux `rayx` is the running version installed by that release's own installer: when `$HOME/.rayx/bin/rayx --version` does not print `rayx <version>`, the distribution runs `curl --proto '=https' --tlsv1.2 -LsSf https://github.com/rayx-ui/RayX.CLI/releases/download/v<version>/rayx-cli-installer.sh | sh` non-interactively. The installer picks the musl archive for the architecture, verifies it, installs into `~/.rayx/bin`, adds it to PATH and writes the receipt, so `rayx self update` works inside WSL. `RAYX_WSL_BINARY` copies a local build to `$HOME/.rayx/bin/rayx` through `wslpath` instead (no receipt). The inner run is `$HOME/.rayx/bin/rayx setup <same flags>` with inherited stdio.\n\n`--clone` copies only the current checkout (translating `D:\\...` to `/mnt/d/...` and keeping its branch) and lets Cargo fetch every dependency inside WSL. `rayx wsl status` and `rayx wsl compact` are unchanged.",
+      "invariantsMarkdown": "- Never enable WSL sparse disks.\n- Never delete anything outside the listed build-output directories, and never without confirmation unless `--yes` was given.\n- Never follow a manifest's `path` dependencies to clone, copy or download another repository.\n- `--check` downloads and installs nothing.",
+      "rationaleMarkdown": "Supersedes the 2026-10-08 WSL decision only in how the Linux binary arrives: it extracted `rayx-cli-<arch>-unknown-linux-musl.tar.xz` into `~/.local/bin` with no receipt, so `self update` inside WSL refused. Installing the way users install keeps one install path and one update path on every OS (owner, 2026-10-14). The rest of the decision is restated unchanged.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_install.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_plan.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-wsl-scripts-run-with-exec.md"
+        }
+      ],
+      "supersedesMemoryDecisions": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-wsl-clones-only-the-current-checkout.md"
+        }
+      ]
+    },
+    {
+      "id": "d-rayx-ci-release-pin",
+      "requirementIds": [
+        "FIRST"
+      ],
+      "descriptionMarkdown": "RayX CI installs a pinned **release** of `rayx` instead of compiling a pinned commit: `RAYX_CLI_VERSION: 1.0.0` and the shell installer of that version, with `~/.rayx/bin` on `GITHUB_PATH`. Moving the pin is the paired RayX change for any CLI change RayX relies on (grammar, flags, artifact layout, `[package.metadata.rayx]`), now done by releasing the CLI first. RayX's docs install from the release one-liners.",
+      "invariantsMarkdown": "- RayX CI never installs `rayx` from a moving branch or `latest`; it names a version.",
+      "rationaleMarkdown": "RayX's own 2026-10-08 decision already says to use the release installer once a release exists. A prebuilt install takes seconds instead of a release compile per job.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": ".github/workflows/pr-test.yml"
+        },
+        {
+          "repositoryId": "rayx",
+          "path": "docs/src/rayx.md"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx",
+          "path": ".agentx/memory/decisions/tooling/validation/2026-10-08-tooling-validation-app-pipeline-is-the-rayx-cli.md"
+        }
+      ]
+    }
+  ],
+  "memoryDecisionsConsidered": [
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/repository/2026-10-07-repository-memory-taxonomy.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/repository/2026-10-08-repository-literal-toolchain-pins-with-one-checklist.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/repository/2026-10-08-repository-rayx-keeps-a-slim-xtask.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/setup/2026-10-08-setup-android-studio-through-its-wizard.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-06-24-tooling-agentx-memory-initial-taxonomy.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-06-24-tooling-agentx-memory-rust-seed.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-06-28-tooling-agentx-memory-rayx-skill-do-dont-examples.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-06-28-tooling-agentx-memory-rust-runtime-taxonomy.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-07-21-tooling-agentx-memory-portable-paths.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-07-24-tooling-agentx-memory-experiment-evidence-isolation.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-08-16-tooling-agentx-memory-metadata-only-control-plane.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-09-06-tooling-agentx-memory-task-scoped-instructions.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-10-05-tooling-agentx-memory-dtcg-memory-transplant.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-10-05-tooling-agentx-memory-gpux-memory-transplant.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/agentx-memory/2026-10-05-tooling-agentx-memory-reactive-memory-transplant.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-06-25-tooling-devkit-diagnostics-rendered-frame-inspection.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-06-26-tooling-devkit-diagnostics-inspection-metadata.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-06-26-tooling-devkit-diagnostics-occurrence-semantics.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-06-27-tooling-devkit-diagnostics-devkit-mcp-sidecar.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/devkit-diagnostics/2026-07-01-tooling-devkit-diagnostics-android-adb-bridge.md"
+    },
+    {
+      "repositoryId": "rayx",
+      "path": ".agentx/memory/decisions/tooling/validation/2026-07-19-tooling-validation-shared-playwright-worktree-bootstrap.md"
+    }
+  ]
+}

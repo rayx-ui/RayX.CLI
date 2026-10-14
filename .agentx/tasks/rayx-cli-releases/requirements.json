@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 6,
+  "epicId": "rayx-cli-releases",
+  "scopeMarkdown": "Make `rayx` a versioned, released product: every merged release PR publishes a GitHub Release of `rayx-ui/RayX.CLI` with the binaries of all six targets, checksums, attestations and the shell/PowerShell installers, and those installers fully install or update `rayx` (download, verify, `~/.rayx/bin`, PATH, install receipt) so `rayx self update` works afterwards. The first release is **v1.0.0**.\n\n## In scope\n\n- **Release builds (cargo-dist):** upgrade dist to 0.33.0 and regenerate `release.yml`; install into `~/.rayx/bin` (`$RAYX_HOME/bin` first); build `aarch64-pc-windows-msvc` on a hosted Windows x64 runner instead of the cargo-xwin container; GitHub artifact attestations; every pull request builds and uploads all six targets (`pr-run-mode = \"upload\"`) so the release build is proven before any tag.\n- **Release automation (release-plz):** a release PR on `main` with the version bump and a `CHANGELOG.md` generated from Conventional Commits; merging it tags `vX.Y.Z` with the fine-grained PAT secret `RELEASE_PLZ_TOKEN`, which starts the dist workflow. dist, not release-plz, creates the GitHub Release.\n- **Version 1.0.0** in `Cargo.toml` and the first `CHANGELOG.md` section.\n- **Dependency rule relaxation:** crates.io, public git repositories pinned to a `rev` (Gpux is public, Apache-2.0) and a reasoned, upstream-linked `[patch]` are allowed; `path` dependencies on sibling checkouts and any dependency on RayX or another private repository stay forbidden. `CLAUDE.md`, `AGENTS.md` and the package-layout test follow.\n- **WSL:** `rayx setup --wsl` installs the Linux `rayx` with the release's versioned installer, so it lives in `~/.rayx/bin` with a receipt and `rayx self update` works inside WSL.\n- **Docs:** README install section (latest and pinned one-liners, install location, update, attestation check, manual macOS download note) and `docs/releasing.md` (how a release happens, the token and its rotation, the by-hand fallback).\n- **First release and consumers:** publish v1.0.0, verify installs on real hosts, and switch RayX CI from `cargo install --git --rev` to the pinned v1.0.0 installer (paired RayX commit).\n\n## Out of scope\n\n- macOS signing and notarization (deferred by the owner until iOS work needs an Apple Developer account), Windows code signing.\n- winget, Scoop, Homebrew, MSI, npm installers; crates.io publishing (`publish = false` stays).\n- A `rayx self update --version` pin/rollback flag; changes to `src/update.rs` behaviour (its install URLs stay valid).\n- A GitHub App token (the owner chose a fine-grained PAT).\n- Dropping axoupdater or its TLS stack, unless the Windows ARM64 fallback in the design fails and the owner decides it.\n\n## Owner decisions (2026-10-14)\n\n- Install location `~/.rayx/bin`; release-plz with a fine-grained PAT named `RELEASE_PLZ_TOKEN`; start at 1.0.0; WSL installer switch and RayX CI change in this epic; relax the dependency rule (Gpux is public); signing deferred.\n\n## Owner prerequisites\n\n- Before the first release (sprint s5): create the fine-grained PAT (resource owner `rayx-ui`, only `RayX.CLI`, Contents and Pull requests read/write) and store it as the repository secret `RELEASE_PLZ_TOKEN`.\n- Pushing branches, opening and merging pull requests in `rayx-ui/RayX.CLI` and `rayx-ui/RayX` are outward-facing actions the implementer confirms with the owner each time.",
+  "constraintsMarkdown": "- `CLAUDE.md`/`AGENTS.md` rules hold: every external program through `host::Runner`, `rayx` never reads, stores or forwards a password or token (the PAT exists only as a CI secret), Conventional Commits with scopes and no co-author lines.\n- The generated `release.yml` is changed only through `dist-workspace.toml` and `dist generate`; no `allow-dirty`.\n- The asset names and URL layout consumers already use stay valid: `releases/latest/download/rayx-cli-installer.{sh,ps1}`, `releases/download/v<version>/rayx-cli-<triple>.<ext>`.\n- Tests are new feature groups in `tests/<feature>.rs`; while iterating run only the touched group.",
+  "requirements": [
+    {
+      "id": "REL",
+      "title": "Release builds for all six targets",
+      "descriptionMarkdown": "cargo-dist builds, packages and publishes `rayx` for every target on GitHub-hosted runners.",
+      "criteria": [
+        {
+          "id": "REL-1",
+          "descriptionMarkdown": "`dist-workspace.toml` declares:\n\n- `cargo-dist-version = \"0.33.0\"`;\n- the six targets unchanged (`aarch64`/`x86_64` `apple-darwin`, `pc-windows-msvc`, `unknown-linux-musl`), installers `shell` and `powershell`, `checksum = \"sha256\"`, `install-updater = false`, `hosting = \"github\"`;\n- `install-path = [\"$RAYX_HOME/bin\", \"~/.rayx/bin\"]`;\n- `github-attestations = true`;\n- `[dist.github-custom-runners]` building `aarch64-pc-windows-msvc` on `windows-2022` with host `x86_64-pc-windows-msvc` (no cargo-xwin container);\n- `pr-run-mode = \"upload\"`;\n- no `allow-dirty`.\n\n`.github/workflows/release.yml` is the output of `dist generate` for that config: `dist plan` succeeds without reporting the CI out of date, the tag trigger still matches `v<semver>` tags, and the Windows ARM64 matrix entry has no container.\n\nVerified by the new group `tests/release_config.rs` and by `dist plan`.",
+          "verification": "automated"
+        },
+        {
+          "id": "REL-2",
+          "descriptionMarkdown": "A pull-request run of the Release workflow on `rayx-ui/RayX.CLI` builds all six targets on GitHub-hosted runners and uploads their archives (`.tar.xz` for macOS/Linux, `.zip` for Windows), `.sha256` files, both installers and the dist manifest as workflow artifacts. The `aarch64-pc-windows-msvc` archive holds an ARM64 `rayx.exe` (checked with `file` or the PE machine field); the musl archives hold static binaries.\n\nIf the Windows ARM64 build fails on `windows-2022`, the failure log is recorded and the design's fallback order applies (build setup for `clang-cl`, then an axoasset TLS-backend change with a temporary pinned `[patch]`); the criterion passes only when all six build.\n\nVerified by the green run's URL and the downloaded artifacts.",
+          "verification": "manual"
+        }
+      ]
+    },
+    {
+      "id": "RPZ",
+      "title": "Release automation with release-plz",
+      "descriptionMarkdown": "Conventional Commits drive the version and changelog; merging a release PR publishes the release.",
+      "criteria": [
+        {
+          "id": "RPZ-1",
+          "descriptionMarkdown": "`release-plz.toml` at the repository root configures the single package `rayx-cli` for a git-only, unpublished release:\n\n- `git_only = true`, `git_tag_enable = true`, tag name `v{{ version }}`, `git_release_enable = false` (dist creates the GitHub Release), `changelog_update = true`, `semver_check = false` (the library target is not a public API), `publish = false`;\n- a `[changelog]` (git-cliff) configuration that groups Conventional Commit types into sections, drops `chore(agentx)`/`chore(release)` noise, and writes headings in the `## [X.Y.Z] - YYYY-MM-DD` form that dist's changelog parser reads;\n- the tag form agrees with what the other consumers build: dist's tag trigger and the `v{version}` path in `src/setup/wsl.rs` (asserted in the test, not just by eye).\n\nVerified by the new group `tests/release_automation.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "RPZ-2",
+          "descriptionMarkdown": "`.github/workflows/release-plz.yml` runs on pushes to `main` (and `workflow_dispatch`) in `rayx-ui/RayX.CLI` only (`if: github.repository == 'rayx-ui/RayX.CLI'`):\n\n- a `release` job runs `release-plz release` and a `release-pr` job runs `release-plz release-pr` (with a concurrency group that does not cancel a running release);\n- both check out with full history (`fetch-depth: 0`) and `token: ${{ secrets.RELEASE_PLZ_TOKEN }}`, and pass the same secret as `GITHUB_TOKEN` to the release-plz action, so the release PR triggers `ci.yml` and the pushed tag triggers `release.yml`;\n- `RELEASE_PLZ_TOKEN` is the only secret referenced; actions are pinned to a major version or commit; the workflow installs the toolchain the action needs and nothing else.\n\n`ci.yml` is unchanged (pull requests only).\n\nVerified by the new group `tests/release_automation.rs` (YAML parsed or asserted structurally) and by GitHub accepting the workflow (no \"workflow file issue\" run).",
+          "verification": "automated"
+        },
+        {
+          "id": "RPZ-3",
+          "descriptionMarkdown": "`Cargo.toml` (and `Cargo.lock`) carry version `1.0.0`, so `rayx --version` prints `rayx 1.0.0`. `CHANGELOG.md` exists with a `## [1.0.0]` section that summarizes the first release (the commands `setup`, `doctor`, `wsl`, `self update`, `app`, `fmt`, the six targets and the installers) rather than every historical commit.\n\nAs a lasting invariant, the test asserts that `CHANGELOG.md` has a section for the version in `Cargo.toml` and that the version is at least 1.0.0, so later release PRs keep both in step.\n\nVerified by the new group `tests/release_automation.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "RPZ-4",
+          "descriptionMarkdown": "`docs/releasing.md` explains for the owner:\n\n- how a release happens (commit with Conventional Commits, review and merge the release PR, the tag starts the Release workflow), which commit types bump which version part, and that `feat!`/`BREAKING CHANGE` means a major release and needs a paired RayX change when it touches the app grammar;\n- how to create `RELEASE_PLZ_TOKEN` (fine-grained, resource owner `rayx-ui`, only `RayX.CLI`, Contents and Pull requests read/write, expiry), that release PRs and tags then appear as the owner, and what silently stops when it expires and how to rotate it;\n- the by-hand fallback (bump, changelog, `git tag vX.Y.Z`, push the tag);\n- how to check a release (`gh release view`, `gh attestation verify <archive> --repo rayx-ui/RayX.CLI`).\n\nThe README links it. Verified by review.",
+          "verification": "manual"
+        }
+      ]
+    },
+    {
+      "id": "DEP",
+      "title": "Dependency sources anyone can fetch",
+      "descriptionMarkdown": "The repository may depend on public code beyond crates.io while staying buildable from a clean clone on any machine.",
+      "criteria": [
+        {
+          "id": "DEP-1",
+          "descriptionMarkdown": "The new group `tests/dependency_sources.rs` replaces the registry-only assertions of `tests/package_layout.rs` (which keeps its other checks). For `Cargo.toml` and `cargo metadata` it:\n\n- accepts crates.io dependencies and `git` dependencies with an `https://` URL pinned by `rev`;\n- rejects `path` dependencies, `git` dependencies selected by `branch`, `tag` or nothing, and any dependency on the private `rayx-ui/RayX` repository (exactly that repository, not `RayX.CLI` or other public siblings);\n- accepts a `[patch.<registry>]` entry only when it follows the same source rules and the manifest line above it is a comment containing an upstream issue or PR URL; still rejects `[replace]`.\n\nThe rules are a function the test exercises on inline sample manifests (each accept and reject case above) and then on the real manifest.",
+          "verification": "automated"
+        },
+        {
+          "id": "DEP-2",
+          "descriptionMarkdown": "`CLAUDE.md` and `AGENTS.md` (kept identical) state the new rule: dependencies must be fetchable by anyone who clones the public repository, on any machine and CI runner: crates.io, public git repositories pinned to a `rev` (Gpux included), and `[patch]` for a recorded reason with a comment linking the upstream issue or PR, removed once upstream releases it; no `path` dependency on a sibling checkout and no dependency on RayX or any other private repository. The sentence calling Gpux a private sibling is corrected (Gpux is public under Apache-2.0; RayX is private).\n\nVerified by review.",
+          "verification": "manual"
+        }
+      ]
+    },
+    {
+      "id": "WSL",
+      "title": "The Linux rayx in WSL comes from the release installer",
+      "descriptionMarkdown": "`rayx setup --wsl` installs the same version inside the distribution the way users install it, so it can update itself there.",
+      "criteria": [
+        {
+          "id": "WSL-1",
+          "descriptionMarkdown": "In `src/setup/wsl.rs`:\n\n- the Linux binary is `$HOME/.rayx/bin/rayx`; the inner run is that path with `setup <same flags>`;\n- when that binary does not report `rayx <running version>`, the distribution runs (through `--exec bash -lc`, as every WSL script) the release's versioned installer `https://github.com/rayx-ui/RayX.CLI/releases/download/v<version>/rayx-cli-installer.sh` piped to `sh`, non-interactively; it no longer extracts the archive by hand into `~/.local/bin`;\n- a matching installed version is not reinstalled; an architecture without a Linux release still fails before any download with the existing actionable message;\n- `RAYX_WSL_BINARY` still copies a local build, now to `$HOME/.rayx/bin/rayx` (a development override without a receipt);\n- `--check` (print mode) runs no download or install.\n\nVerified by the new group `tests/wsl_install.rs` (scripted runner, as in `tests/wsl_plan.rs`), with `tests/wsl_plan.rs` updated where it asserted the old path or archive URL.",
+          "verification": "automated"
+        },
+        {
+          "id": "WSL-2",
+          "descriptionMarkdown": "After v1.0.0 is published, on the owner's Windows PC: `rayx setup --wsl` (from a v1.0.0 Windows `rayx`) installs `rayx 1.0.0` into `~/.rayx/bin` of `Ubuntu-24.04`, a new WSL shell finds `rayx` on PATH, and `rayx self update --check` inside WSL reports it up to date instead of the no-receipt message.\n\nVerified by the owner's run, recorded in `docs/manual-verification.md`.",
+          "verification": "manual"
+        }
+      ]
+    },
+    {
+      "id": "DOC",
+      "title": "Install documentation",
+      "descriptionMarkdown": "The README tells a user exactly how to install, pin, update and verify `rayx`.",
+      "criteria": [
+        {
+          "id": "DOC-1",
+          "descriptionMarkdown": "The README install section has:\n\n- the latest one-liners for macOS/Linux and Windows (URLs unchanged) and the same with a pinned version (`releases/download/v1.0.0/...`);\n- where `rayx` goes (`~/.rayx/bin`, `$RAYX_HOME/bin` when set), that the installer adds it to PATH (new shell needed), and that running the installer again updates in place, as does `rayx self update`;\n- how to check an archive's provenance with `gh attestation verify`;\n- a note for archives downloaded by hand in a browser on macOS (`xattr -d com.apple.quarantine rayx`) and that the installers need no such step;\n- a link to `docs/releasing.md`;\n- the \"until the first release\" and `--branch feature/initial-setup` instructions removed (building from source stays under its own heading).\n\n`tests/package_layout.rs` README assertions still pass. Verified by review.",
+          "verification": "manual"
+        }
+      ]
+    },
+    {
+      "id": "FIRST",
+      "title": "The first release and its consumers",
+      "descriptionMarkdown": "v1.0.0 is published through the new flow, installs on real hosts, and RayX uses it.",
+      "criteria": [
+        {
+          "id": "FIRST-1",
+          "descriptionMarkdown": "With `RELEASE_PLZ_TOKEN` in place and the epic merged to `main`, release-plz opens (or the first run directly performs) the v1.0.0 release; `ci.yml` runs on the release PR; merging it pushes the tag `v1.0.0`, and the Release workflow publishes the GitHub Release `v1.0.0` (not a prerelease, marked Latest) with the six archives, their `.sha256` files, `rayx-cli-installer.sh`, `rayx-cli-installer.ps1` and notes taken from the `CHANGELOG.md` section. `gh attestation verify` succeeds for at least the Windows x64 and macOS ARM64 archives.\n\nIf release-plz cannot produce the first tag from an untagged history, the documented by-hand fallback cuts `v1.0.0` and release-plz takes over from that tag; the deviation is recorded.\n\nVerified by `gh release view v1.0.0 --json` output and the workflow run URLs.",
+          "verification": "manual"
+        },
+        {
+          "id": "FIRST-2",
+          "descriptionMarkdown": "From the `releases/latest` one-liners, on a host without `rayx`: Windows x64 (owner's PC) and macOS ARM64 (this Mac), plus Linux x64 (WSL or a container): `rayx` lands in `~/.rayx/bin`, a new shell finds it on PATH, `rayx --version` prints `rayx 1.0.0`, `rayx self update --check` reports up to date, and running the installer again reinstalls in place without error. A `rayx` previously built from source or with `cargo install` elsewhere on PATH is reported, not silently shadowed (note which one the shell resolves).\n\nVerified by the owner's runs, recorded in `docs/manual-verification.md` (replacing \"Not verifiable before a release\").",
+          "verification": "manual"
+        },
+        {
+          "id": "FIRST-3",
+          "descriptionMarkdown": "In `rayx-ui/RayX` (paired commit): `.github/workflows/pr-test.yml` replaces `RAYX_CLI_REV` and both `cargo install --git ... --rev` steps with `RAYX_CLI_VERSION: 1.0.0` and the installer of that version (`releases/download/v${RAYX_CLI_VERSION}/rayx-cli-installer.sh | sh`), with `~/.rayx/bin` on `GITHUB_PATH` for later steps (added explicitly unless the installer already does it); the comment about the pinned commit is updated. `docs/src/rayx.md` drops the `--branch feature/initial-setup` source install for the release one-liners and the pinned form. RayX's memory decision text about `RAYX_CLI_REV` is synced to the release pin. A RayX pull-request run of both jobs is green with the release-installed `rayx`.\n\nVerified by the RayX CI run URL.",
+          "verification": "manual"
+        }
+      ]
+    }
+  ]
+}
