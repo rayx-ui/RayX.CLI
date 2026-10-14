@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 8,
+  "revision": 17,
   "planRevision": 1,
   "specHashes": {
     "requirements": "bd122f66c7ae5a347f737aa7f4f7803c5f31d4e2803f7fc0bfc6d41f42af6d34",
@@ -22,13 +22,22 @@
       ]
     },
     "t03-lima-sizing": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     },
     "t04-lima-edit": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     },
     "t05-records-doctor": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "352b60b3-72ba-43f0-8dc9-9949c7a95973"
+      ]
     },
     "t06-setup-update": {
       "status": "pending"
@@ -67,6 +76,15 @@
         }
       },
       "recordedAt": "2026-10-14T15:12:50Z"
+    },
+    "a036580eb729784dcdbc54a0c01cfc3a69fc9ea066e59e6cd604ce56650192a6": {
+      "snapshot": {
+        "specHash": "1cc61c573e9837dee6b55addd0c5930a7e3a781be5486b2c4ee3d1663810ee11",
+        "repositories": {
+          "rayx-cli": "f57c0593d6bccb9d922a623f8824507e1d4eee1925f3c47a6e633af0247c5bd8"
+        }
+      },
+      "recordedAt": "2026-10-14T15:25:19Z"
     }
   },
   "checkResults": {
@@ -103,6 +121,57 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-guests/s1-guest-layer-lima-final-ff4a80593029.log",
       "logSha256": "507babf5ec8c9f63416aa297a318b9a21fe8e3386e5d15268c7e9e689d1c6602",
       "inputsHash": "9182eb2ec62b7321f3b68dd840ee1f5257dad956e20ae0d8b97e150a90ba22f4"
+    },
+    "s2-sizing-records-doctor/check-lima-sizing/final": {
+      "checkId": "check-lima-sizing",
+      "boundaryId": "s2-sizing-records-doctor",
+      "phase": "final",
+      "batchId": "a036580eb729784dcdbc54a0c01cfc3a69fc9ea066e59e6cd604ce56650192a6",
+      "definitionHash": "290a83eb69d69758dbae321d2a3c5ee440e45e3ef8363564598a798b49fbfaa6",
+      "basisHash": "69d80778e7834e97d31023a739a95ca5287e01cdd48c14f9027d250a0adee4b6",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 17,
+      "durationSeconds": 0.5101,
+      "recordedAt": "2026-10-14T15:25:18Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s2-sizing-records-doctor-final-f87a7f04b816.log",
+      "logSha256": "afed4a3cf92b3ff44057b6897195c03dc62a31dcc7328f04ed589aa4b99d059d",
+      "inputsHash": "7d3a3e21b8b0cf12f7dc8ecd2b470b5730b43165c5a7cd00f124fb368b0e0052"
+    },
+    "s2-sizing-records-doctor/check-lima-edit/final": {
+      "checkId": "check-lima-edit",
+      "boundaryId": "s2-sizing-records-doctor",
+      "phase": "final",
+      "batchId": "a036580eb729784dcdbc54a0c01cfc3a69fc9ea066e59e6cd604ce56650192a6",
+      "definitionHash": "29c051407754c6ba29d319e9e4b5478781f2c89fb06a755d4e73e5aa6641edd7",
+      "basisHash": "bb28f7dda40c1493c96c48c2fb6669994cd6f0d37b6ff7a5500647f62a413386",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 0.5177,
+      "recordedAt": "2026-10-14T15:25:19Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s2-sizing-records-doctor-final-4a06bffafb97.log",
+      "logSha256": "9ed536b2a738e4d6811723da752d31f6f305e98645f3c1f3ced2d9c7da1150ac",
+      "inputsHash": "20d853b381ac1ca893efd0ce4c96b1bd86290785663f69e52ef36e56022795b6"
+    },
+    "s2-sizing-records-doctor/check-guest-records/final": {
+      "checkId": "check-guest-records",
+      "boundaryId": "s2-sizing-records-doctor",
+      "phase": "final",
+      "batchId": "a036580eb729784dcdbc54a0c01cfc3a69fc9ea066e59e6cd604ce56650192a6",
+      "definitionHash": "c8f5e2328bf87474bc120a5f73946da482856a6003715f2b97781061071ef51e",
+      "basisHash": "7f6de15c7d35a19204c2c62dd925b037dc155f70350fc8bbd40ea780e46a7862",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 19,
+      "durationSeconds": 0.1871,
+      "recordedAt": "2026-10-14T15:25:19Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/s2-sizing-records-doctor-final-8841553df67d.log",
+      "logSha256": "ffd97500b030154d74ac95cb08d3724522545cc822a709b621674c24acada626",
+      "inputsHash": "c4b90232cc8024fef4d7dc413525bfe24b0e44f64b505aea25eb622d3319f1ac"
     }
   },
   "reviews": {
@@ -268,6 +337,138 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "7edb415382fc54daffcba917307bcd165f1d6cde7320b1549537917ff1369f40"
       }
+    },
+    "s2-sizing-records-doctor": {
+      "reviewerId": "reviewer-s2-gknfylyp",
+      "snapshotId": "a036580eb729784dcdbc54a0c01cfc3a69fc9ea066e59e6cd604ce56650192a6",
+      "criterionIds": [
+        "LIMA-5",
+        "LIMA-6",
+        "LIMA-7",
+        "REC-1",
+        "DOC-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/sizing.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-5",
+            "LIMA-6"
+          ],
+          "sha256": "6a6028f5d029d90966b16e705ff0a3e870b258636558bcd25c3eadc5a28b8389"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-5",
+            "LIMA-6",
+            "LIMA-7",
+            "REC-1"
+          ],
+          "sha256": "6f956deee68dc880cf808eeae573fe5b7c8e88c113444536538debc59ff1eef7"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/edit.rs",
+          "kind": "source",
+          "criterionIds": [
+            "LIMA-7"
+          ],
+          "sha256": "e275e84d98e541682b6a47d649b2313e65526b301b1e1db2e7f6d778b7773706"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REC-1"
+          ],
+          "sha256": "67839dc89993f6ab096a07ea2c07681bc9e186b5f7c6ff3e95bf10e2ce891428"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REC-1"
+          ],
+          "sha256": "65ecdd9f9442a510ef9ff84006d6e5d5750dfe36b39739e1df7264844571c016"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REC-1"
+          ],
+          "sha256": "923686e7e567445644be5a6f73cbb638b70062a2520aff98bf9ddbf53417f91c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/guests.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-1"
+          ],
+          "sha256": "6510f8476e98911aa70c20c2b2677fa6d34aa13f027bdeac06812d405a604a9d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-1"
+          ],
+          "sha256": "f2b0e463d08828ec297d3fb867364536c09dbac6d3c2ff72f88e95ef02427683"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima_sizing.rs",
+          "kind": "test",
+          "criterionIds": [
+            "LIMA-5",
+            "LIMA-6"
+          ],
+          "sha256": "c59cecac05ac06cce5bf5a49fa3b521052ef752299de199ab836863b94a1bea8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima_edit.rs",
+          "kind": "test",
+          "criterionIds": [
+            "LIMA-7"
+          ],
+          "sha256": "42b42aa98920d82c0267c0df244c08c6f798c6c326bfa91a5996be790fd31be8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_records.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REC-1",
+            "DOC-1"
+          ],
+          "sha256": "6fdadf1d1cc6e7c06efff5dfbddba69720f9559038d4f29fee485afa37e69cad"
+        }
+      ],
+      "deltaSummaryMarkdown": "Inspected the repair delta. f1: lima::record_outcome and wsl::record_outcome return early on --check and are what lima::run/wsl::run call; new tests assert --check writes nothing and reads nothing from the guest, a real run records flags, VM and clone, the WSL record and clone_record, the LimaOutcome for create/edit/unchanged/clone, and the end-to-end `rayx setup --lima --check` asserts no ~/.config/rayx. f2: customize keeps an already-writable home without asking (tested). f3: LimaOutcome.vm is always the VM's actual settings with the home from lima.yaml (tested for unchanged and edited). f4: invalid-UTF-8 guests.json is Unparsable and left byte-identical (tested); record_run keeps the record's previous ubuntu when the version is unreadable (tested). Re-ran setup_lima_sizing, setup_lima_edit, guest_records and setup_lima: all pass. No regressions seen in LIMA-5/6/7 or DOC-1.",
+      "reattestedFrom": "4ea284eccb98920a0281d1a875591b335f7a3122520b3d915b08b6cbf06cc4c6",
+      "summaryMarkdown": "LIMA-5, LIMA-6, LIMA-7 and DOC-1 are implemented as specified and covered by meaningful tests (caps, notes, refusal before any limactl/brew command, free-space and memory warnings, the single Customize question flow, stop/edit/start sequence, shrink refusal, doctor text/JSON for running, stopped, retired, missing, Lima missing, WSL on Windows, read-only). REC-1's file format, merge, atomic write and missing/unparsable handling are correct and tested, and --check is correctly skipped at both call sites in source, but the wiring from a real run into the record (and the --check skip) has no test, so REC-1 is not proven. Minor issues are listed.",
+      "findingIds": [
+        "s2-f1-record-wiring-untested",
+        "s2-f2-customize-resets-home-flag",
+        "s2-f3-existing-vm-not-recorded",
+        "s2-f4-non-utf8-record-overwritten"
+      ],
+      "recordedAt": "2026-10-14T15:25:44Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "7edb415382fc54daffcba917307bcd165f1d6cde7320b1549537917ff1369f40"
+      }
     }
   },
   "checkpoints": {
@@ -278,6 +479,14 @@
       },
       "reviewHash": "96c0550bb7541c8b752f0144410985d0235455f5eed050f9eaa2c9736c1be8bd",
       "recordedAt": "2026-10-14T15:13:35Z"
+    },
+    "s2-sizing-records-doctor": {
+      "snapshotId": "a036580eb729784dcdbc54a0c01cfc3a69fc9ea066e59e6cd604ce56650192a6",
+      "commits": {
+        "rayx-cli": "5f8327cd7a6eadff866eb44e525ce66791c174b9"
+      },
+      "reviewHash": "944dfdf88343d02951ba1ce383a339f19ab759ed871c448a68a4fcb7b71b3cc5",
+      "recordedAt": "2026-10-14T15:26:04Z"
     }
   },
   "findings": [
@@ -346,6 +555,98 @@
           "symbol": "the_checkout_is_detected_only_for_a_clone_and_never_off_macos"
         }
       ]
+    },
+    {
+      "id": "s2-f1-record-wiring-untested",
+      "criterionIds": [
+        "REC-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Expected: REC-1 (\"a successful setup --wsl or --lima (not --check) records the guest ... for Lima the settings it was created with\") is verified by tests/guest_records.rs. Observed: the tests call record_guest/GuestsFile::upsert with hand-built GuestUpdate values and record_run once with a hand-built call. Nothing tests (a) that lima::run / wsl::run skip recording under --check (the only guard is the `if !request.check` / `if !args.check` at the call sites; record_guest's dry_run=true parameter is never passed true in production, so the dry-run test does not exercise it), (b) that LimaOutcome.vm carries the created or edited settings (no test in setup_lima_sizing.rs/setup_lima_edit.rs asserts the returned LimaOutcome), or (c) that LimaOutcome.clone / wsl::clone_record produce the CloneRecord (source, branch, target). Removing the --check guard, or dropping `vm` from the outcome, would pass every test. Repair: in tests/guest_records.rs (REC-1's own group) add (1) an end-to-end run of the real `rayx setup --lima --check` binary (the stub-limactl pattern of setup_lima.rs, HOME and XDG_CONFIG_HOME in a tempdir) asserting no guests.json or config directory is created; (2) assertions on the LimaOutcome returned by run_with for create (settings after caps/customize), edit (changed values merged with the instance's), unchanged VM (None) and --clone (CloneRecord fields); (3) a unit for wsl::clone_record if it can be made pub, or an equivalent assertion. Better still, make the --check decision testable by moving the record call into a function that takes the Runner/dry-run state.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_records.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima.rs"
+        }
+      ],
+      "boundaryId": "s2-sizing-records-doctor"
+    },
+    {
+      "id": "s2-f2-customize-resets-home-flag",
+      "criterionIds": [
+        "LIMA-6"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Expected: customizing keeps what the owner already chose. Observed: in sizing::customize the final `Mount the home writable? [y/N]` question always starts from no, so `rayx setup --lima --vm-home-writable`, answering y to Customize and pressing Enter on the home question silently creates a read-only mount, contradicting the flag and the summary line it printed (`home mounted writable`). Repair: when settings.home_writable is already true (flag), either skip that question or treat Enter as keeping writable (e.g. `chosen.home_writable = settings.home_writable || prompter.confirm(...)`, or ask only when it is false); add a case to the customize tests.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/sizing.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima_sizing.rs"
+        }
+      ],
+      "boundaryId": "s2-sizing-records-doctor"
+    },
+    {
+      "id": "s2-f3-existing-vm-not-recorded",
+      "criterionIds": [
+        "REC-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Expected: a Lima guest entry carries the VM settings. Observed: when `rayx setup --lima` finds a VM `rayx` that already exists with no explicit --vm-* change (for example the VM created by the already-committed sprint 1 build, which wrote no record), LimaOutcome.vm is None and the new entry is written without `vm`, so the record never gets the settings and later guest work (migration restores flags and clones, and must recreate the VM) has nothing to restore from. Repair: for an existing, unchanged instance return VmRecord built from the instance (cpus, memory_gib, disk_gib, home from lima.yaml) and let upsert set `vm` when the entry has none (keep an existing created-with value otherwise); test it in tests/guest_records.rs.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_records.rs"
+        }
+      ],
+      "boundaryId": "s2-sizing-records-doctor"
+    },
+    {
+      "id": "s2-f4-non-utf8-record-overwritten",
+      "criterionIds": [
+        "REC-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Expected: an unparsable guests.json is reported and left untouched; only a missing or unreadable file is empty. Observed: read_guests_at uses `std::fs::read_to_string(path).ok()`, so a file with invalid UTF-8 (std error kind InvalidData) is treated as empty and then replaced by write_guests_at. Likewise record_run silently records the pinned Ubuntu when the guest's VERSION_ID cannot be read, which would mislabel an older guest as current. Repair: map only NotFound/PermissionDenied-style errors to an empty record and an InvalidData error to RecordError::Unparsable; when os_version fails keep the entry's previous `ubuntu` (or report it) instead of assuming the pin. Add a test for the invalid-UTF-8 file.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_records.rs"
+        }
+      ],
+      "boundaryId": "s2-sizing-records-doctor"
     }
   ],
   "handoffMarkdown": "",
