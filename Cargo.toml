@@ -1,6 +1,6 @@
 [package]
 name = "rayx-cli"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
 rust-version = "1.95"
 description = "The RayX command-line tool: machine setup, doctor, WSL, self update and the app pipeline for any RayX app."
@@ -30,6 +30,7 @@ toml = "0.9"
 [dev-dependencies]
 assert_cmd = "2.2.2"
 predicates = "3.1.4"
+serde_yaml_ng = "0.10.0"
 tempfile = "3.27.0"
 
 [target."cfg(windows)".dependencies]
