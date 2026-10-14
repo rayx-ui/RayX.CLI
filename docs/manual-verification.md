@@ -135,7 +135,8 @@ the `rayx-cli-releases` epic; run them and record the results here):
   web set` and `Install the web and test sets` pass in both jobs. Both jobs then fail in steps that
   have nothing to do with the pin: `cargo fmt --check` and `rayx app ... test wasm` cannot load the
   workspace because RayX's `Cargo.toml` references the sibling `../RayX.SignalR` by path and the
-  workflow never checks it out. RayX `master` has failed the same way since 2026-10-08. Owner
+  workflow never checks it out. RayX `master`'s earlier runs (2026-10-06, 2026-10-08) never got past
+  checkout or job startup, so this failure is first seen on PR #2 and is independent of the pin. Owner
   decision: RayX is fixed separately so it builds without that sibling; this repository does not
   work around it. Re-run `rayx-ui/RayX#2` after that fix; both jobs (Rust Workspace, WASM
   Playwright WebGPU) must pass.
