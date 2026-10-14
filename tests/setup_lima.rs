@@ -443,7 +443,7 @@ fn the_guest_steps_run_through_limactl_shell_with_the_same_flags() {
         .iter()
         .filter(|s| s.program == "limactl" && s.args.first().is_some_and(|a| a == "shell"))
         .collect();
-    assert_eq!(shell.len(), 3, "probe, installer, setup");
+    assert_eq!(shell.len(), 4, "version read, probe, installer, setup");
     for spec in &shell {
         assert_eq!(
             spec.args[..7],
@@ -451,15 +451,16 @@ fn the_guest_steps_run_through_limactl_shell_with_the_same_flags() {
         );
     }
     let scripts = guest_scripts(&runner);
-    assert_eq!(scripts[0], "\"$HOME/.rayx/bin/rayx\" --version");
+    assert_eq!(scripts[0], ". /etc/os-release; echo $VERSION_ID");
+    assert_eq!(scripts[1], "\"$HOME/.rayx/bin/rayx\" --version");
     assert!(
-        scripts[1].contains(
+        scripts[2].contains(
             "https://github.com/rayx-ui/RayX.CLI/releases/download/v1.0.0/rayx-cli-installer.sh"
         ),
         "{}",
-        scripts[1]
+        scripts[2]
     );
-    assert_eq!(scripts[2], "\"$HOME/.rayx/bin/rayx\" setup --web");
+    assert_eq!(scripts[3], "\"$HOME/.rayx/bin/rayx\" setup --web");
     assert!(out.contains("==> lima: rayx setup --web"), "{out}");
 }
 
@@ -593,9 +594,9 @@ fn an_override_binary_replaces_the_release_installer() {
 
     let scripts = guest_scripts(&runner);
     assert!(
-        scripts[0].contains("cp \"/Users/dev/rayx-linux/rayx\" \"$HOME/.rayx/bin/rayx\""),
+        scripts[1].contains("cp \"/Users/dev/rayx-linux/rayx\" \"$HOME/.rayx/bin/rayx\""),
         "{}",
-        scripts[0]
+        scripts[1]
     );
     assert!(scripts.iter().all(|s| !s.contains("curl")), "{scripts:?}");
 }

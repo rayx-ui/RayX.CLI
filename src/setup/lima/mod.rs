@@ -17,7 +17,9 @@ use super::guest::{
     self, Checkout, CloneSource, Guest, LinuxBinary, lima_template, pinned_ubuntu, setup_flags,
 };
 use super::macos::brew_in;
-use super::records::{CloneRecord, VmRecord};
+use super::migrate::{self, LimaMigration, LimaOld, Migration};
+use super::records::{self, CloneRecord, VmRecord};
+use super::refresh::RefreshOptions;
 use super::{Machine, SystemMachine};
 
 pub mod edit;
@@ -234,12 +236,12 @@ pub fn start_command() -> CommandSpec {
 
 /// The `limactl` commands of this module run with this directory first on `PATH` (Homebrew's
 /// `bin`, while `limactl` is not on this process's `PATH` yet).
-struct Tool {
-    path_dir: Option<PathBuf>,
+pub(crate) struct Tool {
+    pub(crate) path_dir: Option<PathBuf>,
 }
 
 impl Tool {
-    fn spec(&self, spec: CommandSpec) -> CommandSpec {
+    pub(crate) fn spec(&self, spec: CommandSpec) -> CommandSpec {
         match &self.path_dir {
             Some(dir) => spec.env("PATH", guest::path_with(dir)),
             None => spec,
@@ -389,88 +391,148 @@ pub fn run_with(
 
     let instances = list_instances(&tool, runner)?;
     let existing = instances.iter().find(|i| i.name == INSTANCE);
-    let vm = match existing {
-        None => {
-            let mut notes = sized.notes.clone();
-            sizing::check_free_space(&capacity, &sized.settings, &mut notes)?;
-            let mut settings = sized.settings;
-            // Asked once, in a terminal, unless `--yes` (or `--check`, which creates nothing).
-            if let Some(prompter) = prompter.as_mut()
-                && prompter.interactive()
-                && !request.yes
-                && !request.check
-            {
+    let guests_file = records::read_guests(machine, host.os).unwrap_or_default();
+    let migration_options = RefreshOptions {
+        version: request.version.clone(),
+        yes: request.yes,
+        check: request.check,
+        lima_binary: request.binary_override.clone(),
+        wsl_binary: None,
+    };
+    let migration = LimaMigration {
+        options: &migration_options,
+        host,
+        machine,
+        home: &home,
+        path_dir: tool.path_dir.clone(),
+    };
+    let pending = migrate::pending_lima(&guests_file, &instances);
+    let vm = if let Some(old) = pending {
+        // An interrupted migration: finish it before anything else.
+        match migrate::migrate_lima(&migration, runner, &mut prompter, out, &old)
+            .map_err(LimaError::Failed)?
+        {
+            (Migration::Planned, _) => return Ok(LimaOutcome::default()),
+            (Migration::Declined(why), _) => return Err(LimaError::Declined(why)),
+            (Migration::Done { .. }, vm) => vm,
+        }
+    } else {
+        match existing {
+            None => {
+                let mut notes = sized.notes.clone();
+                sizing::check_free_space(&capacity, &sized.settings, &mut notes)?;
+                let mut settings = sized.settings;
+                // Asked once, in a terminal, unless `--yes` (or `--check`, which creates nothing).
+                if let Some(prompter) = prompter.as_mut()
+                    && prompter.interactive()
+                    && !request.yes
+                    && !request.check
+                {
+                    for note in &notes {
+                        let _ = writeln!(out, "note: {note}");
+                    }
+                    notes.clear();
+                    settings =
+                        sizing::customize(INSTANCE, settings, &capacity, &mut **prompter, out);
+                    sizing::check_free_space(&capacity, &settings, &mut notes)?;
+                }
+                notes.extend(sizing::memory_warning(
+                    &instances, &settings, &capacity, INSTANCE,
+                ));
                 for note in &notes {
                     let _ = writeln!(out, "note: {note}");
                 }
-                notes.clear();
-                settings = sizing::customize(INSTANCE, settings, &capacity, &mut **prompter, out);
-                sizing::check_free_space(&capacity, &settings, &mut notes)?;
-            }
-            notes.extend(sizing::memory_warning(
-                &instances, &settings, &capacity, INSTANCE,
-            ));
-            for note in &notes {
-                let _ = writeln!(out, "note: {note}");
-            }
-            let _ = writeln!(
-                out,
-                "==> lima: creating the VM {INSTANCE} (Ubuntu {}, {} CPUs, {} GiB memory, {} GiB disk, home {})",
-                pinned_ubuntu(),
-                settings.cpus,
-                settings.memory_gib,
-                settings.disk_gib,
-                if settings.home_writable {
-                    "writable"
-                } else {
-                    "read-only"
-                },
-            );
-            run_limactl(
-                runner,
-                &tool.spec(create_command(&settings, &home)),
-                "creating the VM",
-            )?;
-            start_vm(runner, &tool, out)?;
-            Some(VmRecord {
-                cpus: settings.cpus,
-                memory_gib: settings.memory_gib,
-                disk_gib: settings.disk_gib,
-                home_writable: settings.home_writable,
-            })
-        }
-        Some(instance) => {
-            let edit = edit::plan_edit(instance, &request.vm, machine, &home)?;
-            if edit.is_empty() {
-                if !instance.is_running() {
-                    start_vm(runner, &tool, out)?;
-                }
-            } else {
-                apply_edit(
-                    request,
-                    instance,
-                    &edit,
-                    &home,
-                    &tool,
-                    runner,
-                    &mut prompter,
+                let _ = writeln!(
                     out,
+                    "==> lima: creating the VM {INSTANCE} (Ubuntu {}, {} CPUs, {} GiB memory, {} GiB disk, home {})",
+                    pinned_ubuntu(),
+                    settings.cpus,
+                    settings.memory_gib,
+                    settings.disk_gib,
+                    if settings.home_writable {
+                        "writable"
+                    } else {
+                        "read-only"
+                    },
+                );
+                run_limactl(
+                    runner,
+                    &tool.spec(create_command(&settings, &home)),
+                    "creating the VM",
                 )?;
+                start_vm(runner, &tool, out)?;
+                Some(VmRecord {
+                    cpus: settings.cpus,
+                    memory_gib: settings.memory_gib,
+                    disk_gib: settings.disk_gib,
+                    home_writable: settings.home_writable,
+                })
             }
-            // What the VM is now, edited or not.
-            let was_writable = machine
-                .read_to_string(&Path::new(&instance.dir).join("lima.yaml"))
-                .is_some_and(|yaml| edit::home_is_writable(&yaml, &home));
-            Some(VmRecord {
-                cpus: edit.cpus.map_or(instance.cpus, |(_, to)| to),
-                memory_gib: edit
-                    .memory_gib
-                    .map_or(instance.memory_gib() as u32, |(_, to)| to),
-                disk_gib: edit
-                    .disk_gib
-                    .map_or(instance.disk_gib() as u32, |(_, to)| to),
-                home_writable: was_writable || edit.home_writable,
-            })
+            Some(instance) => {
+                let edit = edit::plan_edit(instance, &request.vm, machine, &home)?;
+                let mut migrated = None;
+                if edit.is_empty() {
+                    if !instance.is_running() {
+                        start_vm(runner, &tool, out)?;
+                    }
+                } else {
+                    apply_edit(
+                        request,
+                        instance,
+                        &edit,
+                        &home,
+                        &tool,
+                        runner,
+                        &mut prompter,
+                        out,
+                    )?;
+                }
+                // The VM is up (started, or edited and started): one older than the pin is
+                // replaced side by side, one newer is reported and its release left alone.
+                let current = Guest::lima(INSTANCE).with_path_dir(tool.path_dir.clone());
+                let live = guest::os_version(&current, runner);
+                if let Some(version) = live.as_deref().filter(|v| migrate::newer_than_pin(v)) {
+                    let _ = writeln!(
+                        out,
+                        "{INSTANCE} runs Ubuntu {version}, newer than the pinned {}: rayx leaves \
+                         its release alone",
+                        pinned_ubuntu()
+                    );
+                }
+                if let Some(version) = live.filter(|v| migrate::older_than_pin(v)) {
+                    let old = LimaOld {
+                        current_name: INSTANCE.to_string(),
+                        version,
+                        entry: guests_file.find(records::LIMA, INSTANCE).cloned(),
+                        instance: instance.clone(),
+                    };
+                    match migrate::migrate_lima(&migration, runner, &mut prompter, out, &old)
+                        .map_err(LimaError::Failed)?
+                    {
+                        (Migration::Planned, _) => return Ok(LimaOutcome::default()),
+                        (Migration::Declined(why), _) => return Err(LimaError::Declined(why)),
+                        (Migration::Done { .. }, vm) => migrated = vm,
+                    }
+                }
+                if migrated.is_some() {
+                    migrated
+                } else {
+                    // What the VM is now, edited or not.
+                    let was_writable = machine
+                        .read_to_string(&Path::new(&instance.dir).join("lima.yaml"))
+                        .is_some_and(|yaml| edit::home_is_writable(&yaml, &home));
+                    Some(VmRecord {
+                        cpus: edit.cpus.map_or(instance.cpus, |(_, to)| to),
+                        memory_gib: edit
+                            .memory_gib
+                            .map_or(instance.memory_gib() as u32, |(_, to)| to),
+                        disk_gib: edit
+                            .disk_gib
+                            .map_or(instance.disk_gib() as u32, |(_, to)| to),
+                        home_writable: was_writable || edit.home_writable,
+                    })
+                }
+            }
         }
     };
 
@@ -572,7 +634,11 @@ fn ensure_lima(
     }
 }
 
-fn run_limactl(runner: &mut Runner, spec: &CommandSpec, what: &str) -> Result<(), LimaError> {
+pub(crate) fn run_limactl(
+    runner: &mut Runner,
+    spec: &CommandSpec,
+    what: &str,
+) -> Result<(), LimaError> {
     runner
         .run_checked(spec)
         .map(|_| ())
@@ -581,7 +647,7 @@ fn run_limactl(runner: &mut Runner, spec: &CommandSpec, what: &str) -> Result<()
 
 /// Every Lima instance. A machine where `limactl` cannot run yet (`--check` before Lima is
 /// installed) has none.
-fn list_instances(tool: &Tool, runner: &mut Runner) -> Result<Vec<Instance>, LimaError> {
+pub(crate) fn list_instances(tool: &Tool, runner: &mut Runner) -> Result<Vec<Instance>, LimaError> {
     let listed = runner
         .query(&tool.spec(CommandSpec::new("limactl").args(["list", "--json"])))
         .ok()
@@ -637,7 +703,11 @@ fn apply_edit(
     start_vm(runner, tool, out)
 }
 
-fn start_vm(runner: &mut Runner, tool: &Tool, out: &mut dyn Write) -> Result<(), LimaError> {
+pub(crate) fn start_vm(
+    runner: &mut Runner,
+    tool: &Tool,
+    out: &mut dyn Write,
+) -> Result<(), LimaError> {
     let _ = writeln!(out, "==> lima: starting the VM {INSTANCE}");
     run_limactl(runner, &tool.spec(start_command()), "starting the VM")
 }

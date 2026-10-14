@@ -13,7 +13,9 @@ use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 
 use super::Machine;
 use super::guest::{self, CloneSource, Guest, LinuxBinary};
-use super::records::CloneRecord;
+use super::migrate::{self, Migration, WslMigration};
+use super::records::{self, CloneRecord};
+use super::refresh::RefreshOptions;
 
 pub use super::guest::{
     Checkout, LINUX_BINARY, RELEASES, clone_script, detect_checkout, linux_dir, release_asset,
@@ -145,6 +147,23 @@ pub fn run(args: &SetupArgs) -> u8 {
         Runner::execute()
     };
     let machine = super::SystemMachine;
+    let mut prompter = super::lima::sizing::TerminalPrompter {
+        terminal: std::io::IsTerminal::is_terminal(&std::io::stdin())
+            && std::io::IsTerminal::is_terminal(&std::io::stdout()),
+    };
+    if let Err(error) = migrate_older_guest(
+        &request,
+        args.check,
+        args.yes,
+        &host,
+        &mut runner,
+        &machine,
+        Some(&mut prompter),
+        &mut std::io::stdout(),
+    ) {
+        eprintln!("rayx: {error}");
+        return 1;
+    }
     let checkout = detect_checkout(&mut runner);
     match run_with(
         &request,
@@ -209,6 +228,65 @@ fn clone_record(request: &WslRequest, checkout: Option<&Checkout>) -> Option<Clo
         branch: checkout.branch.clone(),
         target: guest::clone_target(requested, &source).ok()?,
     })
+}
+
+/// A recorded distribution older than the pin is replaced side by side by `Ubuntu-<pin>` before
+/// the normal `--wsl` flow runs; `Err` carries what stopped it (declined, unanswerable, failed).
+#[allow(clippy::too_many_arguments)]
+pub fn migrate_older_guest(
+    request: &WslRequest,
+    check: bool,
+    yes: bool,
+    host: &HostFacts,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    mut prompter: Option<&mut dyn super::lima::sizing::Prompter>,
+    out: &mut dyn Write,
+) -> Result<(), String> {
+    let Ok(file) = records::read_guests(machine, host.os) else {
+        return Ok(());
+    };
+    for guest in file
+        .guests
+        .iter()
+        .filter(|g| g.kind == records::WSL && !g.retired && migrate::newer_than_pin(&g.ubuntu))
+    {
+        let _ = writeln!(
+            out,
+            "{} runs Ubuntu {}, newer than the pinned {}: rayx leaves its release alone",
+            guest.name,
+            guest.ubuntu,
+            super::guest::pinned_ubuntu()
+        );
+    }
+    let Some(old) = migrate::outdated_wsl(&file) else {
+        return Ok(());
+    };
+    // The record can be stale: the guest's own version decides.
+    let live = guest::os_version(&Guest::wsl(&old.name), runner);
+    if live.as_deref().is_some_and(|v| !migrate::older_than_pin(v)) {
+        return Ok(());
+    }
+    let options = RefreshOptions {
+        version: request.version.clone(),
+        yes,
+        check,
+        lima_binary: None,
+        wsl_binary: request
+            .binary_override
+            .as_deref()
+            .and_then(|path| to_wsl_path(path).ok()),
+    };
+    let migration = WslMigration {
+        options: &options,
+        host,
+        machine,
+    };
+    let version = live.unwrap_or_else(|| old.ubuntu.clone());
+    match migrate::migrate_wsl(&migration, runner, &mut prompter, out, &old, &version)? {
+        Migration::Declined(why) => Err(why),
+        Migration::Done { .. } | Migration::Planned => Ok(()),
+    }
 }
 
 /// The body of `rayx setup --wsl` over injectable collaborators.
@@ -279,7 +357,7 @@ fn has_version_number(text: &str) -> bool {
         })
 }
 
-fn ensure_distribution(
+pub(crate) fn ensure_distribution(
     runner: &mut Runner,
     machine: &dyn Machine,
     out: &mut dyn Write,

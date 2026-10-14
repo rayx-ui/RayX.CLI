@@ -31,6 +31,11 @@ pub enum Command {
         #[command(subcommand)]
         command: WslCommand,
     },
+    /// Remove Lima VMs rayx created (macOS)
+    Lima {
+        #[command(subcommand)]
+        command: LimaCommand,
+    },
     /// Update rayx to the latest release (`rayx self update`)
     #[command(name = "self")]
     SelfCommand {
@@ -128,12 +133,31 @@ pub enum WslCommand {
     },
     /// Remove build output on request, trim the file system and compact the virtual disk
     Compact(CompactArgs),
+    /// Unregister a WSL distribution rayx created, and everything in it
+    Remove(RemoveArgs),
+}
+
+/// Subcommands of `rayx lima`.
+#[derive(Debug, Subcommand)]
+pub enum LimaCommand {
+    /// Delete a Lima VM rayx created, and everything in it
+    Remove(RemoveArgs),
+}
+
+/// Arguments of `rayx lima remove` and `rayx wsl remove`.
+#[derive(Debug, Args)]
+pub struct RemoveArgs {
+    /// The guest to remove: a name `rayx doctor` lists
+    pub name: String,
+    /// Do not ask before removing
+    #[arg(long)]
+    pub yes: bool,
 }
 
 /// Flags of `rayx wsl compact`.
 #[derive(Debug, Default, Args)]
 pub struct CompactArgs {
-    /// The distribution to compact (default Ubuntu-24.04, else the first WSL 2 distribution)
+    /// The distribution to compact (default the pinned Ubuntu, else the first WSL 2 distribution)
     #[arg(long)]
     pub distro: Option<String>,
     /// First offer to delete the build output under the cloned checkouts

@@ -347,13 +347,15 @@ pub fn os_version(guest: &Guest, runner: &mut Runner) -> Option<String> {
         .filter(|version| !version.is_empty())
 }
 
-/// The script that prints, for every recorded clone with uncommitted or untracked changes, one
-/// `DIRTY<TAB><dir>` line.
+/// The script that prints, for every recorded clone with uncommitted or untracked changes or
+/// with commits on no remote, one `DIRTY<TAB><dir>` line.
 pub fn dirty_clones_script() -> String {
     format!(
         "for f in \"{CLONES_FILE}\" \"{LEGACY_CLONES_FILE}\"; do [ -f \"$f\" ] || continue; \
          while IFS= read -r d; do [ -d \"$d/.git\" ] || continue; \
-         if [ -n \"$(git -C \"$d\" status --porcelain 2>/dev/null)\" ]; then printf 'DIRTY\\t%s\\n' \"$d\"; fi; \
+         if [ -n \"$(git -C \"$d\" status --porcelain 2>/dev/null)\" ] \
+         || [ -n \"$(git -C \"$d\" log --branches --not --remotes 2>/dev/null | head -n1)\" ]; \
+         then printf 'DIRTY\\t%s\\n' \"$d\"; fi; \
          done < \"$f\"; done"
     )
 }

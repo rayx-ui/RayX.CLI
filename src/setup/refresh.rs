@@ -10,7 +10,8 @@ use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 use super::Machine;
 use super::guest::{self, Guest, GuestKind, LinuxBinary, pinned_ubuntu};
 use super::lima::sizing::Prompter;
-use super::lima::{lima_path_dir, parse_instances};
+use super::lima::{INSTANCE, Tool, lima_path_dir, list_instances, parse_instances};
+use super::migrate::{LimaMigration, LimaOld, Migration, WslMigration, migrate_lima, migrate_wsl};
 use super::records::{self, GuestRecord};
 
 /// What a refresh needs besides the host and the guests.
@@ -34,8 +35,10 @@ pub enum GuestOutcome {
     Refreshed,
     /// Declined, or nobody could be asked.
     NotUpdated(String),
-    /// Older than the pinned Ubuntu: migration replaces it, a refresh does not touch it.
+    /// Older than the pinned Ubuntu and not replaced (declined, unanswerable or unsupported).
     Outdated(String),
+    /// Older than the pinned Ubuntu and replaced side by side by the named new guest.
+    Migrated(String),
     Failed(String),
     /// `--check` of a guest that is not running.
     NotInspected,
@@ -55,7 +58,7 @@ impl RefreshReport {
         let unfinished = self.guests.iter().any(|(_, outcome)| {
             !matches!(
                 outcome,
-                GuestOutcome::Refreshed | GuestOutcome::NotInspected
+                GuestOutcome::Refreshed | GuestOutcome::NotInspected | GuestOutcome::Migrated(_)
             )
         });
         u8::from(self.unreadable || unfinished)
@@ -110,7 +113,7 @@ pub fn refresh_guests(
             out,
         );
         match &outcome {
-            GuestOutcome::Refreshed | GuestOutcome::NotInspected => {}
+            GuestOutcome::Refreshed | GuestOutcome::NotInspected | GuestOutcome::Migrated(_) => {}
             GuestOutcome::NotUpdated(why)
             | GuestOutcome::Outdated(why)
             | GuestOutcome::Failed(why) => {
@@ -118,6 +121,25 @@ pub fn refresh_guests(
             }
         }
         report.guests.push((record.name.clone(), outcome));
+    }
+    // A migration that was interrupted leaves a renamed, retired VM and no current one.
+    if kind == records::LIMA
+        && !recorded
+            .iter()
+            .any(|g| g.kind == kind && g.name == INSTANCE && !g.retired)
+        && let Some(old) = recorded
+            .iter()
+            .find(|g| g.kind == kind && g.retired && g.migrating)
+    {
+        let why = format!(
+            "a migration was interrupted: {} is renamed and retired, and {INSTANCE} is not set up \
+             yet; run `rayx setup --lima` to finish it",
+            old.name
+        );
+        eprintln!("rayx: lima guest {INSTANCE}: {why}");
+        report
+            .guests
+            .push((INSTANCE.to_string(), GuestOutcome::Failed(why)));
     }
     report
 }
@@ -194,7 +216,7 @@ fn refresh_one(
     host: &HostFacts,
     runner: &mut Runner,
     machine: &dyn Machine,
-    prompter: Option<&mut dyn Prompter>,
+    mut prompter: Option<&mut dyn Prompter>,
     record: &GuestRecord,
     guest: &Guest,
     out: &mut dyn Write,
@@ -212,7 +234,7 @@ fn refresh_one(
         return check_one(options, host, runner, record, guest, current, out);
     }
     if !options.yes
-        && let Some(prompter) = prompter
+        && let Some(prompter) = prompter.as_mut()
         && (!prompter.interactive()
             || !prompter.confirm(&format!("Update {label} guest {}?", record.name)))
     {
@@ -231,7 +253,29 @@ fn refresh_one(
             return GuestOutcome::Failed(format!("starting the VM: {error}"));
         }
     }
-    let result = refresh_inside(options, host, runner, guest, out);
+    let live = guest::os_version(guest, runner);
+    if let Some(version) = live.as_deref().filter(|v| newer_than_pin(v)) {
+        let _ = writeln!(
+            out,
+            "{} runs Ubuntu {version}, newer than the pinned {}: rayx leaves its release alone",
+            guest.name,
+            pinned_ubuntu()
+        );
+    }
+    let result = match live.filter(|v| older_than_pin(v)) {
+        Some(version) => migrate_outdated(
+            options,
+            host,
+            runner,
+            machine,
+            &mut prompter,
+            record,
+            guest,
+            &version,
+            out,
+        ),
+        None => refresh_inside(options, host, runner, guest, out),
+    };
     if started {
         let _ = writeln!(out, "==> lima: stopping the VM {}", guest.name);
         let _ = runner.run_checked(&limactl(guest, &["stop", &guest.name]));
@@ -247,14 +291,6 @@ fn refresh_inside(
     guest: &Guest,
     out: &mut dyn Write,
 ) -> GuestOutcome {
-    if let Some(version) = guest::os_version(guest, runner)
-        && older_than_pin(&version)
-    {
-        return GuestOutcome::Outdated(format!(
-            "it runs Ubuntu {version}, older than {}: set it up again to replace it",
-            pinned_ubuntu()
-        ));
-    }
     if let Err(error) =
         guest::ensure_linux_binary(guest, &binary(options, host, guest), runner, out)
     {
@@ -291,15 +327,73 @@ fn binary(options: &RefreshOptions, host: &HostFacts, guest: &Guest) -> LinuxBin
     }
 }
 
-/// Whether an Ubuntu `VERSION_ID` is older than the pin (numeric on `major.minor`).
-pub fn older_than_pin(version: &str) -> bool {
-    fn key(version: &str) -> Vec<u32> {
-        version
-            .split('.')
-            .map(|part| part.parse().unwrap_or(0))
-            .collect()
+pub use super::migrate::{newer_than_pin, older_than_pin};
+
+/// An outdated guest is replaced side by side by a new one from the pinned Ubuntu.
+#[allow(clippy::too_many_arguments)]
+fn migrate_outdated(
+    options: &RefreshOptions,
+    host: &HostFacts,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    prompter: &mut Option<&mut dyn Prompter>,
+    record: &GuestRecord,
+    guest: &Guest,
+    version: &str,
+    out: &mut dyn Write,
+) -> GuestOutcome {
+    let result = match guest.kind {
+        GuestKind::Lima => {
+            if guest.name != INSTANCE {
+                return GuestOutcome::Outdated(format!(
+                    "it runs Ubuntu {version}, older than {}; only the VM named {INSTANCE} is \
+                     replaced by rayx",
+                    pinned_ubuntu()
+                ));
+            }
+            let tool = Tool {
+                path_dir: guest.path_dir.clone(),
+            };
+            let Some(home) = machine.home() else {
+                return GuestOutcome::Failed("the home directory is not known".to_string());
+            };
+            let instance = match list_instances(&tool, runner) {
+                Ok(instances) => instances.into_iter().find(|i| i.name == INSTANCE),
+                Err(error) => return GuestOutcome::Failed(error.to_string()),
+            };
+            let Some(instance) = instance else {
+                return GuestOutcome::Failed("the VM is not listed by limactl".to_string());
+            };
+            let old = LimaOld {
+                current_name: INSTANCE.to_string(),
+                version: version.to_string(),
+                entry: Some(record.clone()),
+                instance,
+            };
+            let migration = LimaMigration {
+                options,
+                host,
+                machine,
+                home: &home,
+                path_dir: guest.path_dir.clone(),
+            };
+            migrate_lima(&migration, runner, prompter, out, &old).map(|(done, _)| done)
+        }
+        GuestKind::Wsl => {
+            let migration = WslMigration {
+                options,
+                host,
+                machine,
+            };
+            migrate_wsl(&migration, runner, prompter, out, record, version)
+        }
+    };
+    match result {
+        Ok(Migration::Done { new, .. }) => GuestOutcome::Migrated(new),
+        Ok(Migration::Planned) => GuestOutcome::NotInspected,
+        Ok(Migration::Declined(why)) => GuestOutcome::Outdated(why),
+        Err(error) => GuestOutcome::Failed(error),
     }
-    key(version) < key(pinned_ubuntu())
 }
 
 /// `--check`: the guest's `rayx` and Ubuntu against this host's, the apt commands, and what

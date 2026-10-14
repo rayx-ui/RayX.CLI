@@ -86,6 +86,9 @@ pub struct GuestRecord {
     /// Replaced by a newer guest and kept until the owner removes it.
     #[serde(default)]
     pub retired: bool,
+    /// A Lima VM renamed for a migration whose new VM is not recorded yet: the next run resumes.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub migrating: bool,
 }
 
 /// The `guests.json` document.
@@ -143,6 +146,7 @@ impl GuestsFile {
                     clones: Vec::new(),
                     vm: None,
                     retired: false,
+                    migrating: false,
                 });
                 self.guests.last_mut().expect("just pushed")
             }
@@ -164,6 +168,78 @@ impl GuestsFile {
             guest.vm = update.vm;
         }
     }
+}
+
+impl GuestsFile {
+    /// Renames a guest's entry and retires it (a Lima VM renamed to `rayx-<version>`); adds a
+    /// retired entry when the guest was never recorded.
+    pub fn rename_and_retire(&mut self, kind: &str, from: &str, to: &str, ubuntu: &str) {
+        match self
+            .guests
+            .iter_mut()
+            .find(|guest| guest.kind == kind && guest.name == from)
+        {
+            Some(guest) => {
+                guest.name = to.to_string();
+                guest.retired = true;
+                guest.migrating = true;
+            }
+            None => self.guests.push(GuestRecord {
+                kind: kind.to_string(),
+                name: to.to_string(),
+                ubuntu: ubuntu.to_string(),
+                flags: Vec::new(),
+                clones: Vec::new(),
+                vm: None,
+                retired: true,
+                migrating: true,
+            }),
+        }
+    }
+
+    /// Drops a guest's entry; the entry it was.
+    pub fn remove(&mut self, kind: &str, name: &str) -> Option<GuestRecord> {
+        let index = self
+            .guests
+            .iter()
+            .position(|guest| guest.kind == kind && guest.name == name)?;
+        Some(self.guests.remove(index))
+    }
+
+    /// The migration of a renamed VM is finished: its new guest is recorded.
+    pub fn finish_migration(&mut self, kind: &str, name: &str) {
+        if let Some(guest) = self
+            .guests
+            .iter_mut()
+            .find(|guest| guest.kind == kind && guest.name == name)
+        {
+            guest.migrating = false;
+        }
+    }
+
+    /// Marks a guest retired.
+    pub fn retire(&mut self, kind: &str, name: &str) {
+        if let Some(guest) = self
+            .guests
+            .iter_mut()
+            .find(|guest| guest.kind == kind && guest.name == name)
+        {
+            guest.retired = true;
+        }
+    }
+}
+
+/// Reads `guests.json` from disk, lets `change` edit it and writes it back; an unparsable file
+/// is reported and left untouched.
+pub fn update_guests(
+    machine: &dyn Machine,
+    os: Os,
+    change: impl FnOnce(&mut GuestsFile),
+) -> Result<(), RecordError> {
+    let path = guests_path(machine, os).ok_or(RecordError::NoConfigDir)?;
+    let mut guests = read_guests_at(&path)?;
+    change(&mut guests);
+    write_guests_at(&path, &guests)
 }
 
 /// Why a record could not be used.

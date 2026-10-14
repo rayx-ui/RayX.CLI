@@ -312,20 +312,67 @@ fn only_current_guests_of_this_hosts_kind_are_refreshed() {
 }
 
 #[test]
-fn a_guest_older_than_the_pin_is_reported_outdated_and_left_alone() {
+fn a_declined_replacement_leaves_an_older_guest_outdated_and_untouched() {
     let machine = machine(&[guest_json("lima", "rayx", "22.04", false)]);
     let mut runner = mac(vm("rayx", "Running"), "22.04", &[]);
+    let mut prompter = ScriptedPrompter::always(false);
 
-    let (report, _) = refresh(&options(true, false), &machine, &mut runner, None);
+    let (report, _) = refresh(
+        &options(false, false),
+        &machine,
+        &mut runner,
+        Some(&mut prompter),
+    );
 
-    assert!(matches!(&report.guests[0].1, GuestOutcome::Outdated(why) if why.contains("22.04")));
+    assert!(
+        matches!(&report.guests[0].1, GuestOutcome::NotUpdated(_)),
+        "{:?}",
+        report.guests
+    );
+    let mut runner = mac(vm("rayx", "Running"), "22.04", &[]);
+    let mut yes_to_update_no_to_replace =
+        ScriptedPrompter::always(false).with_confirms([true, false]);
+    let (report, _) = refresh(
+        &options(false, false),
+        &machine,
+        &mut runner,
+        Some(&mut yes_to_update_no_to_replace),
+    );
+    assert!(
+        matches!(&report.guests[0].1, GuestOutcome::Outdated(why) if why.contains("22.04")),
+        "{:?}",
+        report.guests
+    );
     assert_eq!(report.code(), 1);
-    assert!(lines(&runner).iter().all(|l| !l.contains("apt-get")));
+    let all = lines(&runner);
+    assert!(
+        all.iter()
+            .all(|l| !l.contains("apt-get") && !l.contains("rename") && !l.contains("create")),
+        "{all:?}"
+    );
     assert!(
         older_than_pin("22.04")
             && older_than_pin("9.10")
             && !older_than_pin("24.04")
             && !older_than_pin("26.04")
+    );
+}
+
+#[test]
+fn a_guest_newer_than_the_pin_is_reported_and_its_release_left_alone() {
+    let machine = machine(&[guest_json("lima", "rayx", "26.04", false)]);
+    let mut runner = mac(vm("rayx", "Running"), "26.04", &[]);
+
+    let (report, out) = refresh(&options(true, false), &machine, &mut runner, None);
+
+    assert_eq!(report.code(), 0);
+    assert!(out.contains("newer than the pinned 24.04"), "{out}");
+    let all = lines(&runner);
+    assert!(
+        all.iter().all(|l| !l.contains("rename")
+            && !l.contains("create")
+            && !l.contains("do-release-upgrade")),
+        "{all:?}"
     );
 }
 
