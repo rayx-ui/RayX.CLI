@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-guests",
-  "revision": 69,
+  "revision": 71,
   "planRevision": 5,
   "specHashes": {
     "requirements": "ff8fe8e3dadfcc4260169e6e4a8126ae1ad506eaa8f1c1e1de822cae89569584",
@@ -161,6 +161,15 @@
         }
       },
       "recordedAt": "2026-10-14T18:01:38Z"
+    },
+    "86af4fe3b475a6660e6348c035656744a62e9a51c3a707e0a9a861e119ef8493": {
+      "snapshot": {
+        "specHash": "c2a3fb4317adf217d3342fa39502a870054e7a216c466cf30fee774edceebe3a",
+        "repositories": {
+          "rayx-cli": "f5522e0c653c1d4ff93d9e804a83162eafb1a0325965dde7a8839979d4829958"
+        }
+      },
+      "recordedAt": "2026-10-14T18:46:47Z"
     }
   },
   "checkResults": {
@@ -389,18 +398,18 @@
       "checkId": "check-guest-layer",
       "boundaryId": "final",
       "phase": "final",
-      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "batchId": "86af4fe3b475a6660e6348c035656744a62e9a51c3a707e0a9a861e119ef8493",
       "definitionHash": "8f3ea4c69ceab1c6475bc01381198e83ff88296570c52f366e18e17ffd559dcc",
-      "basisHash": "60784cc507412030fbfc37aae0980efbb4b00445871d0100b6ad0b25ab58aeb8",
+      "basisHash": "96e86514e48b9237ab6ef5bb01f362c9320d7002df8398fe601a8dd3867ecd70",
       "status": "passed",
       "exitCode": 0,
       "testCount": 17,
-      "durationSeconds": 2.6073,
-      "recordedAt": "2026-10-14T18:01:13Z",
+      "durationSeconds": 0.1826,
+      "recordedAt": "2026-10-14T18:46:40Z",
       "messageMarkdown": "Expectation matched",
-      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-b999af13a9a1.log",
-      "logSha256": "8138292efe3eef1fb9f3bfa692820a5e0891bce9c70a1424a842ed890d5bcc06",
-      "inputsHash": "61dcfec7219e7a1f1ce26fbe3fb95ceb1413a02d2e2544f2b380dfb0c44be7ea"
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-bf0211a6de6d.log",
+      "logSha256": "ca607c6aa66ec7b6efcc6680f33790fa1698893ebe27a355e2c1895f63ffbf74",
+      "inputsHash": "edca633f077adf1f988f027cc169dbd4bb6007d4048f2e6cabcb4e3a8c746aa9"
     },
     "final/check-setup-lima/final": {
       "checkId": "check-setup-lima",
@@ -423,18 +432,18 @@
       "checkId": "check-lima-sizing",
       "boundaryId": "final",
       "phase": "final",
-      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "batchId": "86af4fe3b475a6660e6348c035656744a62e9a51c3a707e0a9a861e119ef8493",
       "definitionHash": "290a83eb69d69758dbae321d2a3c5ee440e45e3ef8363564598a798b49fbfaa6",
-      "basisHash": "32303fb9e889a24467adfd72e91cbfee01067f5db679489f68bf3103f3145103",
+      "basisHash": "45becc7a876e2732e9716143cf4968dee3e41d8203eb7ed54f4445cc087d2921",
       "status": "passed",
       "exitCode": 0,
       "testCount": 17,
-      "durationSeconds": 0.7121,
-      "recordedAt": "2026-10-14T18:01:16Z",
+      "durationSeconds": 0.1272,
+      "recordedAt": "2026-10-14T18:46:40Z",
       "messageMarkdown": "Expectation matched",
-      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-f2d72fa0ac22.log",
-      "logSha256": "d358696a48af7baeb006a82a2981dd0d86a9e44b44ee82a14d2694330e518d6b",
-      "inputsHash": "f25f3c14d756ee75a28172633b84c6bc221d1a347d5a1f1e019c30687b7002e2"
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-479cfb78735a.log",
+      "logSha256": "e222800962bfe782663318b928fb2feb55920fa872559ae1a9fcd6d1d58ce7fb",
+      "inputsHash": "71f5a4ea82f9286ab2bc355fd951fc5f156cf7ccd7c0af3d84311a47f0837664"
     },
     "final/check-lima-edit/final": {
       "checkId": "check-lima-edit",
@@ -610,49 +619,49 @@
       "checkId": "final-fmt",
       "boundaryId": "final",
       "phase": "final",
-      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "batchId": "86af4fe3b475a6660e6348c035656744a62e9a51c3a707e0a9a861e119ef8493",
       "definitionHash": "2d22fc9255aebd0e0fba7b33fe6047d70092342f4504abe410ee35fc2b8243df",
-      "basisHash": "7469f6420a3c60113e0d176c2b85c5d5e303f436e0f0c87a89579fdeee4f0c9d",
+      "basisHash": "98fcf67a16de871ec6908329f2c2f162b353bda4b912614d44e0f7b809e55e7b",
       "status": "passed",
       "exitCode": 0,
       "testCount": 0,
-      "durationSeconds": 0.2932,
-      "recordedAt": "2026-10-14T18:01:24Z",
+      "durationSeconds": 0.2429,
+      "recordedAt": "2026-10-14T18:46:40Z",
       "messageMarkdown": "Expectation matched",
-      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-f691516446cf.log",
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-2a6a56476736.log",
       "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "final/final-clippy/final": {
       "checkId": "final-clippy",
       "boundaryId": "final",
       "phase": "final",
-      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "batchId": "86af4fe3b475a6660e6348c035656744a62e9a51c3a707e0a9a861e119ef8493",
       "definitionHash": "f3735d46e0b62780a109ae39c3ef3249aeecf56c42209f050e6af0175d7fe4e3",
-      "basisHash": "ba316314ad831946ad69448cf0c9f7b091f38b279e1865a35634aaea9542fa3d",
+      "basisHash": "e5592ef7211906ffb01dcbf297053e57b9e9c90b688da6d89a3ff3a0a11385d6",
       "status": "passed",
       "exitCode": 0,
       "testCount": 0,
-      "durationSeconds": 2.4873,
-      "recordedAt": "2026-10-14T18:01:26Z",
+      "durationSeconds": 0.6617,
+      "recordedAt": "2026-10-14T18:46:41Z",
       "messageMarkdown": "Expectation matched",
-      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-aa73556bb6e9.log",
-      "logSha256": "6823a80cc161a1eafda2b1994582c1f7676f175d0eba05b4d24ae7221aef7ba3"
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-445c4691d5f3.log",
+      "logSha256": "c7d52f31f856a90affe91fe510216d98681a39a8646215830e9821dccdf166c3"
     },
     "final/final-touched-tests/final": {
       "checkId": "final-touched-tests",
       "boundaryId": "final",
       "phase": "final",
-      "batchId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "batchId": "86af4fe3b475a6660e6348c035656744a62e9a51c3a707e0a9a861e119ef8493",
       "definitionHash": "0b53da133415d0b47bf3dcef62bfcd9b058e3e5253ed7d00fa529162a2d0fa84",
-      "basisHash": "4cc4a18da90ff57860031b75c926c4d86f2b945bbe9bfab7bc2fe64cf383711d",
+      "basisHash": "c860c73d1fd5499a07bca1ad94da146b37d3d14215d5e3ee09c27b54caff524b",
       "status": "passed",
       "exitCode": 0,
       "testCount": 290,
-      "durationSeconds": 11.3953,
-      "recordedAt": "2026-10-14T18:01:38Z",
+      "durationSeconds": 6.3253,
+      "recordedAt": "2026-10-14T18:46:47Z",
       "messageMarkdown": "Expectation matched",
-      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-25be118dccf1.log",
-      "logSha256": "aa6fd2f365e07535c12ebe9a5dd22be3201c5723803f31fb3bbc5e40db499ebd"
+      "logPath": "artifacts-temp/agentx/rayx-cli-guests/final-final-adc613566847.log",
+      "logSha256": "ec417c9493851185662bf2e6be47545e8b0081899aa31259cae45f97c91d4d14"
     }
   },
   "reviews": {
@@ -1590,7 +1599,7 @@
     },
     "final": {
       "reviewerId": "reviewer-final-zfrnjce6",
-      "snapshotId": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
+      "snapshotId": "86af4fe3b475a6660e6348c035656744a62e9a51c3a707e0a9a861e119ef8493",
       "criterionIds": [
         "PIN-1",
         "GST-1",
@@ -1642,7 +1651,7 @@
             "PIN-1",
             "GST-1"
           ],
-          "sha256": "922038222603155d2cf6cbb5c4bc528e93e73ad2192b1d1214d0220e0adb262d"
+          "sha256": "f65fbed066443a23b4d92133d783f0b69b2db648babba4e5f5f6b80082696978"
         },
         {
           "repositoryId": "rayx-cli",
@@ -1743,7 +1752,7 @@
             "LIMA-5",
             "LIMA-6"
           ],
-          "sha256": "c59cecac05ac06cce5bf5a49fa3b521052ef752299de199ab836863b94a1bea8"
+          "sha256": "54e1d3c1c06d4ac4b2e26c67d79cbcab97966d3f03081ce3306fdab84b51cc76"
         },
         {
           "repositoryId": "rayx-cli",
@@ -1968,13 +1977,15 @@
           "sha256": "10a56f85921c89a26f5e848e8a6a26d6055508fe0397fdbdf0420a84a8845370"
         }
       ],
+      "deltaSummaryMarkdown": "Inspected `git diff fe0f8ed..HEAD -- src tests Cargo.toml README.md docs`: three test files only, no product code, Cargo.toml, README or docs change in that range. tests/release_automation.rs now reads the installer URL from src/setup/guest.rs, where `{RELEASES}/v{version}/` lives (confirmed in source), so the tag-form check is correct again. tests/guest_layer.rs and tests/setup_lima_sizing.rs normalise `\\` to `/` before matching `project/pins.rs` and the `df -k <lima home>` line; the assertions stay as strict (the one-Ubuntu-literal scan still rejects any hit outside pins.rs; the df target and LIMA_HOME precedence are still checked). The dispositions (MAN-4 deferred, t14-release-proof withdrawn) are unchanged. No criterion is weakened.",
+      "reattestedFrom": "8e73b8efb6144e587281983663cc85623c20ba0c85a222786995768f14477a2e",
       "summaryMarkdown": "Integrated review of the current code. All active criteria hold together: one Ubuntu literal (src/project/pins.rs, 24.04) with the WSL name and Lima template derived; the guest layer is shared by --wsl and --lima; records strip --check/--yes from stored flags; --check paths print or query read-only (a stopped distribution or VM is never started or entered); migration, refresh, removal and doctor only touch recorded guests (gpux untouched, proven on the Mac); no host sudo or host apt-get upgrade, no do-release-upgrade, no unversioned template:ubuntu; nothing is deleted without lima/wsl remove and a confirmation or --yes. git diff 0c2ff1f..HEAD shows no unexpected or forbidden files (Cargo.toml only moves serde_yaml_ng to normal dependencies). Reran guest_migration, guest_refresh, guest_repairs_flow and guest_repairs_safety (56 tests, all pass). Manual evidence: MAN-1/MAN-2 recorded with logs for this Mac (2026-10-14; the Linux rayx of the first create came from the release installer, a documented deviation, while RAYX_LIMA_BINARY ran in the refresh and migration rows), MAN-3 recorded as owner-run on Windows (2026-10-14). Dispositions acknowledged: MAN-4 deferred and t14-release-proof withdrawn match the owner's recorded choice, and the follow-up (the two deferred rows in docs/manual-verification.md) is concrete and needs a release that does not exist. Non-blocking observations for the coordinator: (1) doctor labels a guest NEWER than the pin as `outdated` (src/doctor/guests.rs state()), while the struct comment says older-than-pin; only reachable after a CLI downgrade; (2) a Lima migration that fails after creating the new VM leaves it unrecorded until the rerun finishes (the refresh reports the interrupted migration honestly, doctor shows only the retired VM); (3) a STOPPED unrecorded older `rayx` VM given --vm-* flags is edited before its Ubuntu is read; (4) at epic completion record the MAN-4 follow-up in .agentx/memory/knowledge/setup/state.md and promote d-guest-layer (it supersedes the 2026-10-14 WSL release-installer decision).",
       "acknowledgedDispositions": [
         "criterion:MAN-4",
         "task:t14-release-proof"
       ],
       "findingIds": [],
-      "recordedAt": "2026-10-14T18:05:44Z",
+      "recordedAt": "2026-10-14T18:47:08Z",
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "f5cc3b0116f9fddd4e50272f5ce1a3451eb43bdba6c3a1ce1fc67dfa59478bfa"
       }
