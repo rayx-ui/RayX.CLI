@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-versions",
-  "revision": 35,
+  "revision": 44,
   "planRevision": 1,
   "specHashes": {
     "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
@@ -41,17 +41,17 @@
       ]
     },
     "t06-docs": {
-      "status": "implemented",
+      "status": "done",
       "workerIds": [
         "claude-impl-91b31a6e"
       ]
     },
     "t07-mac-proof": {
-      "status": "blocked",
+      "status": "done",
       "workerIds": [
-        "claude-impl-91b31a6e"
-      ],
-      "blockerMarkdown": "Needs a real Mac: the real-VM proof with Lima on macOS cannot run on this Windows PC"
+        "claude-impl-91b31a6e",
+        "mac-claude-1015"
+      ]
     },
     "t08-release-proof": {
       "status": "pending"
@@ -93,6 +93,15 @@
         }
       },
       "recordedAt": "2026-10-14T22:20:30Z"
+    },
+    "d87884eabf9e3fda983915b3a70376522165cc698442e57f83dad4dedb52221b": {
+      "snapshot": {
+        "specHash": "a7930166344d2989a94ba045ddd41a3a7e1ca24bfcdf317453ce3d97ab5bde02",
+        "repositories": {
+          "rayx-cli": "8d3d35eaabf73c293762bdef5349d5919f8ab2094e2103d8275b750c6055c0f4"
+        }
+      },
+      "recordedAt": "2026-10-15T00:48:55Z"
     }
   },
   "checkResults": {
@@ -180,6 +189,23 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-versions/s3-named-vms-final-eaada9436f76.log",
       "logSha256": "2c5403d173e1c049e9eaa4582f2acefa5b5f7d5fee65bf076071b991bd16d841",
       "inputsHash": "fb85a88c4aee38204917bfdc535c06a6d091bb788fb2bfcb8519c04e1e941e99"
+    },
+    "s4-docs-mac-proof/check-readme-versions/final": {
+      "checkId": "check-readme-versions",
+      "boundaryId": "s4-docs-mac-proof",
+      "phase": "final",
+      "batchId": "d87884eabf9e3fda983915b3a70376522165cc698442e57f83dad4dedb52221b",
+      "definitionHash": "135efb483e5178e50de0083284773004de2813dbbfbe6bb60e0149b3d7dd3696",
+      "basisHash": "dfbb1f4e8361a887108dc2fd490ce13f293eefd424542656c14112ee5b006441",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 1.8656,
+      "recordedAt": "2026-10-15T00:44:01Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s4-docs-mac-proof-final-fff4d252b6ec.log",
+      "logSha256": "3f043391709738117969a34e62db61e6081c75fd24dfa8148ae391663b107838",
+      "inputsHash": "0a6a959156f60ffc172dbe75d8f75121b660ef39d495d7d889119ec65df8ac16"
     }
   },
   "reviews": {
@@ -496,6 +522,79 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "3277f06e422ec328e486d0dc69f2bf2c33883af09106873c15d9e226baf7a0c1"
       }
+    },
+    "s4-docs-mac-proof": {
+      "reviewerId": "reviewer-s4-indep-7f3a",
+      "snapshotId": "d87884eabf9e3fda983915b3a70376522165cc698442e57f83dad4dedb52221b",
+      "criterionIds": [
+        "DOCS-1",
+        "MAN-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "6d5849bffa61f9aa4045c49cf23dacca8073eb2d5e4df9989be6fea369e3ed85"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "8bbc7d251e7528f24961572a872d8645e576c57bc1b96cff720bbe897cfca2be"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_versions.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "db62e1a6858be24fc3176f077d5fefa59043e80f30ea7a889c85fa2ad592ca22"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-1"
+          ],
+          "sha256": "7615b72bb1708c10bb6d7143293f00d09098acee9e2082a4d3282da873a8b161"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-1"
+          ],
+          "sha256": "73e188637cc1ce8a43f7e8712ded838824a4b67944450d649b1b51ae13ca8fbf"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_module.rs",
+          "kind": "test",
+          "criterionIds": [
+            "MAN-1"
+          ],
+          "sha256": "1ac771560324622a93bc6aea995c9987fa3590261cc4e73c1db233fc5d0e9c45"
+        }
+      ],
+      "summaryMarkdown": "DOCS-1 holds: README.md matches the help text in src/cli.rs and the code's messages, and tests/readme_versions.rs (6 tests) covers the sections and --help. MAN-1 holds: every step of the criterion is backed by the retained logs; the earlier evidence gap is closed by the captured repeat of steps 6, 7 and 9 on fresh VMs (log 23: proj-a rayx 1.0.0, proj-b rayx 1.2.0, proj-b binary/apt history hashes, mtimes and boot time identical around the targeted update to 1.1.0, guests.json current), VM removals in log 24, and the doc states that the version lines of steps 10-14 were terminal-only with the commands' own output retained. The ba9a126 probe fix (src/release.rs, status via -w; 404/410 missing, other statuses and curl failures unknown) is correct with tests in tests/release_module.rs, callers unchanged, honestly described; only docs/manual-verification.md changed since.",
+      "findingIds": [
+        "s4-man1-evidence-not-retained"
+      ],
+      "recordedAt": "2026-10-15T00:49:27Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "44a176a0ffa30b34f6b6b3720de573d1f5ef01029eb7227d8c16776832290893"
+      }
     }
   },
   "checkpoints": {
@@ -522,6 +621,14 @@
       },
       "reviewHash": "25f75ba9daefb72a7f4d92354e50be9b96f35ebb2e3625b78d9229c5a405f9fe",
       "recordedAt": "2026-10-14T22:21:01Z"
+    },
+    "s4-docs-mac-proof": {
+      "snapshotId": "d87884eabf9e3fda983915b3a70376522165cc698442e57f83dad4dedb52221b",
+      "commits": {
+        "rayx-cli": "9f2e7b133c5a02c3ae3efc1f00c92647748fa31f"
+      },
+      "reviewHash": "1514bcabbba0e90cb95b8a102cae037374bb5c8dea965efbe3c5dc0b3b620af9",
+      "recordedAt": "2026-10-15T00:49:36Z"
     }
   },
   "findings": [
@@ -635,6 +742,22 @@
           "symbol": "run_with"
         }
       ]
+    },
+    {
+      "id": "s4-man1-evidence-not-retained",
+      "criterionIds": [
+        "MAN-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Version captures and the proj-b before/after comparison were not retained; now captured in 23-repeat-steps-6-9.log and cited by rows 6, 7 and 9 of the MAN-1 section, with the terminal-only remainder (steps 10-14) disclosed.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ],
+      "boundaryId": "s4-docs-mac-proof"
     }
   ],
   "handoffMarkdown": "",
