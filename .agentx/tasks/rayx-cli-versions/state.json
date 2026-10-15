@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-versions",
-  "revision": 46,
-  "planRevision": 1,
+  "revision": 56,
+  "planRevision": 2,
   "specHashes": {
-    "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
-    "design": "376a365593cd2b8249458e85028271c4add1f6430fc0b08bc286e3f4e3571eaa",
-    "plan": "eddfd568c140d03a054f90f8b0e328ba2495efe0be81f3eb93fcde23ba1a33bf"
+    "requirements": "65fb9ba0c370521cb8bc378e23ec6173d5674407c5b2ade018905a3249490532",
+    "design": "944e54ccd1cb0b184af6efdd7a6f799d33a81ef57f6421066d72150e9547d9fa",
+    "plan": "19e1f531674ae1a1c596c811b8b02d940afa8636ec93a0b3f056528114d38116"
   },
   "tasks": {
     "t01-release-module": {
@@ -59,6 +59,12 @@
         "mac-claude-1015"
       ],
       "blockerMarkdown": "Owner-run after a release that contains this epic: MAN-2 on the Mac and Windows, MAN-3 on the Windows PC"
+    },
+    "t09-release-probe": {
+      "status": "done",
+      "workerIds": [
+        "mac-claude-1015"
+      ]
     }
   },
   "validationBatches": {
@@ -106,6 +112,15 @@
         }
       },
       "recordedAt": "2026-10-15T00:48:55Z"
+    },
+    "253bd6044aeb33a76155a18142654ce4c0599a84602016305538c1df2afe8e8a": {
+      "snapshot": {
+        "specHash": "73c867a85b7432583af3da112ee4d1ed31c80483b976516c911aeea44bb47258",
+        "repositories": {
+          "rayx-cli": "c49800a7571ed26e4f8ddd10cf96a6813aa14cf5f72e3340af38c95eaf6806fc"
+        }
+      },
+      "recordedAt": "2026-10-15T01:08:14Z"
     }
   },
   "checkResults": {
@@ -210,6 +225,23 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-versions/s4-docs-mac-proof-final-fff4d252b6ec.log",
       "logSha256": "3f043391709738117969a34e62db61e6081c75fd24dfa8148ae391663b107838",
       "inputsHash": "0a6a959156f60ffc172dbe75d8f75121b660ef39d495d7d889119ec65df8ac16"
+    },
+    "s4b-release-probe-corrective/check-release-probe/final": {
+      "checkId": "check-release-probe",
+      "boundaryId": "s4b-release-probe-corrective",
+      "phase": "final",
+      "batchId": "253bd6044aeb33a76155a18142654ce4c0599a84602016305538c1df2afe8e8a",
+      "definitionHash": "17bfafcd3f3d763dd32ead6befc01eb5088d5fc6de961250237c96386c7cce40",
+      "basisHash": "974d52d22fde7a08962691903827f68c90f302aa4655bdfcfd2511cf74349318",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 10,
+      "durationSeconds": 0.13,
+      "recordedAt": "2026-10-15T01:08:14Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s4b-release-probe-corrective-final-cf13199aafe7.log",
+      "logSha256": "a9e5575261518da4c6aa862f72a5d6959f0080f807dad5a53d6145a1c62a5eaf",
+      "inputsHash": "dcfb1923340d56dc66963877a2fbe837117db5550ee7183bc3f9c30858e3cd39"
     }
   },
   "reviews": {
@@ -599,6 +631,43 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "44a176a0ffa30b34f6b6b3720de573d1f5ef01029eb7227d8c16776832290893"
       }
+    },
+    "s4b-release-probe-corrective": {
+      "reviewerId": "reviewer-s4b-indep-52d0",
+      "snapshotId": "253bd6044aeb33a76155a18142654ce4c0599a84602016305538c1df2afe8e8a",
+      "criterionIds": [
+        "REL-3"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REL-3"
+          ],
+          "sha256": "55ae9a2dc9f7081f3002fbab5738abfa2cbb903aac5bcf79a0a091ec1298e317"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_probe.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REL-3"
+          ],
+          "sha256": "4006d5c860034abec6e5332ce85570895c9d99e0235d378bbf7eb883daae027a"
+        }
+      ],
+      "summaryMarkdown": "REL-3 holds in commit c380ec1. `release::exists` runs exactly `curl --proto =https --tlsv1.2 -sIL -w '\\nstatus=%{http_code}\\n' <url>` through `Runner::query`, with no `-f`; the last `status=` line wins. A 2xx with exit 0 is Exists. A 404 or 410 is Missing under any exit code. Any other status of 100 or more now reports `the server answered HTTP <status>` whatever curl's exit code is. A 2xx under a failing curl and a failure without a status (including a signal) report `curl exited with <code>`. `tests/release_probe.rs` (10 tests) covers every REL-3 obligation, including the new 403/503 under exits 0, 22 and 56; `tests/release_module.rs` keeps names, ordering, URL and the refresh floor. Callers `update::run_release` and `guest::plan_release` keep REL-2's messages and exit 1 before any change. Arguments are a plain argv, so Windows `curl.exe` gets them unchanged (not executed on Windows; MAN-2 stays owner-run). A live curl 8.7.1 probe of a missing tag gave status=404 with exit 0. Requirement and design text and the memory records match the code. F-s4b-1 (stale test-file name in docs/manual-verification.md) and F-s4b-2 (reason wording) are resolved.",
+      "findingIds": [
+        "F-s4b-1",
+        "F-s4b-2"
+      ],
+      "recordedAt": "2026-10-15T01:08:28Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "02c944736592025155d0ecbb90ad612545993a3e31f6dbc0cb6a686de607bff1"
+      }
     }
   },
   "checkpoints": {
@@ -633,6 +702,14 @@
       },
       "reviewHash": "1514bcabbba0e90cb95b8a102cae037374bb5c8dea965efbe3c5dc0b3b620af9",
       "recordedAt": "2026-10-15T00:49:36Z"
+    },
+    "s4b-release-probe-corrective": {
+      "snapshotId": "253bd6044aeb33a76155a18142654ce4c0599a84602016305538c1df2afe8e8a",
+      "commits": {
+        "rayx-cli": "c380ec120216f3cc2bafef3a1c5961be0aa3e743"
+      },
+      "reviewHash": "643d380281e64aeea807b251d186a9ea67dda6a02c3fea543ae20b5ac656789d",
+      "recordedAt": "2026-10-15T01:08:38Z"
     }
   },
   "findings": [
@@ -762,6 +839,44 @@
         }
       ],
       "boundaryId": "s4-docs-mac-proof"
+    },
+    {
+      "id": "F-s4b-1",
+      "criterionIds": [
+        "REL-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "docs/manual-verification.md (Findings fixed while verifying, MAN-1) still says the probe fix 'extended `tests/release_module.rs`: a 404 under exit 0, 22 and 56, and 403, 429, 500 and 503'. Commit 0893059 moved those tests to `tests/release_probe.rs`, so the pointer is stale. Repair: name `tests/release_probe.rs` there. Documentation only; REL-3 behaviour and tests are unaffected.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ],
+      "boundaryId": "s4b-release-probe-corrective"
+    },
+    {
+      "id": "F-s4b-2",
+      "criterionIds": [
+        "REL-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Reason wording for a non-404/410 status under a failing curl. REL-3 and d-release-status say any other status is `Unknown('the server answered HTTP <status>')`, but `release::exists` only produces that reason when curl exited 0. With a status such as 503 and a non-zero exit (for example 22 or 56) the `(Some(code), _)` arm yields `curl exited with <code>` and drops the status; `another_http_status_is_unknown...` only drives exit 0. The outcome (Unknown, exit 1 before any change) is correct and REL-3 names both reason forms, but the text and the code disagree and nothing pins the behaviour. Repair (either): in `exists` prefer the status reason whenever a status of 100 or more was read, or amend REL-3/d-release-status to say the reason is the exit code whenever curl failed, and add a test pinning the choice (a 503 under exit 22 and 56).",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "symbol": "exists"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_probe.rs",
+          "symbol": "another_http_status_is_reported_as_the_status_whatever_exit_code_curl_ends_with"
+        }
+      ],
+      "boundaryId": "s4b-release-probe-corrective"
     }
   ],
   "handoffMarkdown": "",

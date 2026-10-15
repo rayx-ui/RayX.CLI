@@ -1,646 +1,714 @@
 {
- "schemaVersion": 7,
- "epicId": "rayx-cli-versions",
- "revision": 1,
- "title": "Choose the rayx release to install and the VM to target: self update --release, guest --release, named VMs and targeted updates",
- "validationMode": "sprint",
- "repositories": [
-  {
-   "id": "rayx-cli",
-   "path": ".",
-   "role": "execution"
-  }
- ],
- "boundaries": {
-  "repositoryIds": [
-   "rayx-cli"
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-versions",
+  "revision": 2,
+  "title": "Choose the rayx release to install and the VM to target: self update --release, guest --release, named VMs and targeted updates",
+  "validationMode": "sprint",
+  "repositories": [
+    {
+      "id": "rayx-cli",
+      "path": ".",
+      "role": "execution"
+    }
   ],
-  "forbiddenPaths": [
-   ".agentx/tasks/rayx-cli-foundation/**",
-   ".agentx/tasks/rayx-cli-releases/**",
-   ".agentx/tasks/rayx-cli-guests/**",
-   ".github/workflows/release.yml",
-   "dist-workspace.toml"
+  "boundaries": {
+    "repositoryIds": [
+      "rayx-cli"
+    ],
+    "forbiddenPaths": [
+      ".agentx/tasks/rayx-cli-foundation/**",
+      ".agentx/tasks/rayx-cli-releases/**",
+      ".agentx/tasks/rayx-cli-guests/**",
+      ".github/workflows/release.yml",
+      "dist-workspace.toml"
+    ]
+  },
+  "recordPaths": [
+    "docs/manual-verification.md"
+  ],
+  "checks": [
+    {
+      "id": "check-release-module",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REL-1",
+        "REL-2"
+      ],
+      "descriptionMarkdown": "New group `tests/release_module.rs`: release names, ordering, the installer URL, `MIN_REFRESH_RELEASE`, the existence probe's command line and outcomes.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "release_module"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/release_module.rs"
+      ]
+    },
+    {
+      "id": "check-self-update-release",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SU-1",
+        "SU-2",
+        "SU-3"
+      ],
+      "descriptionMarkdown": "New group `tests/self_update_release.rs`: `--release` installs, directions, missing release, no receipt, `--check`, the downgrade question in all its forms, nothing remembered, the refresh offer rules.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "self_update_release"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 10
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/self_update_release.rs"
+      ]
+    },
+    {
+      "id": "check-guest-release",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "GR-1",
+        "GR-2",
+        "GR-3",
+        "GR-4"
+      ],
+      "descriptionMarkdown": "New group `tests/guest_release.rs`: the guest install of a chosen release for Lima and WSL, the existence probe before any change, the guest downgrade question, the refresh to a release with and without the inner update, nothing recorded.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_release"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 10
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_release.rs"
+      ]
+    },
+    {
+      "id": "check-vm-names",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "VM-1",
+        "VM-2",
+        "VM-3",
+        "VM-5"
+      ],
+      "descriptionMarkdown": "New group `tests/lima_named_vms.rs`: named create, shell commands and records, name rules, never-adopt, edit/migration/resume/removal/doctor for non-default names, two independent VMs.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "lima_named_vms"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 10
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/lima_named_vms.rs"
+      ]
+    },
+    {
+      "id": "check-update-target",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "VM-4"
+      ],
+      "descriptionMarkdown": "New group `tests/update_target_vm.rs`: `setup --update --vm` refreshes only the named guests, repeatable, unknown names, host part skipped, `--check`, combination with `--release`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "update_target_vm"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/update_target_vm.rs"
+      ]
+    },
+    {
+      "id": "check-readme-versions",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "DOCS-1"
+      ],
+      "descriptionMarkdown": "New group `tests/readme_versions.rs`: README sections for every new flag and the `--help` of `setup` and `self update`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "readme_versions"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/readme_versions.rs",
+        "README.md"
+      ]
+    },
+    {
+      "id": "final-fmt",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "REL-1",
+        "VM-1"
+      ],
+      "descriptionMarkdown": "`cargo fmt --check` for the package.",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "final-clippy",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "SU-1",
+        "GR-1",
+        "VM-3"
+      ],
+      "descriptionMarkdown": "`cargo clippy --all-targets -- -D warnings`.",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "final-touched-tests",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SU-1",
+        "GR-1",
+        "VM-1",
+        "VM-3",
+        "VM-4"
+      ],
+      "descriptionMarkdown": "The groups the epic added and every existing group that exercises the code it changes (self update, the guest layer, Lima, records, refresh, migration, removal, doctor, WSL, CLI surface, release automation). Not the whole suite: the epic changes `update`, `release`, `setup::{guest,lima,migrate,refresh,remove,update,wsl}` and `cli`, none of which the app-pipeline groups touch.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "release_module",
+        "--test",
+        "self_update_release",
+        "--test",
+        "guest_release",
+        "--test",
+        "lima_named_vms",
+        "--test",
+        "update_target_vm",
+        "--test",
+        "readme_versions",
+        "--test",
+        "self_update",
+        "--test",
+        "self_update_refresh",
+        "--test",
+        "guest_layer",
+        "--test",
+        "setup_lima",
+        "--test",
+        "setup_lima_sizing",
+        "--test",
+        "setup_lima_edit",
+        "--test",
+        "guest_records",
+        "--test",
+        "setup_update",
+        "--test",
+        "guest_refresh",
+        "--test",
+        "guest_migration",
+        "--test",
+        "guest_remove",
+        "--test",
+        "guest_repairs_flow",
+        "--test",
+        "guest_repairs_safety",
+        "--test",
+        "readme_guests",
+        "--test",
+        "release_automation",
+        "--test",
+        "wsl_plan",
+        "--test",
+        "wsl_install",
+        "--test",
+        "wsl_disk",
+        "--test",
+        "doctor",
+        "--test",
+        "cli_surface"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 200
+      }
+    },
+    {
+      "id": "check-release-probe",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REL-3"
+      ],
+      "descriptionMarkdown": "New group `tests/release_probe.rs`: the existence probe's command line and its outcomes by HTTP status and curl exit code.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "release_probe"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/release_probe.rs"
+      ]
+    }
+  ],
+  "finalCheckIds": [
+    "final-fmt",
+    "final-clippy",
+    "final-touched-tests"
+  ],
+  "sprints": [
+    {
+      "id": "s1-release-core",
+      "title": "Release names, the existence probe and rayx self update --release",
+      "dependsOn": [],
+      "memoryScopes": [
+        "setup",
+        "distribution"
+      ],
+      "checkIds": [
+        "check-release-module",
+        "check-self-update-release"
+      ],
+      "tasks": [
+        {
+          "id": "t01-release-module",
+          "title": "The release module and the installer URL it owns",
+          "descriptionMarkdown": "Create `src/release.rs` (parse, direction, installer URL, `MIN_REFRESH_RELEASE`, `exists` over curl through the Runner), export it from `lib.rs`, and make `setup::guest` use it for the installer URL. Keep `tests/release_automation.rs` pointing at the file that owns the `{RELEASES}/v{version}/` form. Write `tests/release_module.rs`.",
+          "criterionIds": [
+            "REL-1",
+            "REL-2"
+          ],
+          "designIds": [
+            "d-release-module"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-release-module"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/guest.rs",
+              "symbol": "RELEASES"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/lib.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/release_automation.rs"
+            }
+          ]
+        },
+        {
+          "id": "t02-self-update-release",
+          "title": "rayx self update --release with downgrade confirmation",
+          "descriptionMarkdown": "Add `--release` to `SelfCommand::Update`, `install_release` to the backend (real: axoupdater specific version with `always_update`), the direction logic, the downgrade question, the receipt rule, `--check --release`, and the refresh-offer rule (`>= MIN_REFRESH_RELEASE`). Write `tests/self_update_release.rs` with the fake backend.",
+          "criterionIds": [
+            "SU-1",
+            "SU-2",
+            "SU-3"
+          ],
+          "designIds": [
+            "d-self-update-release"
+          ],
+          "dependsOn": [
+            "t01-release-module"
+          ],
+          "checkIds": [
+            "check-self-update-release"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/update.rs",
+              "symbol": "run_with_refresh"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/cli.rs",
+              "symbol": "SelfCommand"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/lib.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2-guest-release",
+      "title": "Choosing the rayx release in guests",
+      "dependsOn": [
+        "s1-release-core"
+      ],
+      "memoryScopes": [
+        "setup"
+      ],
+      "checkIds": [
+        "check-guest-release"
+      ],
+      "tasks": [
+        {
+          "id": "t03-guest-release",
+          "title": "--release for setup --lima/--wsl and setup --update",
+          "descriptionMarkdown": "Add `--release` to `SetupArgs` with its clap rules, thread the chosen release into `LinuxBinary` for Lima setup, WSL setup, migration restores and the refresh, probe existence before any change, ask the guest downgrade question, skip the inner update below `MIN_REFRESH_RELEASE`, refuse the combination with `RAYX_*_BINARY`. Write `tests/guest_release.rs`.",
+          "criterionIds": [
+            "GR-1",
+            "GR-2",
+            "GR-3",
+            "GR-4"
+          ],
+          "designIds": [
+            "d-guest-release"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-guest-release"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/cli.rs",
+              "symbol": "SetupArgs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/guest.rs",
+              "symbol": "ensure_linux_binary"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/refresh.rs",
+              "symbol": "refresh_inside"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/lima/mod.rs",
+              "symbol": "run_with"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/wsl.rs",
+              "symbol": "run_with"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3-named-vms",
+      "title": "One VM per project: names and targeted updates",
+      "dependsOn": [
+        "s2-guest-release"
+      ],
+      "memoryScopes": [
+        "setup"
+      ],
+      "checkIds": [
+        "check-vm-names",
+        "check-update-target"
+      ],
+      "tasks": [
+        {
+          "id": "t04-vm-names",
+          "title": "Named Lima VMs through create, edit, migration, refresh, removal and doctor",
+          "descriptionMarkdown": "Introduce `VmName` and `--vm`, thread the name through every place that used the fixed instance name, refuse unrecorded existing names, generalise the migration names and the resume detection, keep the default name's behaviour byte-for-byte. Write `tests/lima_named_vms.rs`.",
+          "criterionIds": [
+            "VM-1",
+            "VM-2",
+            "VM-3",
+            "VM-5"
+          ],
+          "designIds": [
+            "d-named-vms"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-vm-names"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/lima/mod.rs",
+              "symbol": "INSTANCE"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/migrate.rs",
+              "symbol": "pending_lima"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/refresh.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/remove.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/doctor/guests.rs"
+            }
+          ]
+        },
+        {
+          "id": "t05-update-target",
+          "title": "setup --update --vm targets named guests",
+          "descriptionMarkdown": "Add the target filter to `setup::update::run` and `refresh_guests`, validate names before any command, skip the host part with a target, combine with `--release`. Write `tests/update_target_vm.rs`.",
+          "criterionIds": [
+            "VM-4"
+          ],
+          "designIds": [
+            "d-update-target"
+          ],
+          "dependsOn": [
+            "t04-vm-names"
+          ],
+          "checkIds": [
+            "check-update-target"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/update.rs",
+              "symbol": "run"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/setup/refresh.rs",
+              "symbol": "refresh_guests"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/cli.rs",
+              "symbol": "SetupArgs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4-docs-mac-proof",
+      "title": "README and the real-VM proof on this Mac",
+      "dependsOn": [
+        "s3-named-vms"
+      ],
+      "memoryScopes": [
+        "setup"
+      ],
+      "checkIds": [
+        "check-readme-versions"
+      ],
+      "tasks": [
+        {
+          "id": "t06-docs",
+          "title": "README and help text",
+          "descriptionMarkdown": "Document every new option in `README.md` and make the help of the new flags precise. Write `tests/readme_versions.rs`.",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "designIds": [
+            "d-self-update-release",
+            "d-guest-release",
+            "d-named-vms"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-readme-versions"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "README.md"
+            }
+          ]
+        },
+        {
+          "id": "t07-mac-proof",
+          "title": "Real Lima on this Mac: two named VMs, chosen releases, targeted update",
+          "descriptionMarkdown": "On this Mac, leaving the owner's `gpux` VM untouched, with a local release build and the published 1.0.0 and 1.1.0: run MAN-1 (answers to prompts through a pseudo-terminal where a question is part of the check; `--yes` for the unattended apt steps), remove the test VMs and the temporary records at the end, and record each step with date and result in `docs/manual-verification.md`; raw logs under `artifacts-temp/agentx/rayx-cli-versions/`. Any defect found is repaired in the owning task's code with its test group extended.",
+          "criterionIds": [
+            "MAN-1"
+          ],
+          "designIds": [
+            "d-named-vms",
+            "d-guest-release",
+            "d-update-target"
+          ],
+          "dependsOn": [
+            "t06-docs"
+          ],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/manual-verification.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4b-release-probe-corrective",
+      "title": "Corrective: the release probe reads the HTTP status",
+      "dependsOn": [
+        "s4-docs-mac-proof"
+      ],
+      "memoryScopes": [
+        "setup",
+        "distribution"
+      ],
+      "checkIds": [
+        "check-release-probe"
+      ],
+      "tasks": [
+        {
+          "id": "t09-release-probe",
+          "title": "Read the HTTP status to tell a missing release from a failed probe",
+          "descriptionMarkdown": "Corrective for REL-2 (commit ba9a126, found by MAN-1 on the Mac): `release::exists` runs `curl -sIL -w` and reads the final status. Own the behaviour in the new group `tests/release_probe.rs` (the status tests move there from `tests/release_module.rs`, which keeps names, ordering, the URL and the constant). Record the corrective in the memory of the distribution and setup domains.",
+          "criterionIds": [
+            "REL-3"
+          ],
+          "designIds": [
+            "d-release-status"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-release-probe"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/release.rs",
+              "symbol": "exists"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/release_module.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s5-owner-after-release",
+      "title": "Owner-run after the release: self update --release on Mac and Windows, WSL --release",
+      "dependsOn": [
+        "s4b-release-probe-corrective"
+      ],
+      "memoryScopes": [
+        "setup",
+        "distribution"
+      ],
+      "checkIds": [],
+      "tasks": [
+        {
+          "id": "t08-release-proof",
+          "title": "self update --release and the refresh offer from real releases; WSL --release on Windows",
+          "descriptionMarkdown": "Owner-run after release-plz and dist publish the first release containing this epic (MAN-2 on the Mac and on Windows, MAN-3 on the Windows PC); results recorded in `docs/manual-verification.md`. If the release is not out when the rest of the epic is done, the owner decides whether MAN-2 and MAN-3 are deferred to a follow-up.",
+          "criterionIds": [
+            "MAN-2",
+            "MAN-3"
+          ],
+          "designIds": [
+            "d-self-update-release",
+            "d-guest-release"
+          ],
+          "dependsOn": [],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/manual-verification.md"
+            }
+          ]
+        }
+      ]
+    }
   ]
- },
- "recordPaths": [
-  "docs/manual-verification.md"
- ],
- "checks": [
-  {
-   "id": "check-release-module",
-   "repositoryId": "rayx-cli",
-   "kind": "test",
-   "criterionIds": [
-    "REL-1",
-    "REL-2"
-   ],
-   "descriptionMarkdown": "New group `tests/release_module.rs`: release names, ordering, the installer URL, `MIN_REFRESH_RELEASE`, the existence probe's command line and outcomes.",
-   "argv": [
-    "cargo",
-    "test",
-    "--test",
-    "release_module"
-   ],
-   "expected": {
-    "exitCode": 0,
-    "minimumTests": 6
-   },
-   "inputs": [
-    "Cargo.toml",
-    "Cargo.lock",
-    "src/**",
-    "tests/common/**",
-    "tests/release_module.rs"
-   ]
-  },
-  {
-   "id": "check-self-update-release",
-   "repositoryId": "rayx-cli",
-   "kind": "test",
-   "criterionIds": [
-    "SU-1",
-    "SU-2",
-    "SU-3"
-   ],
-   "descriptionMarkdown": "New group `tests/self_update_release.rs`: `--release` installs, directions, missing release, no receipt, `--check`, the downgrade question in all its forms, nothing remembered, the refresh offer rules.",
-   "argv": [
-    "cargo",
-    "test",
-    "--test",
-    "self_update_release"
-   ],
-   "expected": {
-    "exitCode": 0,
-    "minimumTests": 10
-   },
-   "inputs": [
-    "Cargo.toml",
-    "Cargo.lock",
-    "src/**",
-    "tests/common/**",
-    "tests/self_update_release.rs"
-   ]
-  },
-  {
-   "id": "check-guest-release",
-   "repositoryId": "rayx-cli",
-   "kind": "test",
-   "criterionIds": [
-    "GR-1",
-    "GR-2",
-    "GR-3",
-    "GR-4"
-   ],
-   "descriptionMarkdown": "New group `tests/guest_release.rs`: the guest install of a chosen release for Lima and WSL, the existence probe before any change, the guest downgrade question, the refresh to a release with and without the inner update, nothing recorded.",
-   "argv": [
-    "cargo",
-    "test",
-    "--test",
-    "guest_release"
-   ],
-   "expected": {
-    "exitCode": 0,
-    "minimumTests": 10
-   },
-   "inputs": [
-    "Cargo.toml",
-    "Cargo.lock",
-    "src/**",
-    "tests/common/**",
-    "tests/guest_release.rs"
-   ]
-  },
-  {
-   "id": "check-vm-names",
-   "repositoryId": "rayx-cli",
-   "kind": "test",
-   "criterionIds": [
-    "VM-1",
-    "VM-2",
-    "VM-3",
-    "VM-5"
-   ],
-   "descriptionMarkdown": "New group `tests/lima_named_vms.rs`: named create, shell commands and records, name rules, never-adopt, edit/migration/resume/removal/doctor for non-default names, two independent VMs.",
-   "argv": [
-    "cargo",
-    "test",
-    "--test",
-    "lima_named_vms"
-   ],
-   "expected": {
-    "exitCode": 0,
-    "minimumTests": 10
-   },
-   "inputs": [
-    "Cargo.toml",
-    "Cargo.lock",
-    "src/**",
-    "tests/common/**",
-    "tests/lima_named_vms.rs"
-   ]
-  },
-  {
-   "id": "check-update-target",
-   "repositoryId": "rayx-cli",
-   "kind": "test",
-   "criterionIds": [
-    "VM-4"
-   ],
-   "descriptionMarkdown": "New group `tests/update_target_vm.rs`: `setup --update --vm` refreshes only the named guests, repeatable, unknown names, host part skipped, `--check`, combination with `--release`.",
-   "argv": [
-    "cargo",
-    "test",
-    "--test",
-    "update_target_vm"
-   ],
-   "expected": {
-    "exitCode": 0,
-    "minimumTests": 6
-   },
-   "inputs": [
-    "Cargo.toml",
-    "Cargo.lock",
-    "src/**",
-    "tests/common/**",
-    "tests/update_target_vm.rs"
-   ]
-  },
-  {
-   "id": "check-readme-versions",
-   "repositoryId": "rayx-cli",
-   "kind": "test",
-   "criterionIds": [
-    "DOCS-1"
-   ],
-   "descriptionMarkdown": "New group `tests/readme_versions.rs`: README sections for every new flag and the `--help` of `setup` and `self update`.",
-   "argv": [
-    "cargo",
-    "test",
-    "--test",
-    "readme_versions"
-   ],
-   "expected": {
-    "exitCode": 0,
-    "minimumTests": 4
-   },
-   "inputs": [
-    "Cargo.toml",
-    "Cargo.lock",
-    "src/**",
-    "tests/common/**",
-    "tests/readme_versions.rs",
-    "README.md"
-   ]
-  },
-  {
-   "id": "final-fmt",
-   "repositoryId": "rayx-cli",
-   "kind": "static",
-   "criterionIds": [
-    "REL-1",
-    "VM-1"
-   ],
-   "descriptionMarkdown": "`cargo fmt --check` for the package.",
-   "argv": [
-    "cargo",
-    "fmt",
-    "--check"
-   ],
-   "expected": {
-    "exitCode": 0
-   }
-  },
-  {
-   "id": "final-clippy",
-   "repositoryId": "rayx-cli",
-   "kind": "static",
-   "criterionIds": [
-    "SU-1",
-    "GR-1",
-    "VM-3"
-   ],
-   "descriptionMarkdown": "`cargo clippy --all-targets -- -D warnings`.",
-   "argv": [
-    "cargo",
-    "clippy",
-    "--all-targets",
-    "--",
-    "-D",
-    "warnings"
-   ],
-   "expected": {
-    "exitCode": 0
-   }
-  },
-  {
-   "id": "final-touched-tests",
-   "repositoryId": "rayx-cli",
-   "kind": "test",
-   "criterionIds": [
-    "SU-1",
-    "GR-1",
-    "VM-1",
-    "VM-3",
-    "VM-4"
-   ],
-   "descriptionMarkdown": "The groups the epic added and every existing group that exercises the code it changes (self update, the guest layer, Lima, records, refresh, migration, removal, doctor, WSL, CLI surface, release automation). Not the whole suite: the epic changes `update`, `release`, `setup::{guest,lima,migrate,refresh,remove,update,wsl}` and `cli`, none of which the app-pipeline groups touch.",
-   "argv": [
-    "cargo",
-    "test",
-    "--test",
-    "release_module",
-    "--test",
-    "self_update_release",
-    "--test",
-    "guest_release",
-    "--test",
-    "lima_named_vms",
-    "--test",
-    "update_target_vm",
-    "--test",
-    "readme_versions",
-    "--test",
-    "self_update",
-    "--test",
-    "self_update_refresh",
-    "--test",
-    "guest_layer",
-    "--test",
-    "setup_lima",
-    "--test",
-    "setup_lima_sizing",
-    "--test",
-    "setup_lima_edit",
-    "--test",
-    "guest_records",
-    "--test",
-    "setup_update",
-    "--test",
-    "guest_refresh",
-    "--test",
-    "guest_migration",
-    "--test",
-    "guest_remove",
-    "--test",
-    "guest_repairs_flow",
-    "--test",
-    "guest_repairs_safety",
-    "--test",
-    "readme_guests",
-    "--test",
-    "release_automation",
-    "--test",
-    "wsl_plan",
-    "--test",
-    "wsl_install",
-    "--test",
-    "wsl_disk",
-    "--test",
-    "doctor",
-    "--test",
-    "cli_surface"
-   ],
-   "expected": {
-    "exitCode": 0,
-    "minimumTests": 200
-   }
-  }
- ],
- "finalCheckIds": [
-  "final-fmt",
-  "final-clippy",
-  "final-touched-tests"
- ],
- "sprints": [
-  {
-   "id": "s1-release-core",
-   "title": "Release names, the existence probe and rayx self update --release",
-   "dependsOn": [],
-   "memoryScopes": [
-    "setup",
-    "distribution"
-   ],
-   "checkIds": [
-    "check-release-module",
-    "check-self-update-release"
-   ],
-   "tasks": [
-    {
-     "id": "t01-release-module",
-     "title": "The release module and the installer URL it owns",
-     "descriptionMarkdown": "Create `src/release.rs` (parse, direction, installer URL, `MIN_REFRESH_RELEASE`, `exists` over curl through the Runner), export it from `lib.rs`, and make `setup::guest` use it for the installer URL. Keep `tests/release_automation.rs` pointing at the file that owns the `{RELEASES}/v{version}/` form. Write `tests/release_module.rs`.",
-     "criterionIds": [
-      "REL-1",
-      "REL-2"
-     ],
-     "designIds": [
-      "d-release-module"
-     ],
-     "dependsOn": [],
-     "checkIds": [
-      "check-release-module"
-     ],
-     "sourceRefs": [
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/guest.rs",
-       "symbol": "RELEASES"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/lib.rs"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "tests/release_automation.rs"
-      }
-     ]
-    },
-    {
-     "id": "t02-self-update-release",
-     "title": "rayx self update --release with downgrade confirmation",
-     "descriptionMarkdown": "Add `--release` to `SelfCommand::Update`, `install_release` to the backend (real: axoupdater specific version with `always_update`), the direction logic, the downgrade question, the receipt rule, `--check --release`, and the refresh-offer rule (`>= MIN_REFRESH_RELEASE`). Write `tests/self_update_release.rs` with the fake backend.",
-     "criterionIds": [
-      "SU-1",
-      "SU-2",
-      "SU-3"
-     ],
-     "designIds": [
-      "d-self-update-release"
-     ],
-     "dependsOn": [
-      "t01-release-module"
-     ],
-     "checkIds": [
-      "check-self-update-release"
-     ],
-     "sourceRefs": [
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/update.rs",
-       "symbol": "run_with_refresh"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/cli.rs",
-       "symbol": "SelfCommand"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/lib.rs"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "s2-guest-release",
-   "title": "Choosing the rayx release in guests",
-   "dependsOn": [
-    "s1-release-core"
-   ],
-   "memoryScopes": [
-    "setup"
-   ],
-   "checkIds": [
-    "check-guest-release"
-   ],
-   "tasks": [
-    {
-     "id": "t03-guest-release",
-     "title": "--release for setup --lima/--wsl and setup --update",
-     "descriptionMarkdown": "Add `--release` to `SetupArgs` with its clap rules, thread the chosen release into `LinuxBinary` for Lima setup, WSL setup, migration restores and the refresh, probe existence before any change, ask the guest downgrade question, skip the inner update below `MIN_REFRESH_RELEASE`, refuse the combination with `RAYX_*_BINARY`. Write `tests/guest_release.rs`.",
-     "criterionIds": [
-      "GR-1",
-      "GR-2",
-      "GR-3",
-      "GR-4"
-     ],
-     "designIds": [
-      "d-guest-release"
-     ],
-     "dependsOn": [],
-     "checkIds": [
-      "check-guest-release"
-     ],
-     "sourceRefs": [
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/cli.rs",
-       "symbol": "SetupArgs"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/guest.rs",
-       "symbol": "ensure_linux_binary"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/refresh.rs",
-       "symbol": "refresh_inside"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/lima/mod.rs",
-       "symbol": "run_with"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/wsl.rs",
-       "symbol": "run_with"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "s3-named-vms",
-   "title": "One VM per project: names and targeted updates",
-   "dependsOn": [
-    "s2-guest-release"
-   ],
-   "memoryScopes": [
-    "setup"
-   ],
-   "checkIds": [
-    "check-vm-names",
-    "check-update-target"
-   ],
-   "tasks": [
-    {
-     "id": "t04-vm-names",
-     "title": "Named Lima VMs through create, edit, migration, refresh, removal and doctor",
-     "descriptionMarkdown": "Introduce `VmName` and `--vm`, thread the name through every place that used the fixed instance name, refuse unrecorded existing names, generalise the migration names and the resume detection, keep the default name's behaviour byte-for-byte. Write `tests/lima_named_vms.rs`.",
-     "criterionIds": [
-      "VM-1",
-      "VM-2",
-      "VM-3",
-      "VM-5"
-     ],
-     "designIds": [
-      "d-named-vms"
-     ],
-     "dependsOn": [],
-     "checkIds": [
-      "check-vm-names"
-     ],
-     "sourceRefs": [
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/lima/mod.rs",
-       "symbol": "INSTANCE"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/migrate.rs",
-       "symbol": "pending_lima"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/refresh.rs"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/remove.rs"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/doctor/guests.rs"
-      }
-     ]
-    },
-    {
-     "id": "t05-update-target",
-     "title": "setup --update --vm targets named guests",
-     "descriptionMarkdown": "Add the target filter to `setup::update::run` and `refresh_guests`, validate names before any command, skip the host part with a target, combine with `--release`. Write `tests/update_target_vm.rs`.",
-     "criterionIds": [
-      "VM-4"
-     ],
-     "designIds": [
-      "d-update-target"
-     ],
-     "dependsOn": [
-      "t04-vm-names"
-     ],
-     "checkIds": [
-      "check-update-target"
-     ],
-     "sourceRefs": [
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/update.rs",
-       "symbol": "run"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/setup/refresh.rs",
-       "symbol": "refresh_guests"
-      },
-      {
-       "repositoryId": "rayx-cli",
-       "path": "src/cli.rs",
-       "symbol": "SetupArgs"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "s4-docs-mac-proof",
-   "title": "README and the real-VM proof on this Mac",
-   "dependsOn": [
-    "s3-named-vms"
-   ],
-   "memoryScopes": [
-    "setup"
-   ],
-   "checkIds": [
-    "check-readme-versions"
-   ],
-   "tasks": [
-    {
-     "id": "t06-docs",
-     "title": "README and help text",
-     "descriptionMarkdown": "Document every new option in `README.md` and make the help of the new flags precise. Write `tests/readme_versions.rs`.",
-     "criterionIds": [
-      "DOCS-1"
-     ],
-     "designIds": [
-      "d-self-update-release",
-      "d-guest-release",
-      "d-named-vms"
-     ],
-     "dependsOn": [],
-     "checkIds": [
-      "check-readme-versions"
-     ],
-     "sourceRefs": [
-      {
-       "repositoryId": "rayx-cli",
-       "path": "README.md"
-      }
-     ]
-    },
-    {
-     "id": "t07-mac-proof",
-     "title": "Real Lima on this Mac: two named VMs, chosen releases, targeted update",
-     "descriptionMarkdown": "On this Mac, leaving the owner's `gpux` VM untouched, with a local release build and the published 1.0.0 and 1.1.0: run MAN-1 (answers to prompts through a pseudo-terminal where a question is part of the check; `--yes` for the unattended apt steps), remove the test VMs and the temporary records at the end, and record each step with date and result in `docs/manual-verification.md`; raw logs under `artifacts-temp/agentx/rayx-cli-versions/`. Any defect found is repaired in the owning task's code with its test group extended.",
-     "criterionIds": [
-      "MAN-1"
-     ],
-     "designIds": [
-      "d-named-vms",
-      "d-guest-release",
-      "d-update-target"
-     ],
-     "dependsOn": [
-      "t06-docs"
-     ],
-     "checkIds": [],
-     "sourceRefs": [
-      {
-       "repositoryId": "rayx-cli",
-       "path": "docs/manual-verification.md"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "id": "s5-owner-after-release",
-   "title": "Owner-run after the release: self update --release on Mac and Windows, WSL --release",
-   "dependsOn": [
-    "s4-docs-mac-proof"
-   ],
-   "memoryScopes": [
-    "setup",
-    "distribution"
-   ],
-   "checkIds": [],
-   "tasks": [
-    {
-     "id": "t08-release-proof",
-     "title": "self update --release and the refresh offer from real releases; WSL --release on Windows",
-     "descriptionMarkdown": "Owner-run after release-plz and dist publish the first release containing this epic (MAN-2 on the Mac and on Windows, MAN-3 on the Windows PC); results recorded in `docs/manual-verification.md`. If the release is not out when the rest of the epic is done, the owner decides whether MAN-2 and MAN-3 are deferred to a follow-up.",
-     "criterionIds": [
-      "MAN-2",
-      "MAN-3"
-     ],
-     "designIds": [
-      "d-self-update-release",
-      "d-guest-release"
-     ],
-     "dependsOn": [],
-     "checkIds": [],
-     "sourceRefs": [
-      {
-       "repositoryId": "rayx-cli",
-       "path": "docs/manual-verification.md"
-      }
-     ]
-    }
-   ]
-  }
- ]
 }
