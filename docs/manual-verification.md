@@ -129,7 +129,14 @@ from `cargo build --release`), the published `1.0.0`, `1.1.0` and `1.2.0` releas
 earlier epic) ran the whole time and were never started, stopped, edited or removed; the `rayx`
 entry of `guests.json` was byte-identical before and after. The `y/N` questions were answered
 through a pseudo-terminal (Python `pty`); no sudo password was needed (Lima's guest user has
-passwordless sudo). Raw logs: `artifacts-temp/agentx/rayx-cli-versions/mac/` (not committed).
+passwordless sudo). Raw logs: `artifacts-temp/agentx/rayx-cli-versions/mac/` (not committed). The
+first pass (logs 01-22) printed the guests' `rayx --version` and the `proj-b` before/after
+comparison to the terminal only; steps 6, 7 and 9 were therefore repeated once on freshly created
+`proj-a` and `proj-b` with every observation captured in `23-repeat-steps-6-9.log` (script
+`repeat.sh`, same commands, same results), and those VMs were removed again (`24-remove-*.log`). The "still 1.1.0" and "`rayx 1.0.0`" version
+lines of steps 10 to 14 were likewise printed to the terminal only; their logs (`11` to `15`) hold
+the commands' own output, which names the versions (`the guest proj-a keeps rayx 1.1.0: nothing was
+changed`, `Install rayx 1.0.0 in proj-a over 1.1.0`, `installing the Linux rayx 1.0.0`).
 
 | Step | Command | Expected | Result | Key output |
 |---|---|---|---|---|
@@ -138,10 +145,10 @@ passwordless sudo). Raw logs: `artifacts-temp/agentx/rayx-cli-versions/mac/` (no
 | 3 | `rayx setup --lima --vm gpux --yes` | refused, `gpux` untouched | pass | `rayx: gpux exists in Lima but was not created by rayx: remove or rename it with limactl, or choose another --vm name`, exit 1; `setup --update --vm gpux --check` was refused as not recorded (`recorded: rayx, proj-a, proj-b`); `rayx lima remove gpux` said `gpux was not created by rayx; remove it with limactl delete yourself`, exit 1 |
 | 4 | `rayx setup --lima --vm proj-a --release 9.9.9 --vm-cpus 2 --vm-memory 4 --yes` | refused before anything changes | pass after a fix (see Findings) | `rayx: release 9.9.9 was not found`, exit 1; `limactl list` and `guests.json` unchanged. `rayx self update --release 9.9.9 --check` gave the same message |
 | 5 | `rayx setup --lima --vm proj-a --release 1.0.0 --vm-cpus 2 --vm-memory 4 --check` | the plan, nothing created | pass | the create line (`--name=proj-a`, 2 CPUs, 4 GiB, `--mount-only=/Users/dinko`), the start, the installer of `v1.0.0` in the guest and the inner `rayx setup --check`; no VM, no record |
-| 6 | `rayx setup --lima --vm proj-a --release 1.0.0 --vm-cpus 2 --vm-memory 4 --yes` | `proj-a` created; its `~/.rayx/bin/rayx --version` is `rayx 1.0.0` | pass | created and started, recorded with 2 CPUs, 4 GiB, 100 GiB, home read-only, Ubuntu 24.04; `limactl shell proj-a -- bash -lc '"$HOME/.rayx/bin/rayx" --version'` printed `rayx 1.0.0`; the inner `rayx setup` installed 4 base steps; the memory note named gpux, rayx and proj-a |
-| 7 | `rayx setup --lima --vm proj-b --vm-cpus 2 --vm-memory 2 --yes` | `proj-b` created on the running version | pass | `rayx 1.2.0` in `proj-b`, `rayx 1.0.0` in `proj-a`; 2 GiB instead of 4 (deviation 1) |
+| 6 | `rayx setup --lima --vm proj-a --release 1.0.0 --vm-cpus 2 --vm-memory 4 --yes` | `proj-a` created; its `~/.rayx/bin/rayx --version` is `rayx 1.0.0` | pass | created and started, recorded with 2 CPUs, 4 GiB, 100 GiB, home read-only, Ubuntu 24.04; `limactl shell proj-a -- bash -lc '"$HOME/.rayx/bin/rayx" --version'` printed `rayx 1.0.0` (`23`); the inner `rayx setup` installed 4 base steps; the memory note named gpux, rayx and proj-a |
+| 7 | `rayx setup --lima --vm proj-b --vm-cpus 2 --vm-memory 2 --yes` | `proj-b` created on the running version | pass | `rayx 1.2.0` in `proj-b`, `rayx 1.0.0` in `proj-a` (`23`); 2 GiB instead of 4 (deviation 1) |
 | 8 | `rayx setup --update --vm proj-a --release 1.1.0 --check` | the plan for `proj-a` only, host part skipped, nothing changed | pass | `the host part is skipped: --vm names guests only`, `rayx in the guest: rayx 1.0.0 (release asked for is 1.1.0)`, the installer of `v1.1.0`, the apt command and the inner `setup --update --check`; `proj-a` still 1.0.0 |
-| 9 | `rayx setup --update --vm proj-a --release 1.1.0 --yes` | only `proj-a` is upgraded; `proj-b` untouched | pass | `==> lima: refreshing proj-a`, install of 1.1.0, `sudo apt-get update && sudo apt-get upgrade -y`, `rayx setup --update --yes`, exit 0; `proj-a` is `rayx 1.1.0`, `proj-b` `rayx 1.2.0`; `proj-b`'s binary and `/var/log/apt/history.log` (modification time and hashes) and its boot time were identical before and after; `proj-a` and `proj-b` stayed current in `guests.json` |
+| 9 | `rayx setup --update --vm proj-a --release 1.1.0 --yes` | only `proj-a` is upgraded; `proj-b` untouched | pass | `==> lima: refreshing proj-a`, install of 1.1.0, `sudo apt-get update && sudo apt-get upgrade -y`, `rayx setup --update --yes`, exit 0; `proj-a` is `rayx 1.1.0`, `proj-b` `rayx 1.2.0`; in `23`, `proj-b`'s binary and `/var/log/apt/history.log` (modification time and hashes) and its boot time are identical before and after (`4f36ff036a2ce56a`, `6b780ab99b4b9be0`, boot `02:47:09`), and `guests.json` lists `rayx`, `proj-a` and `proj-b` current both times; `proj-a` and `proj-b` stayed current in `guests.json` |
 | 10 | `rayx setup --update --vm proj-a --release 1.0.0` with no terminal and no `--yes` | refused | pass | `rayx: lima guest proj-a: not updated: answer yes, or run `rayx setup --update --yes``, exit 1, still `rayx 1.1.0` |
 | 11 | the same in a pseudo-terminal, `n` to the guest question | nothing changed | pass | `Update lima guest proj-a? [y/N]` `n`, exit 1, still 1.1.0 |
 | 12 | the same, `y` to `Update lima guest proj-a?`, `n` to the downgrade question | the downgrade question; `n` changes nothing | pass | `Install rayx 1.0.0 in proj-a over 1.1.0, an older release? [y/N]` `n`: `the guest proj-a keeps rayx 1.1.0: nothing was changed`, exit 1, still 1.1.0 |
