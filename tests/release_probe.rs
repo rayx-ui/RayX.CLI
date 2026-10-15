@@ -1,7 +1,7 @@
 //! `release::exists`: whether a release is published, read from the HTTP status of a headers-only
 //! request for its installer, not from curl's exit code (macOS curl ends a 404 HEAD with exit 56).
 
-use rayx_cli::host::{Outcome, Runner};
+use rayx_cli::host::{CommandSpec, Outcome, Runner};
 use rayx_cli::release::{Existence, Release, exists, parse};
 
 fn release(text: &str) -> Release {
@@ -15,10 +15,10 @@ fn status(code: u16) -> Outcome {
     ))
 }
 
-fn probe(outcome: Outcome) -> (Existence, Vec<String>) {
+fn probe(outcome: Outcome) -> (Existence, Vec<CommandSpec>) {
     let mut runner = Runner::record().respond(|spec| spec.program == "curl", outcome);
     let found = exists(&mut runner, &release("1.0.1"));
-    (found, runner.lines().to_vec())
+    (found, runner.specs().to_vec())
 }
 
 fn unknown(outcome: Outcome) -> String {
@@ -30,24 +30,35 @@ fn unknown(outcome: Outcome) -> String {
 
 #[test]
 fn existence_asks_for_the_headers_of_the_installer_only() {
-    let (_, lines) = probe(status(200));
+    // The program and its arguments, not the rendered line: the line quotes an argument with a
+    // newline differently on Windows and elsewhere.
+    let (_, specs) = probe(status(200));
+    assert_eq!(specs.len(), 1);
+    assert_eq!(specs[0].program, "curl");
     assert_eq!(
-        lines,
+        specs[0].args,
         [
-            "curl --proto =https --tlsv1.2 -sIL -w '\nstatus=%{http_code}\n' \
-             https://github.com/rayx-ui/RayX.CLI/releases/download/v1.0.1/rayx-cli-installer.sh"
+            "--proto",
+            "=https",
+            "--tlsv1.2",
+            "-sIL",
+            "-w",
+            "\nstatus=%{http_code}\n",
+            "https://github.com/rayx-ui/RayX.CLI/releases/download/v1.0.1/rayx-cli-installer.sh"
         ]
     );
 }
 
 #[test]
 fn the_probe_never_relies_on_curls_fail_flag() {
-    let (_, lines) = probe(status(200));
+    let (_, specs) = probe(status(200));
     assert!(
-        lines[0]
-            .split(' ')
+        specs[0]
+            .args
+            .iter()
             .all(|arg| arg != "-f" && !arg.starts_with("-sf")),
-        "{lines:?}"
+        "{:?}",
+        specs[0].args
     );
 }
 
