@@ -57,8 +57,8 @@ enum Published {
 
 fn curl_answer(published: Published) -> Outcome {
     match published {
-        Published::Yes => Outcome::success(),
-        Published::No => Outcome::failure(22),
+        Published::Yes => Outcome::success().with_stdout("\nstatus=200\n"),
+        Published::No => Outcome::success().with_stdout("\nstatus=404\n"),
         Published::Unreachable => Outcome::failure(6),
     }
 }
@@ -338,7 +338,9 @@ fn lima_gets_the_chosen_release_from_that_tags_own_installer() {
             "--proto",
             "=https",
             "--tlsv1.2",
-            "-sfIL",
+            "-sIL",
+            "-w",
+            "\nstatus=%{http_code}\n",
             &installer("1.0.1")
         ]
     );

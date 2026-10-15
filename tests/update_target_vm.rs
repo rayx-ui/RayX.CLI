@@ -80,11 +80,11 @@ fn mac(vms: &[(&str, &str)], published: bool) -> Runner {
     Runner::record().with_os(Os::MacOs).responder(move |spec| {
         let script = spec.args.last().map(String::as_str).unwrap_or_default();
         match (spec.program.as_str(), spec.args.first().map(String::as_str)) {
-            ("curl", _) => Some(if published {
-                Outcome::success()
+            ("curl", _) => Some(Outcome::success().with_stdout(if published {
+                "\nstatus=200\n"
             } else {
-                Outcome::failure(22)
-            }),
+                "\nstatus=404\n"
+            })),
             ("limactl", Some("list")) => Some(Outcome::success().with_stdout(list.clone())),
             ("limactl", Some("shell")) if script.contains("os-release") => {
                 Some(Outcome::success().with_stdout("24.04\n"))

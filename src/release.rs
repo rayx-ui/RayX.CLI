@@ -117,23 +117,38 @@ pub fn parse(text: &str) -> Result<Release, ReleaseError> {
 }
 
 /// Asks whether `release` is published with a headers-only request for its installer, so nothing
-/// is downloaded: success is `Exists`, an HTTP 404 (curl exit 22) is `Missing`, anything else
-/// `Unknown`.
+/// is downloaded. The answer is the final HTTP status (`-w`), not curl's `-f` exit code: macOS curl
+/// ends a HEAD request answered with a 404 and a body length with exit 56, not 22. A 2xx is
+/// `Exists`, a 404 or 410 is `Missing`, anything else (another status, no answer) `Unknown`.
 pub fn exists(runner: &mut Runner, release: &Release) -> Existence {
     let spec = CommandSpec::new("curl").args([
         "--proto",
         "=https",
         "--tlsv1.2",
-        "-sfIL",
+        "-sIL",
+        "-w",
+        "\nstatus=%{http_code}\n",
         &release.installer_url(),
     ]);
     match runner.query(&spec) {
-        Ok(outcome) if outcome.is_success() => Existence::Exists,
-        Ok(outcome) if outcome.code == Some(22) => Existence::Missing,
-        Ok(outcome) => Existence::Unknown(match outcome.code {
-            Some(code) => format!("curl exited with {code}"),
-            None => "curl was ended by a signal".to_string(),
-        }),
+        Ok(outcome) => match (outcome.code, status_of(&outcome.stdout)) {
+            (Some(0), Some(200..=299)) => Existence::Exists,
+            (_, Some(404 | 410)) => Existence::Missing,
+            (Some(0), Some(status)) if status >= 100 => {
+                Existence::Unknown(format!("the server answered HTTP {status}"))
+            }
+            (Some(code), _) => Existence::Unknown(format!("curl exited with {code}")),
+            (None, _) => Existence::Unknown("curl was ended by a signal".to_string()),
+        },
         Err(error) => Existence::Unknown(error.to_string()),
     }
+}
+
+/// The status curl's `-w` appended after the headers; `None` when it printed none.
+fn status_of(stdout: &str) -> Option<u16> {
+    stdout
+        .lines()
+        .rev()
+        .find_map(|line| line.trim().strip_prefix("status="))
+        .and_then(|code| code.parse().ok())
 }
