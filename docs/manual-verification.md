@@ -121,6 +121,63 @@ Anything surprising:
   second question because only one answer was queued. Both were repeated and nothing was changed by
   the aborted runs.
 
+## Named VMs and chosen releases on this Mac (2026-10-15, epic rayx-cli-versions MAN-1)
+
+macOS 26.6.2 on an Apple M5 (arm64, 24 GiB), Lima 2.2.1, branch `feat/rayx-versions-2` (`rayx 1.2.0`
+from `cargo build --release`), the published `1.0.0`, `1.1.0` and `1.2.0` releases for the Linux
+`rayx`. The owner's `gpux` VM (6 CPUs, 12 GiB) and a recorded `rayx` VM (2 CPUs, 4 GiB, from the
+earlier epic) ran the whole time and were never started, stopped, edited or removed; the `rayx`
+entry of `guests.json` was byte-identical before and after. The `y/N` questions were answered
+through a pseudo-terminal (Python `pty`); no sudo password was needed (Lima's guest user has
+passwordless sudo). Raw logs: `artifacts-temp/agentx/rayx-cli-versions/mac/` (not committed).
+
+| Step | Command | Expected | Result | Key output |
+|---|---|---|---|---|
+| 1 | `rayx setup --lima --vm Bad_Name` | exit 1 with the rule | pass | ``rayx: `Bad_Name` is not a usable VM name: use 1 to 40 lowercase letters, digits and hyphens, starting with a letter and not `default` ...``, exit 1, nothing changed |
+| 2 | `rayx setup --update --vm nope` | refused with the recorded names, nothing run | pass | `rayx: --vm nope: not a recorded current guest of this host; recorded: rayx`, exit 1 |
+| 3 | `rayx setup --lima --vm gpux --yes` | refused, `gpux` untouched | pass | `rayx: gpux exists in Lima but was not created by rayx: remove or rename it with limactl, or choose another --vm name`, exit 1; `setup --update --vm gpux --check` was refused as not recorded (`recorded: rayx, proj-a, proj-b`); `rayx lima remove gpux` said `gpux was not created by rayx; remove it with limactl delete yourself`, exit 1 |
+| 4 | `rayx setup --lima --vm proj-a --release 9.9.9 --vm-cpus 2 --vm-memory 4 --yes` | refused before anything changes | pass after a fix (see Findings) | `rayx: release 9.9.9 was not found`, exit 1; `limactl list` and `guests.json` unchanged. `rayx self update --release 9.9.9 --check` gave the same message |
+| 5 | `rayx setup --lima --vm proj-a --release 1.0.0 --vm-cpus 2 --vm-memory 4 --check` | the plan, nothing created | pass | the create line (`--name=proj-a`, 2 CPUs, 4 GiB, `--mount-only=/Users/dinko`), the start, the installer of `v1.0.0` in the guest and the inner `rayx setup --check`; no VM, no record |
+| 6 | `rayx setup --lima --vm proj-a --release 1.0.0 --vm-cpus 2 --vm-memory 4 --yes` | `proj-a` created; its `~/.rayx/bin/rayx --version` is `rayx 1.0.0` | pass | created and started, recorded with 2 CPUs, 4 GiB, 100 GiB, home read-only, Ubuntu 24.04; `limactl shell proj-a -- bash -lc '"$HOME/.rayx/bin/rayx" --version'` printed `rayx 1.0.0`; the inner `rayx setup` installed 4 base steps; the memory note named gpux, rayx and proj-a |
+| 7 | `rayx setup --lima --vm proj-b --vm-cpus 2 --vm-memory 2 --yes` | `proj-b` created on the running version | pass | `rayx 1.2.0` in `proj-b`, `rayx 1.0.0` in `proj-a`; 2 GiB instead of 4 (deviation 1) |
+| 8 | `rayx setup --update --vm proj-a --release 1.1.0 --check` | the plan for `proj-a` only, host part skipped, nothing changed | pass | `the host part is skipped: --vm names guests only`, `rayx in the guest: rayx 1.0.0 (release asked for is 1.1.0)`, the installer of `v1.1.0`, the apt command and the inner `setup --update --check`; `proj-a` still 1.0.0 |
+| 9 | `rayx setup --update --vm proj-a --release 1.1.0 --yes` | only `proj-a` is upgraded; `proj-b` untouched | pass | `==> lima: refreshing proj-a`, install of 1.1.0, `sudo apt-get update && sudo apt-get upgrade -y`, `rayx setup --update --yes`, exit 0; `proj-a` is `rayx 1.1.0`, `proj-b` `rayx 1.2.0`; `proj-b`'s binary and `/var/log/apt/history.log` (modification time and hashes) and its boot time were identical before and after; `proj-a` and `proj-b` stayed current in `guests.json` |
+| 10 | `rayx setup --update --vm proj-a --release 1.0.0` with no terminal and no `--yes` | refused | pass | `rayx: lima guest proj-a: not updated: answer yes, or run `rayx setup --update --yes``, exit 1, still `rayx 1.1.0` |
+| 11 | the same in a pseudo-terminal, `n` to the guest question | nothing changed | pass | `Update lima guest proj-a? [y/N]` `n`, exit 1, still 1.1.0 |
+| 12 | the same, `y` to `Update lima guest proj-a?`, `n` to the downgrade question | the downgrade question; `n` changes nothing | pass | `Install rayx 1.0.0 in proj-a over 1.1.0, an older release? [y/N]` `n`: `the guest proj-a keeps rayx 1.1.0: nothing was changed`, exit 1, still 1.1.0 |
+| 13 | the same, `y` and `y` | the Linux `rayx` is downgraded | pass | `installing the Linux rayx 1.0.0`, `sudo apt-get update && sudo apt-get upgrade`, `rayx 1.0.0 predates the guest refresh: the inner update was skipped`, exit 0; `proj-a` is `rayx 1.0.0` |
+| 14 | `rayx setup --update --vm proj-a --release 1.1.0 --yes`, then `--release 1.0.0 --yes` | both directions work unattended and without a question | pass | `rayx 1.1.0`, then `rayx 1.0.0`; the `--yes` downgrade printed no question; `proj-b` still `rayx 1.2.0` |
+| 15 | `rayx doctor` | both VMs listed | pass | `lima rayx: running, ..., current`, `lima proj-a: running, 2 CPUs, 4 GiB memory, 100 GiB disk, home read-only, Ubuntu 24.04, current`, `lima proj-b: running, 2 CPUs, 2 GiB memory, ...current`; `gpux` not listed |
+| 16 | `rayx self update --release 1.0.0 --check`; `--release 9.9.9 --check`; `--check` (the branch's `cargo build`) | compare only; nothing installed | pass | `installed 1.2.0, requested release 1.0.0: downgrade`; `rayx: release 9.9.9 was not found`, exit 1; `installed 1.2.0, latest release 1.2.0: rayx is up to date`; `~/.rayx/bin/rayx` unchanged (same size, date and hash) |
+| 17 | `rayx self update --release 1.0.0 --yes` (the `cargo build`, receipt names `~/.rayx/bin/rayx`, not this executable) | the no-receipt instruction, nothing installed | pass | `rayx: this rayx is a development build, so `self update` leaves it alone. Rebuild it from the checkout (`cargo build --release`), or install a release:` and the two installer one-liners, exit 1 |
+| 18 | `rayx lima remove gpux`; `rayx lima remove proj-a`, `n`; `proj-a`, `y`; `proj-b`, `y` | `gpux` refused; confirmation asked each time; both removed | pass | `Remove proj-a and everything in it? [y/N]` `n`: `proj-a was not removed`, exit 1, VM kept; `y`: `Removed lima guest proj-a.` and `rayx setup --lima --vm proj-a creates it again.`; the same for `proj-b`; `limactl list` shows `gpux` and `rayx` only, `~/.lima` holds `_config`, `gpux`, `rayx`, and `~/.config/rayx/guests.json` equals the copy taken before the run |
+
+Deviations from the criteria text:
+
+- `proj-b` was created with `--vm-memory 2` (the criterion names no size): `gpux` (12 GiB), the
+  recorded `rayx` (4 GiB) and `proj-a` (4 GiB) already reserve 20 of this Mac's 24 GiB. `rayx` printed
+  its memory note for it.
+- A real `rayx self update --release X` (an install over the installed binary) was not run here: the
+  installed `~/.rayx/bin/rayx` is 1.1.0, which has no `--release`, and replacing the owner's install
+  was not part of the task. The real install and both directions on a release-installed `rayx` are
+  covered by MAN-2 above (Windows) and left for the Mac in the owner-run step after a release
+  contains this epic.
+- The `rayx` VM and its `guests.json` entry belong to the owner; `rayx doctor` and the "recorded:"
+  list show it, and `setup --update --vm ...` did not touch it.
+
+Findings fixed while verifying:
+
+- A release that does not exist was reported as `cannot check whether release 9.9.9 exists: curl
+  exited with 56` on this Mac. The probe was `curl -sfIL`, which relies on exit code 22 for an HTTP
+  404; macOS curl 8.7.1 ends a HEAD request answered with a 404 and a body length with exit 56. The
+  probe now reads the final HTTP status (`-sIL -w '\nstatus=%{http_code}\n'`): 2xx is published, 404
+  and 410 are missing, any other status or curl failure is unknown (`tests/release_module.rs`
+  extended: a 404 under exit 0, 22 and 56, and 403, 429, 500 and 503). This also retires the
+  informal note that every HTTP error (exit 22) was reported as "not found".
+- Not a defect: with `--vm proj-a` the refresh asks `Update lima guest proj-a? [y/N]` before the
+  downgrade question, so a downgrade in a terminal asks two questions (the same as the Windows
+  step 5 row); `--yes` skips both.
+
 ## Open: Windows and WSL guest layer, and the first release (owner-run)
 
 Rows without a result are still open (epic `rayx-cli-guests`, MAN-3 and MAN-4). Fill in the date,
