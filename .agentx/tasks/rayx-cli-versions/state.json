@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-versions",
-  "revision": 44,
+  "revision": 45,
   "planRevision": 1,
   "specHashes": {
     "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
@@ -54,7 +54,10 @@
       ]
     },
     "t08-release-proof": {
-      "status": "pending"
+      "status": "in_progress",
+      "workerIds": [
+        "mac-claude-1015"
+      ]
     }
   },
   "validationBatches": {

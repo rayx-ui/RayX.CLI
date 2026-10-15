@@ -2,7 +2,7 @@
 agentx:
   kind: decision
   scope: decisions/setup
-  status: current
+  status: superseded
   created: 2026-10-14T19:00:00+02:00
   updated: 2026-10-14T19:00:00+02:00
   promoted_from: rayx-cli-guests
@@ -14,7 +14,8 @@ agentx:
     - records
   supersedes:
     - 2026-10-14-setup-wsl-release-installer.md
-  superseded_by: []
+  superseded_by:
+    - 2026-10-15-setup-named-lima-vms-chosen-releases-and-targeted-update.md
 ---
 
 ## Decision: Drive Linux guests through one guest layer, record them, refresh them and replace them side by side
