@@ -178,8 +178,8 @@ Findings fixed while verifying:
   exited with 56` on this Mac. The probe was `curl -sfIL`, which relies on exit code 22 for an HTTP
   404; macOS curl 8.7.1 ends a HEAD request answered with a 404 and a body length with exit 56. The
   probe now reads the final HTTP status (`-sIL -w '\nstatus=%{http_code}\n'`): 2xx is published, 404
-  and 410 are missing, any other status or curl failure is unknown (`tests/release_module.rs`
-  extended: a 404 under exit 0, 22 and 56, and 403, 429, 500 and 503). This also retires the
+  and 410 are missing, any other status or curl failure is unknown (new group
+  `tests/release_probe.rs`, criterion REL-3: a 404 under exit 0, 22 and 56, and 403, 429, 500 and 503). This also retires the
   informal note that every HTTP error (exit 22) was reported as "not found".
 - Not a defect: with `--vm proj-a` the refresh asks `Update lima guest proj-a? [y/N]` before the
   downgrade question, so a downgrade in a terminal asks two questions (the same as the Windows

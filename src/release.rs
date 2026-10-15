@@ -134,7 +134,7 @@ pub fn exists(runner: &mut Runner, release: &Release) -> Existence {
         Ok(outcome) => match (outcome.code, status_of(&outcome.stdout)) {
             (Some(0), Some(200..=299)) => Existence::Exists,
             (_, Some(404 | 410)) => Existence::Missing,
-            (Some(0), Some(status)) if status >= 100 => {
+            (Some(_), Some(status)) if status >= 100 && !(200..=299).contains(&status) => {
                 Existence::Unknown(format!("the server answered HTTP {status}"))
             }
             (Some(code), _) => Existence::Unknown(format!("curl exited with {code}")),

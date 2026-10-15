@@ -84,6 +84,23 @@ fn another_http_status_is_unknown_and_not_a_missing_release() {
 }
 
 #[test]
+fn another_http_status_is_reported_as_the_status_whatever_exit_code_curl_ends_with() {
+    for exit in [0, 22, 56] {
+        for code in [403, 503] {
+            let outcome = Outcome {
+                code: Some(exit),
+                ..status(code)
+            };
+            let reason = unknown(outcome);
+            assert!(
+                reason.contains(&format!("HTTP {code}")),
+                "exit {exit}, {code}: {reason}"
+            );
+        }
+    }
+}
+
+#[test]
 fn a_curl_failure_without_a_status_is_unknown_with_its_exit_code() {
     assert!(unknown(Outcome::failure(6)).contains("exited with 6"));
     let signalled = Outcome {
