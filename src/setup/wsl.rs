@@ -12,10 +12,12 @@ use crate::cli::SetupArgs;
 use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 
 use super::Machine;
-use super::guest::{self, CloneSource, Guest, LinuxBinary};
+use super::guest::{self, CloneSource, DowngradeGate, Guest, InstallError, LinuxBinary};
+use super::lima::sizing::Prompter;
 use super::migrate::{self, Migration, WslMigration};
 use super::records::{self, CloneRecord};
 use super::refresh::RefreshOptions;
+use crate::release::Release;
 
 pub use super::guest::{
     Checkout, LINUX_BINARY, clone_script, detect_checkout, linux_dir, release_asset, setup_flags,
@@ -35,8 +37,11 @@ pub struct WslRequest {
     pub clone: Option<String>,
     /// `RAYX_WSL_BINARY`: a Linux `rayx` built on this machine, used instead of the release installer.
     pub binary_override: Option<PathBuf>,
-    /// The version of this `rayx`, which the Linux binary must match.
+    /// The version of the Linux `rayx` the distribution gets: this `rayx`'s own, or the chosen
+    /// release.
     pub version: String,
+    /// `--release`: the chosen release, probed before any change and never recorded.
+    pub release: Option<Release>,
     /// `--gpu` or `--all`: the GPU driver belongs to Windows, so Windows installs it first.
     pub windows_gpu: Option<WindowsGpu>,
 }
@@ -53,11 +58,13 @@ pub struct WindowsGpu {
 impl WslRequest {
     /// The request of a command line; the environment names the optional binary.
     pub fn from_args(args: &SetupArgs, binary_override: Option<PathBuf>) -> Self {
+        let release = guest::chosen_release(args).ok().flatten();
         Self {
             flags: setup_flags(args),
             clone: args.clone.clone(),
             binary_override,
-            version: env!("CARGO_PKG_VERSION").to_string(),
+            version: guest::guest_version(release.as_ref()),
+            release,
             windows_gpu: (args.gpu || args.all).then(|| WindowsGpu {
                 executable: std::env::current_exe().unwrap_or_else(|_| PathBuf::from("rayx")),
                 flags: [(args.yes, "--yes"), (args.check, "--check")]
@@ -139,6 +146,10 @@ pub fn binary_override_from_env() -> Option<PathBuf> {
 /// Runs `rayx setup --wsl` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
+    if let Err(error) = guest::chosen_release(args) {
+        eprintln!("rayx: {error}");
+        return 1;
+    }
     let request = WslRequest::from_args(args, binary_override_from_env());
     let mut runner = if args.check {
         Runner::print()
@@ -168,12 +179,13 @@ pub fn run(args: &SetupArgs) -> u8 {
         .iter()
         .any(|d| d.name == distribution());
     let checkout = detect_checkout(&mut runner);
-    match run_with(
+    match run_with_prompter(
         &request,
         &host,
         &mut runner,
         &machine,
         checkout.as_ref(),
+        Some(&mut prompter),
         &mut std::io::stdout(),
     ) {
         Ok(()) => {
@@ -292,6 +304,9 @@ pub fn migrate_older_guest(
     let Some(old) = migrate::outdated_wsl(&file) else {
         return Ok(());
     };
+    // A chosen release is looked for before the old distribution is even asked a question (which
+    // starts it) and long before it is replaced.
+    guest::plan_release(request.release.as_ref(), override_name(request), runner)?;
     // The record can be stale: the guest's own version decides. `--check` never starts a
     // distribution to ask it.
     let inspectable = !check || guest::wsl_is_running(&old.name, runner);
@@ -303,6 +318,8 @@ pub fn migrate_older_guest(
     }
     let options = RefreshOptions {
         version: request.version.clone(),
+        release: request.release.clone(),
+        targets: Vec::new(),
         yes,
         check,
         lima_binary: None,
@@ -323,7 +340,16 @@ pub fn migrate_older_guest(
     }
 }
 
-/// The body of `rayx setup --wsl` over injectable collaborators.
+/// The binary override in use, named for the refusal that combines it with `--release`.
+fn override_name(request: &WslRequest) -> Option<&'static str> {
+    request
+        .binary_override
+        .is_some()
+        .then_some("RAYX_WSL_BINARY")
+}
+
+/// The body of `rayx setup --wsl` over injectable collaborators, with nobody to ask: a downgrade
+/// of the Linux `rayx` is refused (without `--yes` in the request's flags) instead of asked about.
 pub fn run_with(
     request: &WslRequest,
     host: &HostFacts,
@@ -332,10 +358,27 @@ pub fn run_with(
     checkout: Option<&Checkout>,
     out: &mut dyn Write,
 ) -> Result<(), WslError> {
+    run_with_prompter(request, host, runner, machine, checkout, None, out)
+}
+
+/// The body of `rayx setup --wsl`; `prompter` answers the question that replacing the Linux
+/// `rayx` with an older release raises (`--yes` in the request's flags skips it, `--check` only
+/// prints it).
+pub fn run_with_prompter(
+    request: &WslRequest,
+    host: &HostFacts,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    checkout: Option<&Checkout>,
+    prompter: Option<&mut dyn Prompter>,
+    out: &mut dyn Write,
+) -> Result<(), WslError> {
     if host.os != Os::Windows {
         return Err(WslError::NotWindows);
     }
     require_wsl2(runner)?;
+    guest::plan_release(request.release.as_ref(), override_name(request), runner)
+        .map_err(WslError::Failed)?;
     if let Some(gpu) = &request.windows_gpu {
         let _ = writeln!(
             out,
@@ -352,8 +395,23 @@ pub fn run_with(
     }
     ensure_distribution(runner, machine, out)?;
     let guest = Guest::wsl(distribution());
-    guest::ensure_linux_binary(&guest, &linux_binary(request, host)?, runner, out)
-        .map_err(WslError::Failed)?;
+    let flag = |name: &str| request.flags.iter().any(|f| f == name);
+    let mut gate = DowngradeGate {
+        yes: flag("--yes"),
+        check: flag("--check"),
+        prompter,
+    };
+    guest::ensure_release_binary(
+        &guest,
+        &linux_binary(request, host)?,
+        request.release.as_ref(),
+        &mut gate,
+        runner,
+        out,
+    )
+    .map_err(|error| match error {
+        InstallError::Declined(why) | InstallError::Failed(why) => WslError::Failed(why),
+    })?;
     let directory = match &request.clone {
         Some(requested) => Some(clone_checkout(&guest, requested, checkout, runner, out)?),
         None => None,

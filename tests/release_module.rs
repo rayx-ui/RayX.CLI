@@ -1,10 +1,7 @@
 //! `release`: what a release is called, how releases compare, where a release's installer lives
-//! and whether a release is published.
+//! and the refresh floor (whether a release is published is `tests/release_probe.rs`).
 
-use rayx_cli::host::{Outcome, Runner};
-use rayx_cli::release::{
-    Direction, Existence, MIN_REFRESH_RELEASE, Release, exists, installer_url_for, parse,
-};
+use rayx_cli::release::{Direction, MIN_REFRESH_RELEASE, Release, installer_url_for, parse};
 use semver::Version;
 
 fn release(text: &str) -> Release {
@@ -88,38 +85,4 @@ fn the_refresh_starts_with_1_1_0() {
     assert_eq!(MIN_REFRESH_RELEASE.to_string(), "1.1.0");
     assert!(release("1.0.0") < MIN_REFRESH_RELEASE);
     assert!(release("1.1.0") >= MIN_REFRESH_RELEASE);
-}
-
-fn probe(outcome: Outcome) -> (Existence, Vec<String>) {
-    let mut runner = Runner::record().respond(|spec| spec.program == "curl", outcome);
-    let found = exists(&mut runner, &release("1.0.1"));
-    (found, runner.lines().to_vec())
-}
-
-#[test]
-fn existence_asks_for_the_headers_of_the_installer_only() {
-    let (_, lines) = probe(Outcome::success());
-    assert_eq!(
-        lines,
-        ["curl --proto =https --tlsv1.2 -sfIL \
-             https://github.com/rayx-ui/RayX.CLI/releases/download/v1.0.1/rayx-cli-installer.sh"]
-    );
-}
-
-#[test]
-fn a_published_release_exists() {
-    assert_eq!(probe(Outcome::success()).0, Existence::Exists);
-}
-
-#[test]
-fn an_http_404_is_a_missing_release() {
-    assert_eq!(probe(Outcome::failure(22)).0, Existence::Missing);
-}
-
-#[test]
-fn any_other_failure_is_unknown_with_its_reason() {
-    match probe(Outcome::failure(6)).0 {
-        Existence::Unknown(reason) => assert!(reason.contains('6'), "{reason}"),
-        other => panic!("expected Unknown, got {other:?}"),
-    }
 }

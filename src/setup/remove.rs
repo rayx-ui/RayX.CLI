@@ -196,9 +196,13 @@ pub fn remove_guest(
     .map_err(|error| RemoveError::Failed(error.to_string()))?;
     let _ = writeln!(out, "Removed {} guest {name}.", kind.label());
     if !record.retired {
+        let again = match (kind, super::lima::VmName::parse(name)) {
+            (GuestKind::Lima, Ok(vm)) => vm.lima_flags(),
+            _ => format!("--{label}"),
+        };
         let _ = writeln!(
             out,
-            "It was the current guest: `rayx setup --{label}` creates it again."
+            "It was the current guest: `rayx setup {again}` creates it again."
         );
     }
     Ok(())

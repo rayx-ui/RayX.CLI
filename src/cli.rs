@@ -50,7 +50,11 @@ pub enum Command {
 
 /// Flags of `rayx setup`.
 #[derive(Debug, Default, Args)]
-#[command(group(ArgGroup::new("guest").args(["wsl", "lima"])))]
+#[command(
+    group(ArgGroup::new("guest").args(["wsl", "lima"])),
+    group(ArgGroup::new("vm_target").args(["lima", "update"]).multiple(true)),
+    group(ArgGroup::new("release_target").args(["wsl", "lima", "update"]).multiple(true))
+)]
 pub struct SetupArgs {
     /// Also install the web set: wasm target, wasm-bindgen and the browser tooling
     #[arg(long)]
@@ -79,7 +83,7 @@ pub struct SetupArgs {
     /// Set up WSL 2 with the pinned Ubuntu and run the same setup inside it (Windows only)
     #[arg(long)]
     pub wsl: bool,
-    /// Set up the Lima VM `rayx` with the pinned Ubuntu and run the same setup inside it (macOS only; never part of --all)
+    /// Set up a Lima VM (`rayx`, or the name --vm gives) with the pinned Ubuntu and run the same setup inside it (macOS only; never part of --all)
     #[arg(long)]
     pub lima: bool,
     /// Re-run setup for the sets and projects recorded on this machine, then refresh every current guest (apt upgrade and setup --update inside)
@@ -91,6 +95,17 @@ pub struct SetupArgs {
         ]
     )]
     pub update: bool,
+    /// With --lima, --wsl or --update: put exactly this release (X.Y.Z, for example 1.0.1, also an older one) of the Linux rayx in the guest instead of this rayx's version; it is not remembered
+    #[arg(long, requires = "release_target", value_name = "RELEASE")]
+    pub release: Option<String>,
+    /// With --lima or --update: the Lima VM by name (default `rayx`; one VM per project). With --update, repeat it to refresh only these recorded guests and skip this machine's own update
+    #[arg(
+        long = "vm",
+        value_name = "NAME",
+        requires = "vm_target",
+        conflicts_with = "wsl"
+    )]
+    pub vm: Vec<String>,
     /// With --wsl or --lima: clone the current checkout into the guest (default `~/<checkout name>`)
     #[arg(
         long,
@@ -176,10 +191,10 @@ pub enum SelfCommand {
         /// Report whether a newer release exists without installing it
         #[arg(long)]
         check: bool,
-        /// Install exactly this release (X.Y.Z, for example 1.0.1), also an older one
+        /// Install exactly this release (X.Y.Z, for example 1.0.1), also an older one after asking; it is not remembered
         #[arg(long, value_name = "RELEASE")]
         release: Option<String>,
-        /// After installing, refresh this machine's setup and guests with the new rayx without asking
+        /// Skip the question before installing an older release, and refresh this machine's setup and guests with the new rayx without asking
         #[arg(long, conflicts_with = "check")]
         yes: bool,
     },

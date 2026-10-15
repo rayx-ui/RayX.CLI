@@ -392,3 +392,22 @@ fn nothing_is_remembered_the_plain_update_goes_to_the_latest_release() {
             .contains("Updated rayx 1.1.0 -> 1.2.0.")
     );
 }
+
+#[test]
+fn a_bad_release_name_is_refused_before_the_network_is_asked() {
+    for bad in ["latest", "1.0.0-rc.1", "1.0", ">=1.0.0"] {
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_rayx"))
+            .args(["self", "update", "--release", bad])
+            .output()
+            .expect("runs rayx");
+
+        assert_eq!(output.status.code(), Some(1), "{bad}");
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("is not a release name"), "{bad}: {stderr}");
+        assert!(stderr.contains("1.0.1"), "an example is given: {stderr}");
+        assert!(
+            output.stdout.is_empty(),
+            "{bad}: nothing was installed or checked"
+        );
+    }
+}

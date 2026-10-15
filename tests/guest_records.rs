@@ -508,6 +508,8 @@ fn lima_request(check: bool) -> LimaRequest {
         clone: None,
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
+        name: rayx_cli::setup::lima::VmName::default(),
         vm: VmFlags::default(),
         check,
         yes: true,
@@ -521,6 +523,10 @@ fn mac_host() -> HostFacts {
 fn lima_outcome(request: &LimaRequest, list: String, checkout: Option<&Checkout>) -> LimaOutcome {
     let mut runner = mac_runner(Some("limactl version 2.2.1"), list);
     let machine = mac_machine(None)
+        .with_text(
+            "/Users/dev/.config/rayx/guests.json",
+            r#"{"version":1,"guests":[{"kind":"lima","name":"rayx","ubuntu":"24.04","flags":[],"clones":[],"retired":false}]}"#,
+        )
         .with_program("brew", "/opt/homebrew/bin/brew")
         .with_program("limactl", "/opt/homebrew/bin/limactl");
     run_with(
@@ -670,6 +676,7 @@ fn a_wsl_run_records_the_distribution_and_its_clone_but_check_does_not() {
         clone: Some(String::new()),
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         windows_gpu: None,
     };
     let checkout = Checkout {

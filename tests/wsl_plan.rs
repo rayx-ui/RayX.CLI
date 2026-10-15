@@ -43,6 +43,7 @@ fn request(flags: &[&str]) -> WslRequest {
         clone: None,
         binary_override: None,
         version: "0.3.0".into(),
+        release: None,
         windows_gpu: None,
     }
 }

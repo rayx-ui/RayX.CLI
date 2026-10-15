@@ -8,17 +8,26 @@ use std::io::Write;
 use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 
 use super::Machine;
-use super::guest::{self, Guest, GuestKind, LinuxBinary, pinned_ubuntu};
+use super::guest::{
+    self, DowngradeGate, Guest, GuestKind, InstallError, LinuxBinary, pinned_ubuntu,
+};
 use super::lima::sizing::Prompter;
-use super::lima::{INSTANCE, Tool, VmFlags, lima_path_dir, list_instances, list_instances_strict};
+use super::lima::{Tool, VmFlags, VmName, lima_path_dir, list_instances, list_instances_strict};
 use super::migrate::{LimaMigration, LimaOld, Migration, WslMigration, migrate_lima, migrate_wsl};
 use super::records::{self, GuestRecord};
+use crate::release::{MIN_REFRESH_RELEASE, Release};
 
 /// What a refresh needs besides the host and the guests.
 #[derive(Clone, Debug)]
 pub struct RefreshOptions {
-    /// The version of the running `rayx`, which every guest must have.
+    /// The version of the Linux `rayx` every guest must have: the running `rayx`'s own, or the
+    /// chosen release.
     pub version: String,
+    /// `--release`: the chosen release, probed before any change, asked about when it is a
+    /// downgrade of a guest, and never recorded.
+    pub release: Option<Release>,
+    /// `--vm`: refresh only the recorded current guests with these names (empty: all of them).
+    pub targets: Vec<String>,
     /// `--yes`: no questions, `-y` for apt.
     pub yes: bool,
     /// `--check`: report, change nothing, start nothing.
@@ -50,6 +59,9 @@ pub struct RefreshReport {
     pub guests: Vec<(String, GuestOutcome)>,
     /// `guests.json` exists but could not be used, so no guest could be looked at.
     pub unreadable: bool,
+    /// A chosen release that cannot be used (not published, not checkable, or combined with a
+    /// binary override): no guest was touched.
+    pub refused: Option<String>,
 }
 
 impl RefreshReport {
@@ -61,7 +73,7 @@ impl RefreshReport {
                 GuestOutcome::Refreshed | GuestOutcome::NotInspected | GuestOutcome::Migrated(_)
             )
         });
-        u8::from(self.unreadable || unfinished)
+        u8::from(self.unreadable || self.refused.is_some() || unfinished)
     }
 }
 
@@ -74,10 +86,78 @@ fn kind_for(os: Os) -> Option<&'static str> {
     }
 }
 
-/// Refreshes every current guest of this host. A failing guest is reported and the next one still
-/// runs.
+/// Whether `name` is selected: every guest when no target is named.
+fn targeted(options: &RefreshOptions, name: &str) -> bool {
+    options.targets.is_empty() || options.targets.iter().any(|target| target == name)
+}
+
+/// Checks that every named target is a recorded, current guest of this host, before any command
+/// runs; the error lists the guests there are.
+pub fn check_targets(
+    options: &RefreshOptions,
+    host: &HostFacts,
+    machine: &dyn Machine,
+) -> Result<(), String> {
+    if options.targets.is_empty() {
+        return Ok(());
+    }
+    let kind = kind_for(host.os).filter(|_| !host.wsl);
+    let recorded = records::read_guests(machine, host.os).map_err(|error| error.to_string())?;
+    let current: Vec<&str> = recorded
+        .guests
+        .iter()
+        .filter(|g| Some(g.kind.as_str()) == kind && !g.retired)
+        .map(|g| g.name.as_str())
+        .collect();
+    let unknown: Vec<&str> = options
+        .targets
+        .iter()
+        .map(String::as_str)
+        .filter(|target| !current.contains(target))
+        .collect();
+    if unknown.is_empty() {
+        return Ok(());
+    }
+    Err(format!(
+        "--vm {}: not a recorded current guest of this host; recorded: {}",
+        unknown.join(", "),
+        if current.is_empty() {
+            "none".to_string()
+        } else {
+            current.join(", ")
+        }
+    ))
+}
+
+/// Refreshes every current guest of this host (or only those `--vm` names). A failing guest is
+/// reported and the next one still runs.
 pub fn refresh_guests(
     options: &RefreshOptions,
+    host: &HostFacts,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    prompter: Option<&mut dyn Prompter>,
+    out: &mut dyn Write,
+) -> RefreshReport {
+    refresh_with(options, true, host, runner, machine, prompter, out)
+}
+
+/// Like [`refresh_guests`] for a caller that has already probed the chosen release (and refused
+/// a binary override) before changing anything, so the probe is not repeated.
+pub fn refresh_probed(
+    options: &RefreshOptions,
+    host: &HostFacts,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    prompter: Option<&mut dyn Prompter>,
+    out: &mut dyn Write,
+) -> RefreshReport {
+    refresh_with(options, false, host, runner, machine, prompter, out)
+}
+
+fn refresh_with(
+    options: &RefreshOptions,
+    probe: bool,
     host: &HostFacts,
     runner: &mut Runner,
     machine: &dyn Machine,
@@ -96,8 +176,26 @@ pub fn refresh_guests(
             return report;
         }
     };
+    if let Err(why) = check_targets(options, host, machine) {
+        eprintln!("rayx: {why}");
+        report.refused = Some(why);
+        return report;
+    }
+    let override_name = match kind {
+        records::LIMA => options.lima_binary.is_some().then_some("RAYX_LIMA_BINARY"),
+        _ => options.wsl_binary.is_some().then_some("RAYX_WSL_BINARY"),
+    };
+    if probe && let Err(why) = guest::plan_release(options.release.as_ref(), override_name, runner)
+    {
+        eprintln!("rayx: {why}");
+        report.refused = Some(why);
+        return report;
+    }
     let path_dir = lima_path_dir(machine);
-    for record in recorded.iter().filter(|g| g.kind == kind && !g.retired) {
+    for record in recorded
+        .iter()
+        .filter(|g| g.kind == kind && !g.retired && targeted(options, &g.name))
+    {
         let guest = match record.kind.as_str() {
             records::LIMA => Guest::lima(&record.name).with_path_dir(path_dir.clone()),
             _ => Guest::wsl(&record.name),
@@ -123,23 +221,32 @@ pub fn refresh_guests(
         report.guests.push((record.name.clone(), outcome));
     }
     // A migration that was interrupted leaves a renamed, retired VM and no current one.
-    if kind == records::LIMA
-        && !recorded
+    if kind == records::LIMA {
+        for old in recorded
             .iter()
-            .any(|g| g.kind == kind && g.name == INSTANCE && !g.retired)
-        && let Some(old) = recorded
-            .iter()
-            .find(|g| g.kind == kind && g.retired && g.migrating)
-    {
-        let why = format!(
-            "a migration was interrupted: {} is renamed and retired, and {INSTANCE} is not set up \
-             yet; run `rayx setup --lima` to finish it",
-            old.name
-        );
-        eprintln!("rayx: lima guest {INSTANCE}: {why}");
-        report
-            .guests
-            .push((INSTANCE.to_string(), GuestOutcome::Failed(why)));
+            .filter(|g| g.kind == kind && g.retired && g.migrating)
+        {
+            let Some(name) = VmName::of_retired(&old.name) else {
+                continue;
+            };
+            if !targeted(options, name.as_str())
+                || recorded
+                    .iter()
+                    .any(|g| g.kind == kind && g.name == name.as_str() && !g.retired)
+            {
+                continue;
+            }
+            let why = format!(
+                "a migration was interrupted: {} is renamed and retired, and {name} is not set up \
+                 yet; run `rayx setup {}` to finish it",
+                old.name,
+                name.lima_flags()
+            );
+            eprintln!("rayx: lima guest {name}: {why}");
+            report
+                .guests
+                .push((name.to_string(), GuestOutcome::Failed(why)));
+        }
     }
     report
 }
@@ -267,7 +374,7 @@ fn refresh_one(
             &version,
             out,
         ),
-        None => refresh_inside(options, host, runner, guest, out),
+        None => refresh_inside(options, host, runner, &mut prompter, guest, out),
     };
     if started {
         let _ = writeln!(
@@ -280,24 +387,71 @@ fn refresh_one(
     result
 }
 
+/// Puts the Linux `rayx` (the chosen release, asking first when that is a downgrade of the guest)
+/// in a guest that is up.
+fn install_binary(
+    options: &RefreshOptions,
+    host: &HostFacts,
+    runner: &mut Runner,
+    prompter: &mut Option<&mut dyn Prompter>,
+    guest: &Guest,
+    out: &mut dyn Write,
+) -> Result<(), InstallError> {
+    let mut gate = DowngradeGate {
+        yes: options.yes,
+        check: options.check,
+        prompter: prompter.as_deref_mut().map(|p| p as &mut dyn Prompter),
+    };
+    guest::ensure_release_binary(
+        guest,
+        &binary(options, host, guest),
+        options.release.as_ref(),
+        &mut gate,
+        runner,
+        out,
+    )
+}
+
+/// Whether the inner `rayx setup --update` exists in the Linux `rayx` the guest has now: a chosen
+/// release older than the first one with the refresh does not have it.
+fn inner_update_exists(options: &RefreshOptions) -> bool {
+    options
+        .release
+        .as_ref()
+        .is_none_or(|release| *release >= MIN_REFRESH_RELEASE)
+}
+
+fn predates_refresh(options: &RefreshOptions) -> String {
+    let release = options.release.as_ref().map(Release::to_string);
+    format!(
+        "rayx {} predates the guest refresh: the inner update was skipped",
+        release.unwrap_or_else(|| options.version.clone())
+    )
+}
+
 /// The refresh of a guest that is up.
 fn refresh_inside(
     options: &RefreshOptions,
     host: &HostFacts,
     runner: &mut Runner,
+    prompter: &mut Option<&mut dyn Prompter>,
     guest: &Guest,
     out: &mut dyn Write,
 ) -> GuestOutcome {
-    if let Err(error) =
-        guest::ensure_linux_binary(guest, &binary(options, host, guest), runner, out)
-    {
-        return GuestOutcome::Failed(error);
+    match install_binary(options, host, runner, prompter, guest, out) {
+        Ok(()) => {}
+        Err(InstallError::Declined(why)) => return GuestOutcome::NotUpdated(why),
+        Err(InstallError::Failed(why)) => return GuestOutcome::Failed(why),
     }
     let yes = if options.yes { " -y" } else { "" };
     let upgrade = format!("sudo apt-get update && sudo apt-get upgrade{yes}");
     let _ = writeln!(out, "==> {}: {upgrade}", guest.kind.label());
     if let Err(error) = runner.run_checked(&guest.script(&upgrade).interactive()) {
         return GuestOutcome::Failed(format!("upgrading the packages: {error}"));
+    }
+    if !inner_update_exists(options) {
+        let _ = writeln!(out, "{}", predates_refresh(options));
+        return GuestOutcome::Refreshed;
     }
     match guest::run_setup_inside(guest, &inner_flags(options), None, runner, out) {
         Ok(()) => GuestOutcome::Refreshed,
@@ -341,13 +495,13 @@ fn migrate_outdated(
 ) -> GuestOutcome {
     let result = match guest.kind {
         GuestKind::Lima => {
-            if guest.name != INSTANCE {
+            let Ok(name) = VmName::parse(&guest.name) else {
                 return GuestOutcome::Outdated(format!(
-                    "it runs Ubuntu {version}, older than {}; only the VM named {INSTANCE} is \
-                     replaced by rayx",
-                    pinned_ubuntu()
+                    "it runs Ubuntu {version}, older than {}; {} is not a name rayx can replace",
+                    pinned_ubuntu(),
+                    guest.name
                 ));
-            }
+            };
             let tool = Tool {
                 path_dir: guest.path_dir.clone(),
             };
@@ -355,14 +509,14 @@ fn migrate_outdated(
                 return GuestOutcome::Failed("the home directory is not known".to_string());
             };
             let instance = match list_instances(&tool, runner) {
-                Ok(instances) => instances.into_iter().find(|i| i.name == INSTANCE),
+                Ok(instances) => instances.into_iter().find(|i| i.name == name.as_str()),
                 Err(error) => return GuestOutcome::Failed(error.to_string()),
             };
             let Some(instance) = instance else {
                 return GuestOutcome::Failed("the VM is not listed by limactl".to_string());
             };
             let old = LimaOld {
-                current_name: INSTANCE.to_string(),
+                current_name: name.to_string(),
                 version: version.to_string(),
                 entry: Some(record.clone()),
                 instance,
@@ -374,6 +528,7 @@ fn migrate_outdated(
                 home: &home,
                 path_dir: guest.path_dir.clone(),
                 vm_flags: VmFlags::default(),
+                name: &name,
             };
             migrate_lima(&migration, runner, prompter, out, &old).map(|(done, _)| done)
         }
@@ -418,8 +573,13 @@ fn check_one(
     let inside = guest::linux_binary_version(guest, runner);
     let _ = writeln!(
         out,
-        "rayx in the guest: {} (this rayx is {})",
+        "rayx in the guest: {} ({} {})",
         inside.as_deref().unwrap_or("missing"),
+        if options.release.is_some() {
+            "release asked for is"
+        } else {
+            "this rayx is"
+        },
         options.version
     );
     let ubuntu = guest::os_version(guest, runner);
@@ -437,10 +597,14 @@ fn check_one(
             pinned_ubuntu()
         ));
     }
-    let _ = guest::ensure_linux_binary(guest, &binary(options, host, guest), runner, out);
+    let _ = install_binary(options, host, runner, &mut None, guest, out);
     let yes = if options.yes { " -y" } else { "" };
     let upgrade = format!("sudo apt-get update && sudo apt-get upgrade{yes}");
     let _ = runner.run_checked(&guest.script(&upgrade).interactive());
+    if !inner_update_exists(options) {
+        let _ = writeln!(out, "{}", predates_refresh(options));
+        return GuestOutcome::Refreshed;
+    }
     let mut flags = inner_flags(options);
     flags.push("--check".to_string());
     let script = format!("\"{}\" setup {}", guest::LINUX_BINARY, flags.join(" "));

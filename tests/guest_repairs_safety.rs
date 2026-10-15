@@ -54,6 +54,8 @@ fn broken_lima() -> Runner {
 fn options(yes: bool, check: bool) -> RefreshOptions {
     RefreshOptions {
         version: "1.0.0".into(),
+        release: None,
+        targets: Vec::new(),
         yes,
         check,
         lima_binary: None,
@@ -138,6 +140,8 @@ fn lima_request(check: bool, yes: bool) -> LimaRequest {
         clone: None,
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
+        name: rayx_cli::setup::lima::VmName::default(),
         vm: VmFlags::default(),
         check,
         yes,
@@ -224,6 +228,7 @@ fn wsl_request() -> WslRequest {
         clone: None,
         binary_override: None,
         version: "1.0.0".into(),
+        release: None,
         windows_gpu: None,
     }
 }

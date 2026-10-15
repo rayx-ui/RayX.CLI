@@ -2,8 +2,9 @@
 //! Ubuntu) ready, put the Linux `rayx` of the same version in it, optionally clone the current
 //! checkout into it, and run `rayx setup` with the same flags inside it, in this console.
 //!
-//! Only the instance named `rayx` is ever created or started here; instances the owner made
-//! themselves are never touched. Nothing here needs `sudo` on the host.
+//! Only the instance named by `--vm` (default `rayx`) is ever created or started here, and only
+//! when it is new or recorded; instances the owner made themselves are never touched. Nothing here
+//! needs `sudo` on the host.
 
 use std::io::{IsTerminal, Write};
 use std::path::{Path, PathBuf};
@@ -14,20 +15,25 @@ use crate::cli::SetupArgs;
 use crate::host::{CommandSpec, HostFacts, Os, Outcome, Runner};
 
 use super::guest::{
-    self, Checkout, CloneSource, Guest, LinuxBinary, lima_template, pinned_ubuntu, setup_flags,
+    self, Checkout, CloneSource, DowngradeGate, Guest, InstallError, LinuxBinary, lima_template,
+    pinned_ubuntu, setup_flags,
 };
 use super::macos::brew_in;
 use super::migrate::{self, LimaMigration, LimaOld, Migration};
 use super::records::{self, CloneRecord, VmRecord};
 use super::refresh::RefreshOptions;
 use super::{Machine, SystemMachine};
+use crate::release::Release;
 
 pub mod edit;
+pub mod name;
 pub mod sizing;
+
+pub use name::VmName;
 
 use sizing::{Prompter, TerminalPrompter};
 
-/// The VM `rayx` manages.
+/// The name of the VM `rayx` manages unless `--vm` names another.
 pub const INSTANCE: &str = "rayx";
 
 /// The oldest macOS Lima's `vz` virtualization type runs on.
@@ -93,8 +99,12 @@ pub struct LimaRequest {
     pub clone: Option<String>,
     /// `RAYX_LIMA_BINARY`: a Linux `rayx` readable inside the VM, used instead of the installer.
     pub binary_override: Option<String>,
-    /// The version of this `rayx`, which the Linux binary must match.
+    /// The version of the Linux `rayx` the VM gets: this `rayx`'s own, or the chosen release.
     pub version: String,
+    /// `--release`: the chosen release, probed before any change and never recorded.
+    pub release: Option<Release>,
+    /// `--vm`: the VM's name, `rayx` unless chosen.
+    pub name: VmName,
     /// The `--vm-*` flags.
     pub vm: VmFlags,
     pub check: bool,
@@ -104,11 +114,14 @@ pub struct LimaRequest {
 impl LimaRequest {
     /// The request of a command line; the environment names the optional binary.
     pub fn from_args(args: &SetupArgs, binary_override: Option<String>) -> Self {
+        let release = guest::chosen_release(args).ok().flatten();
         Self {
             flags: setup_flags(args),
             clone: args.clone.clone(),
             binary_override,
-            version: env!("CARGO_PKG_VERSION").to_string(),
+            version: guest::guest_version(release.as_ref()),
+            release,
+            name: chosen_name(args).unwrap_or_default(),
             vm: VmFlags::from_args(args),
             check: args.check,
             yes: args.yes,
@@ -207,8 +220,22 @@ fn major(version: &str) -> Option<u32> {
     version.split('.').next()?.parse().ok()
 }
 
+/// The VM `--vm` names (`rayx` without it). `--lima` sets up one VM, so more than one name is
+/// refused, and a name that is not usable is refused with the rule and an example.
+pub fn chosen_name(args: &SetupArgs) -> Result<VmName, String> {
+    match args.vm.as_slice() {
+        [] => Ok(VmName::default()),
+        [name] => VmName::parse(name).map_err(|error| error.to_string()),
+        names => Err(format!(
+            "--vm names one VM with --lima, not {}: {}",
+            names.len(),
+            names.join(", ")
+        )),
+    }
+}
+
 /// The `limactl create` command of a new VM.
-pub fn create_command(settings: &VmSettings, home: &Path) -> CommandSpec {
+pub fn create_command(name: &VmName, settings: &VmSettings, home: &Path) -> CommandSpec {
     let mount = format!(
         "--mount-only={}{}",
         home.display(),
@@ -216,7 +243,7 @@ pub fn create_command(settings: &VmSettings, home: &Path) -> CommandSpec {
     );
     CommandSpec::new("limactl")
         .args(["create", "--tty=false"])
-        .arg(format!("--name={INSTANCE}"))
+        .arg(format!("--name={name}"))
         .arg("--vm-type=vz")
         .arg(format!("--cpus={}", settings.cpus))
         .arg(format!("--memory={}", settings.memory_gib))
@@ -228,9 +255,9 @@ pub fn create_command(settings: &VmSettings, home: &Path) -> CommandSpec {
 }
 
 /// The `limactl start` command; it returns once the VM is ready.
-pub fn start_command() -> CommandSpec {
+pub fn start_command(name: &VmName) -> CommandSpec {
     CommandSpec::new("limactl")
-        .args(["start", "--tty=false", INSTANCE])
+        .args(["start", "--tty=false", name.as_str()])
         .interactive()
 }
 
@@ -261,6 +288,10 @@ pub fn lima_path_dir(machine: &dyn Machine) -> Option<PathBuf> {
 /// Runs `rayx setup --lima` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
+    if let Err(error) = guest::chosen_release(args).and_then(|_| chosen_name(args)) {
+        eprintln!("rayx: {error}");
+        return 1;
+    }
     let binary = std::env::var("RAYX_LIMA_BINARY")
         .ok()
         .filter(|path| !path.trim().is_empty());
@@ -278,7 +309,7 @@ pub fn run(args: &SetupArgs) -> u8 {
             return 1;
         }
     };
-    let existed_before = !request.check && instance_exists(&machine, &mut runner);
+    let existed_before = !request.check && instance_exists(&request.name, &machine, &mut runner);
     let interactive = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
     let mut prompter = TerminalPrompter {
         terminal: interactive,
@@ -340,7 +371,7 @@ pub fn record_outcome(
     if request.check {
         return;
     }
-    let guest = Guest::lima(INSTANCE).with_path_dir(lima_path_dir(machine));
+    let guest = Guest::lima(request.name.as_str()).with_path_dir(lima_path_dir(machine));
     guest::record_run(
         machine,
         host.os,
@@ -352,13 +383,13 @@ pub fn record_outcome(
     );
 }
 
-/// Whether the VM `rayx` exists, read before a run so a failed first run can tell what it made.
-pub fn instance_exists(machine: &dyn Machine, runner: &mut Runner) -> bool {
+/// Whether the VM `name` exists, read before a run so a failed first run can tell what it made.
+pub fn instance_exists(name: &VmName, machine: &dyn Machine, runner: &mut Runner) -> bool {
     let tool = Tool {
         path_dir: lima_path_dir(machine),
     };
     list_instances(&tool, runner)
-        .map(|instances| instances.iter().any(|i| i.name == INSTANCE))
+        .map(|instances| instances.iter().any(|i| i.name == name.as_str()))
         .unwrap_or(false)
 }
 
@@ -381,7 +412,7 @@ pub fn record_failed_first_run(
     let Ok(instances) = list_instances(&tool, runner) else {
         return;
     };
-    let Some(instance) = instances.iter().find(|i| i.name == INSTANCE) else {
+    let Some(instance) = instances.iter().find(|i| i.name == request.name.as_str()) else {
         return;
     };
     let writable = machine
@@ -390,7 +421,7 @@ pub fn record_failed_first_run(
         .is_some_and(|(yaml, home)| edit::home_is_writable(&yaml, &home));
     let update = records::GuestUpdate {
         kind: records::LIMA,
-        name: INSTANCE.to_string(),
+        name: request.name.to_string(),
         ubuntu: pinned_ubuntu().to_string(),
         flags: Vec::new(),
         clone: None,
@@ -443,17 +474,33 @@ pub fn run_with(
     // Sizing is read and the flags are checked against it before any `limactl` command runs.
     let capacity = sizing::read_capacity(runner, machine, &home)?;
     let sized = sizing::effective(&VmSettings::default(), &capacity, &request.vm)?;
+    // A chosen release is looked for (read only) before Lima or the VM is touched.
+    guest::plan_release(
+        request.release.as_ref(),
+        request
+            .binary_override
+            .is_some()
+            .then_some("RAYX_LIMA_BINARY"),
+        runner,
+    )
+    .map_err(LimaError::Failed)?;
     ensure_lima(request, &brew, &tool, runner, &mut prompter, out)?;
 
+    let name = &request.name;
     let instances = list_instances(&tool, runner)?;
-    let existing = instances.iter().find(|i| i.name == INSTANCE);
-    let guests_file = records::read_guests(machine, host.os).unwrap_or_default();
+    let existing = instances.iter().find(|i| i.name == name.as_str());
+    let (guests_file, unreadable) = match records::read_guests(machine, host.os) {
+        Ok(file) => (file, None),
+        Err(error) => (records::GuestsFile::default(), Some(error)),
+    };
     let migration_options = RefreshOptions {
         version: request.version.clone(),
         yes: request.yes,
         check: request.check,
         lima_binary: request.binary_override.clone(),
         wsl_binary: None,
+        release: request.release.clone(),
+        targets: Vec::new(),
     };
     let migration = LimaMigration {
         options: &migration_options,
@@ -462,8 +509,36 @@ pub fn run_with(
         home: &home,
         path_dir: tool.path_dir.clone(),
         vm_flags: request.vm,
+        name,
     };
-    let pending = migrate::pending_lima(&guests_file, &instances);
+    let pending = migrate::pending_lima(&guests_file, &instances, name);
+    // A VM that is in Lima but not in the record is the owner's own, whatever its name: it is
+    // never started, edited or renamed. The VM an interrupted migration made is the exception.
+    if existing.is_some()
+        && pending.is_none()
+        && guests_file.find(records::LIMA, name.as_str()).is_none()
+    {
+        return Err(LimaError::Failed(match unreadable {
+            Some(error) => {
+                format!("{name} exists in Lima and rayx cannot tell whether it created it: {error}")
+            }
+            None => format!(
+                "{name} exists in Lima but was not created by rayx: remove or rename it with \
+                 limactl, or choose another --vm name"
+            ),
+        }));
+    }
+    // A VM that cannot be recorded would be unusable next time (an unrecorded VM is never
+    // adopted), and an unreadable record may hide an interrupted migration: nothing is created
+    // until the record can be read. `--check` only reports.
+    if let Some(error) = &unreadable
+        && existing.is_none()
+        && !request.check
+    {
+        return Err(LimaError::Failed(format!(
+            "{error}; no VM was created, fix or remove that file and run this again"
+        )));
+    }
     let vm = if let Some(old) = pending {
         // An interrupted migration: finish it before anything else.
         match migrate::migrate_lima(&migration, runner, &mut prompter, out, &old)
@@ -490,18 +565,21 @@ pub fn run_with(
                     }
                     notes.clear();
                     settings =
-                        sizing::customize(INSTANCE, settings, &capacity, &mut **prompter, out);
+                        sizing::customize(name.as_str(), settings, &capacity, &mut **prompter, out);
                     sizing::check_free_space(&capacity, &settings, &mut notes)?;
                 }
                 notes.extend(sizing::memory_warning(
-                    &instances, &settings, &capacity, INSTANCE,
+                    &instances,
+                    &settings,
+                    &capacity,
+                    name.as_str(),
                 ));
                 for note in &notes {
                     let _ = writeln!(out, "note: {note}");
                 }
                 let _ = writeln!(
                     out,
-                    "==> lima: creating the VM {INSTANCE} (Ubuntu {}, {} CPUs, {} GiB memory, {} GiB disk, home {})",
+                    "==> lima: creating the VM {name} (Ubuntu {}, {} CPUs, {} GiB memory, {} GiB disk, home {})",
                     pinned_ubuntu(),
                     settings.cpus,
                     settings.memory_gib,
@@ -514,10 +592,10 @@ pub fn run_with(
                 );
                 run_limactl(
                     runner,
-                    &tool.spec(create_command(&settings, &home)),
+                    &tool.spec(create_command(name, &settings, &home)),
                     "creating the VM",
                 )?;
-                start_vm(runner, &tool, out)?;
+                start_vm(name, runner, &tool, out)?;
                 Some(VmRecord {
                     cpus: settings.cpus,
                     memory_gib: settings.memory_gib,
@@ -529,16 +607,16 @@ pub fn run_with(
                 // A smaller disk is refused for an edit, but a new VM may have one: the refusal
                 // only stands when the VM is not about to be replaced.
                 let (edit, edit_error) =
-                    match edit::plan_edit(instance, &request.vm, machine, &home) {
+                    match edit::plan_edit(name, instance, &request.vm, machine, &home) {
                         Ok(edit) => (edit, None),
                         Err(error) => (edit::VmEdit::default(), Some(error)),
                     };
                 let mut migrated = None;
-                let current = Guest::lima(INSTANCE).with_path_dir(tool.path_dir.clone());
+                let current = Guest::lima(name.as_str()).with_path_dir(tool.path_dir.clone());
                 // A VM the record already knows to be older than the pin is replaced, not edited:
                 // the `--vm-*` flags then size the new VM.
                 let recorded_older = guests_file
-                    .find(records::LIMA, INSTANCE)
+                    .find(records::LIMA, name.as_str())
                     .is_some_and(|g| migrate::older_than_pin(&g.ubuntu));
                 // A refused flag is refused before anything is started, unless the VM is about to
                 // be replaced (a new VM may have a smaller disk).
@@ -553,7 +631,7 @@ pub fn run_with(
                 let mut live = None;
                 if edit.is_empty() || recorded_older || instance.is_running() {
                     if !instance.is_running() {
-                        start_vm(runner, &tool, out)?;
+                        start_vm(name, runner, &tool, out)?;
                     }
                     live = guest::os_version(&current, runner);
                 }
@@ -581,16 +659,16 @@ pub fn run_with(
                 if let Some(version) = live.as_deref().filter(|v| migrate::newer_than_pin(v)) {
                     let _ = writeln!(
                         out,
-                        "{INSTANCE} runs Ubuntu {version}, newer than the pinned {}: rayx leaves \
+                        "{name} runs Ubuntu {version}, newer than the pinned {}: rayx leaves \
                          its release alone",
                         pinned_ubuntu()
                     );
                 }
                 if let Some(version) = live.filter(|v| migrate::older_than_pin(v)) {
                     let old = LimaOld {
-                        current_name: INSTANCE.to_string(),
+                        current_name: name.to_string(),
                         version,
-                        entry: guests_file.find(records::LIMA, INSTANCE).cloned(),
+                        entry: guests_file.find(records::LIMA, name.as_str()).cloned(),
                         instance: instance.clone(),
                     };
                     match migrate::migrate_lima(&migration, runner, &mut prompter, out, &old)
@@ -623,13 +701,29 @@ pub fn run_with(
         }
     };
 
-    let guest = Guest::lima(INSTANCE).with_path_dir(tool.path_dir.clone());
+    let guest = Guest::lima(name.as_str()).with_path_dir(tool.path_dir.clone());
     let binary = LinuxBinary {
         version: request.version.clone(),
         arch: host.arch,
         override_path: request.binary_override.clone(),
     };
-    guest::ensure_linux_binary(&guest, &binary, runner, out).map_err(LimaError::Failed)?;
+    let mut gate = DowngradeGate {
+        yes: request.yes,
+        check: request.check,
+        prompter,
+    };
+    guest::ensure_release_binary(
+        &guest,
+        &binary,
+        request.release.as_ref(),
+        &mut gate,
+        runner,
+        out,
+    )
+    .map_err(|error| match error {
+        InstallError::Declined(why) => LimaError::Declined(why),
+        InstallError::Failed(why) => LimaError::Failed(why),
+    })?;
     let directory = match &clone {
         Some((requested, source)) => Some(
             guest::clone_checkout(&guest, requested, source, runner, out)
@@ -797,41 +891,48 @@ fn apply_edit(
     out: &mut dyn Write,
 ) -> Result<(), LimaError> {
     let changes = edit.describe();
-    let _ = writeln!(out, "==> lima: changing the VM {INSTANCE}: {changes}");
+    let name = &request.name;
+    let _ = writeln!(out, "==> lima: changing the VM {name}: {changes}");
     if !request.yes
         && !request.check
         && let Some(prompter) = prompter.as_mut()
         && (!prompter.interactive()
-            || !prompter.confirm(&format!("Change the VM {INSTANCE} ({changes}). Apply now?")))
+            || !prompter.confirm(&format!("Change the VM {name} ({changes}). Apply now?")))
     {
         return Err(LimaError::Declined(format!(
-            "the VM {INSTANCE} was not changed ({changes}): apply it with `rayx setup --lima \
-             --yes` and the same --vm-* flags"
+            "the VM {name} was not changed ({changes}): apply it with `rayx setup {} --yes` and \
+             the same --vm-* flags",
+            name.lima_flags()
         )));
     }
     if instance.is_running() {
-        let _ = writeln!(out, "==> lima: stopping the VM {INSTANCE}");
+        let _ = writeln!(out, "==> lima: stopping the VM {name}");
         run_limactl(
             runner,
             &tool.spec(
                 CommandSpec::new("limactl")
-                    .args(["stop", INSTANCE])
+                    .args(["stop", name.as_str()])
                     .interactive(),
             ),
             "stopping the VM",
         )?;
     }
-    run_limactl(runner, &tool.spec(edit.command(home)), "changing the VM")?;
-    start_vm(runner, tool, out)
+    run_limactl(
+        runner,
+        &tool.spec(edit.command(name, home)),
+        "changing the VM",
+    )?;
+    start_vm(name, runner, tool, out)
 }
 
 pub(crate) fn start_vm(
+    name: &VmName,
     runner: &mut Runner,
     tool: &Tool,
     out: &mut dyn Write,
 ) -> Result<(), LimaError> {
-    let _ = writeln!(out, "==> lima: starting the VM {INSTANCE}");
-    run_limactl(runner, &tool.spec(start_command()), "starting the VM")
+    let _ = writeln!(out, "==> lima: starting the VM {name}");
+    run_limactl(runner, &tool.spec(start_command(name)), "starting the VM")
 }
 
 /// The clone `--clone` asks for: the requested target and the checkout as the VM sees it. The VM

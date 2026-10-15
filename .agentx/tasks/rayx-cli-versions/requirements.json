@@ -1,210 +1,215 @@
 {
- "schemaVersion": 7,
- "epicId": "rayx-cli-versions",
- "scopeMarkdown": "Let the owner choose **which release of `rayx`** is installed, and **which VM** a guest operation targets, so a project can keep its own VM on its own `rayx` release and a release can be tried in both directions (install `1.0.0`, then update to `1.0.1`).\n\n## In scope\n\n- **`rayx self update --release <X.Y.Z>`**: install exactly that published release over the installed one (upgrade or downgrade), for a `rayx` the release installers made (an install receipt). The name is `--release`, not `--version`: clap reserves `--version` on every subcommand here (`propagate_version`).\n- **`--release <X.Y.Z>` for guests**: `rayx setup --lima|--wsl --release X` and `rayx setup --update --release X` put that release of the Linux `rayx` in the guest instead of the host's running version. A release is checked to exist before anything is changed.\n- **Downgrades are confirmed** (host and guest): asked in a terminal, `--yes` skips, no terminal and no `--yes` refuses.\n- **Nothing is remembered.** A chosen release is a one-off install; a later plain `rayx self update` goes to the latest release and a later plain `rayx setup --update` brings guests back to the host's running version.\n- **Named VMs**: `rayx setup --lima --vm <name>` creates, starts and records a VM with that name (default `rayx`), so one VM per project repository works; everything that handled the fixed name `rayx` (create, edit, migration and its resume, refresh, removal, doctor) follows the name. `rayx setup --update --vm <name>` (repeatable) refreshes only the named recorded guests.\n- README and help text, and a real-VM proof on this Mac.\n\n## Owner decisions (2026-10-14)\n\n`self update --version` plus guest options, with VM selectable **by name, default `rayx`** (one VM per project repository); the chosen version is **not remembered**; a **downgrade is allowed with a confirmation**.\n\n## Assumptions\n\n- `--vm` without a value in `setup --update` means \"no filter\": all current guests of this host are refreshed as today. `--vm <name>` limits the refresh to the named guests **and skips the host part** of `setup --update` (an explicit target is not a host run). The default name `rayx` applies to `setup --lima`.\n- WSL: a distribution is not created under a chosen name (only the pinned `Ubuntu-<pin>` is); `--vm` selects recorded guests of either kind in `setup --update`, and is refused with `setup --wsl`.\n- A VM that exists in Lima but is not in `guests.json` is **never adopted**, whatever its name, including `rayx` (a change from the single-VM epic, where an unrecorded `rayx` was started and edited after a confirmation): the owner removes or renames it with `limactl`, or picks another name.\n- `1.0.0` is the oldest release that can be named (the first release with the installer); the first release with `setup --update` and the refresh offer (`MIN_REFRESH_RELEASE`) is `1.1.0`.\n\n## Out of scope\n\n- Prereleases, release channels, `latest` aliases, a remembered pin, version ranges.\n- Creating WSL distributions under custom names, `rayx lima adopt`, per-project config files.\n- Changing the release workflow or `dist-workspace.toml`.\n",
- "constraintsMarkdown": "- `CLAUDE.md`/`AGENTS.md` rules hold: every external program through `host::Runner`; `rayx` never reads, stores or forwards a password or token and never relaunches itself elevated; licenses only with `--yes`; `--check` executes, creates, records and downloads nothing.\n- The invariants of the guest epic hold: only guests `rayx` recorded are started, stopped, edited, renamed, refreshed or removed; `apt-get upgrade` only inside guests; no `do-release-upgrade`; nothing deleted without a command and a confirmation (or `--yes`); a failed read is never an absent guest; one Ubuntu literal in `project::pins`.\n- An explicit release or VM name is validated before the first change: a bad value exits 1 with an example and nothing has run.\n- Automated tests drive `limactl`, `wsl`, `curl` and the update backend through a recording runner or fake backend with scripted responses (hosted macOS runners cannot run VMs, and tests never touch the network or GitHub); real-VM proof is manual.\n- Tests are new feature groups in `tests/<feature>.rs`; while iterating run only the touched group. Conventional Commits with scopes, no co-author lines.\n",
- "requirements": [
-  {
-   "id": "REL",
-   "title": "Naming and checking a release",
-   "descriptionMarkdown": "One module owns what a release name is, where its installer lives and whether it exists.",
-   "sourceRefs": [
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-versions",
+  "scopeMarkdown": "Let the owner choose **which release of `rayx`** is installed, and **which VM** a guest operation targets, so a project can keep its own VM on its own `rayx` release and a release can be tried in both directions (install `1.0.0`, then update to `1.0.1`).\n\n## In scope\n\n- **`rayx self update --release <X.Y.Z>`**: install exactly that published release over the installed one (upgrade or downgrade), for a `rayx` the release installers made (an install receipt). The name is `--release`, not `--version`: clap reserves `--version` on every subcommand here (`propagate_version`).\n- **`--release <X.Y.Z>` for guests**: `rayx setup --lima|--wsl --release X` and `rayx setup --update --release X` put that release of the Linux `rayx` in the guest instead of the host's running version. A release is checked to exist before anything is changed.\n- **Downgrades are confirmed** (host and guest): asked in a terminal, `--yes` skips, no terminal and no `--yes` refuses.\n- **Nothing is remembered.** A chosen release is a one-off install; a later plain `rayx self update` goes to the latest release and a later plain `rayx setup --update` brings guests back to the host's running version.\n- **Named VMs**: `rayx setup --lima --vm <name>` creates, starts and records a VM with that name (default `rayx`), so one VM per project repository works; everything that handled the fixed name `rayx` (create, edit, migration and its resume, refresh, removal, doctor) follows the name. `rayx setup --update --vm <name>` (repeatable) refreshes only the named recorded guests.\n- README and help text, and a real-VM proof on this Mac.\n\n## Owner decisions (2026-10-14)\n\n`self update --version` plus guest options, with VM selectable **by name, default `rayx`** (one VM per project repository); the chosen version is **not remembered**; a **downgrade is allowed with a confirmation**.\n\n## Assumptions\n\n- `--vm` without a value in `setup --update` means \"no filter\": all current guests of this host are refreshed as today. `--vm <name>` limits the refresh to the named guests **and skips the host part** of `setup --update` (an explicit target is not a host run). The default name `rayx` applies to `setup --lima`.\n- WSL: a distribution is not created under a chosen name (only the pinned `Ubuntu-<pin>` is); `--vm` selects recorded guests of either kind in `setup --update`, and is refused with `setup --wsl`.\n- A VM that exists in Lima but is not in `guests.json` is **never adopted**, whatever its name, including `rayx` (a change from the single-VM epic, where an unrecorded `rayx` was started and edited after a confirmation): the owner removes or renames it with `limactl`, or picks another name.\n- `1.0.0` is the oldest release that can be named (the first release with the installer); the first release with `setup --update` and the refresh offer (`MIN_REFRESH_RELEASE`) is `1.1.0`.\n\n## Out of scope\n\n- Prereleases, release channels, `latest` aliases, a remembered pin, version ranges.\n- Creating WSL distributions under custom names, `rayx lima adopt`, per-project config files.\n- Changing the release workflow or `dist-workspace.toml`.\n",
+  "constraintsMarkdown": "- `CLAUDE.md`/`AGENTS.md` rules hold: every external program through `host::Runner`; `rayx` never reads, stores or forwards a password or token and never relaunches itself elevated; licenses only with `--yes`; `--check` executes, creates, records and downloads nothing.\n- The invariants of the guest epic hold: only guests `rayx` recorded are started, stopped, edited, renamed, refreshed or removed; `apt-get upgrade` only inside guests; no `do-release-upgrade`; nothing deleted without a command and a confirmation (or `--yes`); a failed read is never an absent guest; one Ubuntu literal in `project::pins`.\n- An explicit release or VM name is validated before the first change: a bad value exits 1 with an example and nothing has run.\n- Automated tests drive `limactl`, `wsl`, `curl` and the update backend through a recording runner or fake backend with scripted responses (hosted macOS runners cannot run VMs, and tests never touch the network or GitHub); real-VM proof is manual.\n- Tests are new feature groups in `tests/<feature>.rs`; while iterating run only the touched group. Conventional Commits with scopes, no co-author lines.\n",
+  "requirements": [
     {
-     "repositoryId": "rayx-cli",
-     "path": "src/setup/guest.rs",
-     "symbol": "RELEASES"
+      "id": "REL",
+      "title": "Naming and checking a release",
+      "descriptionMarkdown": "One module owns what a release name is, where its installer lives and whether it exists.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "symbol": "RELEASES"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "REL-1",
+          "descriptionMarkdown": "A new module `release` is the one place that knows release names: it parses `X.Y.Z` (a leading `v` is accepted and dropped; prereleases, build metadata, ranges, `latest` and anything else are refused with an example such as `1.0.1`), compares two releases (newer, same, older), builds the installer URL `https://github.com/rayx-ui/RayX.CLI/releases/download/v<X.Y.Z>/rayx-cli-installer.sh` (moved out of `setup::guest`, which uses it), and holds `MIN_REFRESH_RELEASE` (`1.1.0`, the first release with `setup --update` and the refresh offer).\\n\\nVerified by the new group `tests/release_module.rs` (valid and invalid names, ordering, the URL, the constant).",
+          "verification": "automated"
+        },
+        {
+          "id": "REL-2",
+          "descriptionMarkdown": "`release::exists` asks whether a release is published with `curl --proto =https --tlsv1.2 -sfIL <installer URL>` through `Runner::query` (headers only, nothing downloaded): success is `Exists`, an HTTP 404 (curl exit 22) is `Missing`, any other failure is `Unknown(reason)`. Callers treat `Missing` as `release X was not found` and `Unknown` as `cannot check whether release X exists: <reason>`, both exit 1 before any change.\\n\\nVerified by `tests/release_module.rs` (scripted curl answers for each outcome and the exact command line).",
+          "verification": "automated"
+        },
+        {
+          "id": "REL-3",
+          "descriptionMarkdown": "Corrective for REL-2, found by the real-Mac proof (MAN-1, 2026-10-15): macOS curl 8.7.1 ends a HEAD request answered with a 404 and a body length with exit 56 under `-f`, so a release that does not exist was reported as `cannot check whether release X exists: curl exited with 56`. `release::exists` therefore reads the final HTTP status instead of curl's `-f` exit code: it runs `curl --proto =https --tlsv1.2 -sIL -w '\\\\nstatus=%{http_code}\\\\n' <installer URL>` through `Runner::query` (still headers only, nothing downloaded, no `-f`). A final status of 2xx with curl exit 0 is `Exists`; 404 or 410, whatever curl's exit code, is `Missing`; any other status (for example 403, 429, 500, 503) or a curl failure without a status is `Unknown(reason)` (`the server answered HTTP <status>` or `curl exited with <code>`). Callers keep REL-2's messages and exit 1 before any change. This command line and these outcomes replace the `-sfIL` command line and the exit-22 mapping that REL-2's text names; REL-2's caller behaviour is unchanged.\\n\\nVerified by the new group `tests/release_probe.rs` (the exact command line without `-f`, 2xx, 404 and 410 under curl exit 0, 22 and 56, other statuses, a curl failure without a status, a `status=` line inside the headers not mistaken for the status).",
+          "verification": "automated"
+        }
+      ]
     },
     {
-     "repositoryId": "rayx-cli",
-     "path": "src/update.rs"
+      "id": "SU",
+      "title": "rayx self update --release",
+      "descriptionMarkdown": "Install a chosen release of this machine's `rayx`, in either direction, with the safeguards the plain update has.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs",
+          "symbol": "run_with_refresh"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "symbol": "SelfCommand"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "SU-1",
+          "descriptionMarkdown": "`rayx self update --release <X.Y.Z> [--yes] [--check]` installs exactly that release for a `rayx` the release installers made (an install receipt names the executable), through axoupdater's specific-version request, upgrade or downgrade, and prints `Updated rayx <old> -> <new>.`. The requested release equal to the installed one prints `rayx <v> is already installed.` and changes nothing; a release that does not exist exits 1 with `release X was not found`; a `rayx` without a receipt (cargo install, development build) gets the same instruction as the plain update and exit 1. `--check --release X` prints installed, requested and the direction (`upgrade`, `downgrade`, `same`) and installs nothing. Without `--release` the behaviour is unchanged (latest release, `up to date`, `newer than the latest`). `--release` accepts the names of REL-1 and is validated before the network is asked.\\n\\nVerified by the new group `tests/self_update_release.rs` with the fake update backend (install requests, directions, missing release, no receipt, `--check`, the unchanged plain path).",
+          "verification": "automated"
+        },
+        {
+          "id": "SU-2",
+          "descriptionMarkdown": "Installing an older release than the installed one is a downgrade: in a terminal `rayx` asks `Install rayx <X> over <installed>, an older release? [y/N]`; `--yes` does not ask; no terminal and no `--yes` refuses with exit 1 and the command to repeat with `--yes`; a no answer exits 1 and changes nothing. The choice is not remembered: nothing is written, and a later plain `rayx self update` installs the latest release.\\n\\nVerified by `tests/self_update_release.rs` (the question text, yes, no, `--yes`, no terminal, nothing recorded, the plain update after a downgrade).",
+          "verification": "automated"
+        },
+        {
+          "id": "SU-3",
+          "descriptionMarkdown": "The refresh offer (`Refresh this machine's setup and guests with rayx <new>? [y/N]`, `--yes` accepts) follows an install only when the installed release has the refresh, i.e. is at least `MIN_REFRESH_RELEASE`, and then as today: records must exist, the refresh runs the executable captured before the install as `setup --update [--yes]`, and its exit code becomes the command's. After a downgrade, or to a release older than `MIN_REFRESH_RELEASE`, no refresh is offered and `rayx <X> predates the guest refresh: no refresh was offered` is printed.\\n\\nVerified by `tests/self_update_release.rs` (offer after an upgrade, none after a downgrade or to 1.0.0, exit-code propagation).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "GR",
+      "title": "Choosing the rayx release in a guest",
+      "descriptionMarkdown": "Put a named release of the Linux `rayx` in a guest instead of the host's running version.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "symbol": "ensure_linux_binary"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "symbol": "SetupArgs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "GR-1",
+          "descriptionMarkdown": "`--release <X.Y.Z>` is accepted with `setup --lima`, `setup --wsl` and `setup --update` and is refused (clap, exit 2) without one of them or together with `--check`-less combinations that make no sense (`--all` is fine; `--release` conflicts with an `RAYX_LIMA_BINARY`/`RAYX_WSL_BINARY` override, which the run reports and refuses: choose one). The guest gets `$HOME/.rayx/bin/rayx` of that release with that tag's own installer (`.../releases/download/v<X.Y.Z>/rayx-cli-installer.sh`); a guest that already reports `rayx <X.Y.Z>` gets nothing installed; one that reports another release, older or newer, is replaced. Without `--release` the running version is used as before.\\n\\nVerified by the new group `tests/guest_release.rs` (command lines for both guest kinds, already-current guest, replaced guest, conflicts).",
+          "verification": "automated"
+        },
+        {
+          "id": "GR-2",
+          "descriptionMarkdown": "Before any change (no VM created, started, stopped, edited or renamed, no WSL distribution installed, no record written, no install) the release is probed with `release::exists`: `Missing` exits 1 with `release X was not found`, `Unknown` exits 1 with `cannot check whether release X exists: ...`; with `--check` the probe still runs (it only reads) and the install is printed.\\n\\nVerified by `tests/guest_release.rs` (missing and unreachable release with no state-changing command recorded).",
+          "verification": "automated"
+        },
+        {
+          "id": "GR-3",
+          "descriptionMarkdown": "Replacing a guest's `rayx` with an older release than it has is a downgrade of the guest: `Install rayx <X> in <guest> over <current>, an older release? [y/N]` in a terminal, `--yes` skips, no terminal and no `--yes` refuses, a no answer leaves the guest as it is and the run reports it (exit 1); newer or equal needs no question. `--check` prints the question's subject and installs nothing.\\n\\nVerified by `tests/guest_release.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "GR-4",
+          "descriptionMarkdown": "`rayx setup --update --release <X.Y.Z>` refreshes the targeted current guests to that release (apt upgrade as usual). The inner `rayx setup --update` runs only when the release is at least `MIN_REFRESH_RELEASE`; for an older one it is skipped with `rayx <X> predates the guest refresh: the inner update was skipped` and the guest counts as refreshed. An explicit release is not recorded anywhere: a later plain `rayx setup --update` brings the guest to the host's running version again. `setup --update --release` still conflicts with the set flags, `--wsl`, `--lima` and `--clone`.\\n\\nVerified by `tests/guest_release.rs` (inner update run and skipped, nothing recorded, the later plain refresh).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "VM",
+      "title": "Named VMs",
+      "descriptionMarkdown": "One VM per project: every Lima operation follows the VM's name.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "symbol": "INSTANCE"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/remove.rs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "VM-1",
+          "descriptionMarkdown": "`rayx setup --lima --vm <name>` (default `rayx`) creates the VM with that name from the pinned template with the same arguments as before (`limactl create --tty=false --name=<name> ...`, `limactl start --tty=false <name>`), runs the guest steps through `limactl shell --workdir / <name>`, and records it in `guests.json` under that name with its own flags, clones and settings; the customize question and notes name it (`Create Lima VM <name>: ...`). Names are 1 to 40 characters of lowercase letters, digits and hyphens, starting with a letter, and not `default` (Lima's own rules); anything else exits 1 with the rule and an example before any command runs. Several named VMs coexist, each with its own record. `--vm` is accepted with `--lima` and `--update` and refused (clap) with `--wsl`.\\n\\nVerified by the new group `tests/lima_named_vms.rs` (create arguments for two names, the shell commands, two records, the name rules, the clap refusal).",
+          "verification": "automated"
+        },
+        {
+          "id": "VM-2",
+          "descriptionMarkdown": "A VM that exists in Lima but is not in `guests.json` is never adopted: `rayx setup --lima --vm <name>` for such a name (including `rayx`) exits 1 with `<name> exists in Lima but was not created by rayx: remove or rename it with limactl, or choose another --vm name` before anything is started, stopped, edited or renamed. A recorded VM missing from Lima is created again as before; a name recorded for the other guest kind is a different guest.\\n\\nVerified by `tests/lima_named_vms.rs` (an unrecorded `gpux`-shaped VM and an unrecorded `rayx`, with no state-changing command recorded).",
+          "verification": "automated"
+        },
+        {
+          "id": "VM-3",
+          "descriptionMarkdown": "Everything that used the fixed name follows the VM's name: a size or home change is the stop/edit/start of that VM only; a migration of `<name>` renames it `<name>-<old version>`, creates the new `<name>` with the old settings, and its resume marker, `pending` detection, the retired entry and the removal hint use the same names; two VMs migrate independently; a retired VM of one name never counts as the interrupted migration of another; `rayx lima remove <name>`, `rayx doctor` and the refresh already act by name and are covered by tests for a non-default name. Other instances are never touched.\\n\\nVerified by `tests/lima_named_vms.rs` (edit, migration, resume, independence of two names, removal and doctor for a non-default name).",
+          "verification": "automated"
+        },
+        {
+          "id": "VM-4",
+          "descriptionMarkdown": "`rayx setup --update --vm <name>` (repeatable) refreshes only the named recorded, current guests of this host (Lima and WSL alike) and skips the host part of `setup --update`; a name that is not a recorded current guest of this host exits 1 with the recorded names, before any command runs; without `--vm` all current guests are refreshed as today (host part included). `--vm` and `--release` combine (`setup --update --vm app --release 1.0.1`); `--check` inspects only the named running guests.\\n\\nVerified by the new group `tests/update_target_vm.rs` (one of two guests refreshed, unknown name, repeatable flag, host part skipped, `--check`, WSL and Lima names).",
+          "verification": "automated"
+        },
+        {
+          "id": "VM-5",
+          "descriptionMarkdown": "The sizing, free-space, memory-warning and edit behaviours of `setup --lima` apply to any name: the memory warning counts the other running VMs (any name) plus the new one; sizing flags on an existing named VM are the stop/edit/start update of that VM.\\n\\nVerified by `tests/lima_named_vms.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "DOCS",
+      "title": "README and help",
+      "descriptionMarkdown": "The new options are documented where owners read.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "DOCS-1",
+          "descriptionMarkdown": "`README.md` documents `rayx self update --release`, the guest `--release`, the downgrade confirmation, that nothing is remembered, the `--vm` name for `setup --lima` and `setup --update` (default `rayx`, one VM per project, the never-adopt rule, the `-<old version>` retired name), and the `MIN_REFRESH_RELEASE` note; every new flag has help text.\\n\\nVerified by the new group `tests/readme_versions.rs` (README sections and `--help` of `setup` and `self update`).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "MAN",
+      "title": "Proof on real machines",
+      "descriptionMarkdown": "What the recording runner cannot show.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "MAN-1",
+          "descriptionMarkdown": "On this Mac (Lima 2.2.1, the owner's `gpux` VM running and untouched), with local builds of this branch and the published `1.0.0` and `1.1.0` releases: `rayx setup --lima --vm proj-a --release 1.0.0 --vm-cpus 2 --vm-memory 4 --yes` creates `proj-a` whose `~/.rayx/bin/rayx --version` is `rayx 1.0.0`; a second VM `proj-b` is created on the running version; `rayx setup --update --vm proj-a --release 1.1.0` upgrades only `proj-a` (and `proj-b` is untouched); `--release 1.0.0` on a `1.1.0` guest asks the downgrade question; a nonexistent release is refused before anything changes; `--vm gpux` is refused; `rayx doctor` lists both VMs; both are removed after confirmation. Recorded with date and results in `docs/manual-verification.md`.",
+          "verification": "manual"
+        },
+        {
+          "id": "MAN-2",
+          "descriptionMarkdown": "Owner-run after the first release that contains this epic, on the Mac and on Windows: `rayx self update --release <older>` asks the downgrade question and installs it; then a plain `rayx self update` goes to the latest release and, with a guest recorded and the older release at least `MIN_REFRESH_RELEASE`, offers the refresh and refreshes the guest (this also closes MAN-4 of the guest epic). Recorded with date, versions and results.",
+          "verification": "manual"
+        },
+        {
+          "id": "MAN-3",
+          "descriptionMarkdown": "Owner-run on the Windows PC after the release: `rayx setup --wsl --release <X.Y.Z>` puts that release in `Ubuntu-24.04`, and `rayx setup --update --vm Ubuntu-24.04 --release <Y>` refreshes it to another. Recorded with date and results.",
+          "verification": "manual"
+        }
+      ]
     }
-   ],
-   "criteria": [
-    {
-     "id": "REL-1",
-     "descriptionMarkdown": "A new module `release` is the one place that knows release names: it parses `X.Y.Z` (a leading `v` is accepted and dropped; prereleases, build metadata, ranges, `latest` and anything else are refused with an example such as `1.0.1`), compares two releases (newer, same, older), builds the installer URL `https://github.com/rayx-ui/RayX.CLI/releases/download/v<X.Y.Z>/rayx-cli-installer.sh` (moved out of `setup::guest`, which uses it), and holds `MIN_REFRESH_RELEASE` (`1.1.0`, the first release with `setup --update` and the refresh offer).\\n\\nVerified by the new group `tests/release_module.rs` (valid and invalid names, ordering, the URL, the constant).",
-     "verification": "automated"
-    },
-    {
-     "id": "REL-2",
-     "descriptionMarkdown": "`release::exists` asks whether a release is published with `curl --proto =https --tlsv1.2 -sfIL <installer URL>` through `Runner::query` (headers only, nothing downloaded): success is `Exists`, an HTTP 404 (curl exit 22) is `Missing`, any other failure is `Unknown(reason)`. Callers treat `Missing` as `release X was not found` and `Unknown` as `cannot check whether release X exists: <reason>`, both exit 1 before any change.\\n\\nVerified by `tests/release_module.rs` (scripted curl answers for each outcome and the exact command line).",
-     "verification": "automated"
-    }
-   ]
-  },
-  {
-   "id": "SU",
-   "title": "rayx self update --release",
-   "descriptionMarkdown": "Install a chosen release of this machine's `rayx`, in either direction, with the safeguards the plain update has.",
-   "sourceRefs": [
-    {
-     "repositoryId": "rayx-cli",
-     "path": "src/update.rs",
-     "symbol": "run_with_refresh"
-    },
-    {
-     "repositoryId": "rayx-cli",
-     "path": "src/cli.rs",
-     "symbol": "SelfCommand"
-    }
-   ],
-   "criteria": [
-    {
-     "id": "SU-1",
-     "descriptionMarkdown": "`rayx self update --release <X.Y.Z> [--yes] [--check]` installs exactly that release for a `rayx` the release installers made (an install receipt names the executable), through axoupdater's specific-version request, upgrade or downgrade, and prints `Updated rayx <old> -> <new>.`. The requested release equal to the installed one prints `rayx <v> is already installed.` and changes nothing; a release that does not exist exits 1 with `release X was not found`; a `rayx` without a receipt (cargo install, development build) gets the same instruction as the plain update and exit 1. `--check --release X` prints installed, requested and the direction (`upgrade`, `downgrade`, `same`) and installs nothing. Without `--release` the behaviour is unchanged (latest release, `up to date`, `newer than the latest`). `--release` accepts the names of REL-1 and is validated before the network is asked.\\n\\nVerified by the new group `tests/self_update_release.rs` with the fake update backend (install requests, directions, missing release, no receipt, `--check`, the unchanged plain path).",
-     "verification": "automated"
-    },
-    {
-     "id": "SU-2",
-     "descriptionMarkdown": "Installing an older release than the installed one is a downgrade: in a terminal `rayx` asks `Install rayx <X> over <installed>, an older release? [y/N]`; `--yes` does not ask; no terminal and no `--yes` refuses with exit 1 and the command to repeat with `--yes`; a no answer exits 1 and changes nothing. The choice is not remembered: nothing is written, and a later plain `rayx self update` installs the latest release.\\n\\nVerified by `tests/self_update_release.rs` (the question text, yes, no, `--yes`, no terminal, nothing recorded, the plain update after a downgrade).",
-     "verification": "automated"
-    },
-    {
-     "id": "SU-3",
-     "descriptionMarkdown": "The refresh offer (`Refresh this machine's setup and guests with rayx <new>? [y/N]`, `--yes` accepts) follows an install only when the installed release has the refresh, i.e. is at least `MIN_REFRESH_RELEASE`, and then as today: records must exist, the refresh runs the executable captured before the install as `setup --update [--yes]`, and its exit code becomes the command's. After a downgrade, or to a release older than `MIN_REFRESH_RELEASE`, no refresh is offered and `rayx <X> predates the guest refresh: no refresh was offered` is printed.\\n\\nVerified by `tests/self_update_release.rs` (offer after an upgrade, none after a downgrade or to 1.0.0, exit-code propagation).",
-     "verification": "automated"
-    }
-   ]
-  },
-  {
-   "id": "GR",
-   "title": "Choosing the rayx release in a guest",
-   "descriptionMarkdown": "Put a named release of the Linux `rayx` in a guest instead of the host's running version.",
-   "sourceRefs": [
-    {
-     "repositoryId": "rayx-cli",
-     "path": "src/setup/guest.rs",
-     "symbol": "ensure_linux_binary"
-    },
-    {
-     "repositoryId": "rayx-cli",
-     "path": "src/setup/refresh.rs"
-    },
-    {
-     "repositoryId": "rayx-cli",
-     "path": "src/cli.rs",
-     "symbol": "SetupArgs"
-    }
-   ],
-   "criteria": [
-    {
-     "id": "GR-1",
-     "descriptionMarkdown": "`--release <X.Y.Z>` is accepted with `setup --lima`, `setup --wsl` and `setup --update` and is refused (clap, exit 2) without one of them or together with `--check`-less combinations that make no sense (`--all` is fine; `--release` conflicts with an `RAYX_LIMA_BINARY`/`RAYX_WSL_BINARY` override, which the run reports and refuses: choose one). The guest gets `$HOME/.rayx/bin/rayx` of that release with that tag's own installer (`.../releases/download/v<X.Y.Z>/rayx-cli-installer.sh`); a guest that already reports `rayx <X.Y.Z>` gets nothing installed; one that reports another release, older or newer, is replaced. Without `--release` the running version is used as before.\\n\\nVerified by the new group `tests/guest_release.rs` (command lines for both guest kinds, already-current guest, replaced guest, conflicts).",
-     "verification": "automated"
-    },
-    {
-     "id": "GR-2",
-     "descriptionMarkdown": "Before any change (no VM created, started, stopped, edited or renamed, no WSL distribution installed, no record written, no install) the release is probed with `release::exists`: `Missing` exits 1 with `release X was not found`, `Unknown` exits 1 with `cannot check whether release X exists: ...`; with `--check` the probe still runs (it only reads) and the install is printed.\\n\\nVerified by `tests/guest_release.rs` (missing and unreachable release with no state-changing command recorded).",
-     "verification": "automated"
-    },
-    {
-     "id": "GR-3",
-     "descriptionMarkdown": "Replacing a guest's `rayx` with an older release than it has is a downgrade of the guest: `Install rayx <X> in <guest> over <current>, an older release? [y/N]` in a terminal, `--yes` skips, no terminal and no `--yes` refuses, a no answer leaves the guest as it is and the run reports it (exit 1); newer or equal needs no question. `--check` prints the question's subject and installs nothing.\\n\\nVerified by `tests/guest_release.rs`.",
-     "verification": "automated"
-    },
-    {
-     "id": "GR-4",
-     "descriptionMarkdown": "`rayx setup --update --release <X.Y.Z>` refreshes the targeted current guests to that release (apt upgrade as usual). The inner `rayx setup --update` runs only when the release is at least `MIN_REFRESH_RELEASE`; for an older one it is skipped with `rayx <X> predates the guest refresh: the inner update was skipped` and the guest counts as refreshed. An explicit release is not recorded anywhere: a later plain `rayx setup --update` brings the guest to the host's running version again. `setup --update --release` still conflicts with the set flags, `--wsl`, `--lima` and `--clone`.\\n\\nVerified by `tests/guest_release.rs` (inner update run and skipped, nothing recorded, the later plain refresh).",
-     "verification": "automated"
-    }
-   ]
-  },
-  {
-   "id": "VM",
-   "title": "Named VMs",
-   "descriptionMarkdown": "One VM per project: every Lima operation follows the VM's name.",
-   "sourceRefs": [
-    {
-     "repositoryId": "rayx-cli",
-     "path": "src/setup/lima/mod.rs",
-     "symbol": "INSTANCE"
-    },
-    {
-     "repositoryId": "rayx-cli",
-     "path": "src/setup/migrate.rs"
-    },
-    {
-     "repositoryId": "rayx-cli",
-     "path": "src/setup/refresh.rs"
-    },
-    {
-     "repositoryId": "rayx-cli",
-     "path": "src/setup/remove.rs"
-    }
-   ],
-   "criteria": [
-    {
-     "id": "VM-1",
-     "descriptionMarkdown": "`rayx setup --lima --vm <name>` (default `rayx`) creates the VM with that name from the pinned template with the same arguments as before (`limactl create --tty=false --name=<name> ...`, `limactl start --tty=false <name>`), runs the guest steps through `limactl shell --workdir / <name>`, and records it in `guests.json` under that name with its own flags, clones and settings; the customize question and notes name it (`Create Lima VM <name>: ...`). Names are 1 to 40 characters of lowercase letters, digits and hyphens, starting with a letter, and not `default` (Lima's own rules); anything else exits 1 with the rule and an example before any command runs. Several named VMs coexist, each with its own record. `--vm` is accepted with `--lima` and `--update` and refused (clap) with `--wsl`.\\n\\nVerified by the new group `tests/lima_named_vms.rs` (create arguments for two names, the shell commands, two records, the name rules, the clap refusal).",
-     "verification": "automated"
-    },
-    {
-     "id": "VM-2",
-     "descriptionMarkdown": "A VM that exists in Lima but is not in `guests.json` is never adopted: `rayx setup --lima --vm <name>` for such a name (including `rayx`) exits 1 with `<name> exists in Lima but was not created by rayx: remove or rename it with limactl, or choose another --vm name` before anything is started, stopped, edited or renamed. A recorded VM missing from Lima is created again as before; a name recorded for the other guest kind is a different guest.\\n\\nVerified by `tests/lima_named_vms.rs` (an unrecorded `gpux`-shaped VM and an unrecorded `rayx`, with no state-changing command recorded).",
-     "verification": "automated"
-    },
-    {
-     "id": "VM-3",
-     "descriptionMarkdown": "Everything that used the fixed name follows the VM's name: a size or home change is the stop/edit/start of that VM only; a migration of `<name>` renames it `<name>-<old version>`, creates the new `<name>` with the old settings, and its resume marker, `pending` detection, the retired entry and the removal hint use the same names; two VMs migrate independently; a retired VM of one name never counts as the interrupted migration of another; `rayx lima remove <name>`, `rayx doctor` and the refresh already act by name and are covered by tests for a non-default name. Other instances are never touched.\\n\\nVerified by `tests/lima_named_vms.rs` (edit, migration, resume, independence of two names, removal and doctor for a non-default name).",
-     "verification": "automated"
-    },
-    {
-     "id": "VM-4",
-     "descriptionMarkdown": "`rayx setup --update --vm <name>` (repeatable) refreshes only the named recorded, current guests of this host (Lima and WSL alike) and skips the host part of `setup --update`; a name that is not a recorded current guest of this host exits 1 with the recorded names, before any command runs; without `--vm` all current guests are refreshed as today (host part included). `--vm` and `--release` combine (`setup --update --vm app --release 1.0.1`); `--check` inspects only the named running guests.\\n\\nVerified by the new group `tests/update_target_vm.rs` (one of two guests refreshed, unknown name, repeatable flag, host part skipped, `--check`, WSL and Lima names).",
-     "verification": "automated"
-    },
-    {
-     "id": "VM-5",
-     "descriptionMarkdown": "The sizing, free-space, memory-warning and edit behaviours of `setup --lima` apply to any name: the memory warning counts the other running VMs (any name) plus the new one; sizing flags on an existing named VM are the stop/edit/start update of that VM.\\n\\nVerified by `tests/lima_named_vms.rs`.",
-     "verification": "automated"
-    }
-   ]
-  },
-  {
-   "id": "DOCS",
-   "title": "README and help",
-   "descriptionMarkdown": "The new options are documented where owners read.",
-   "sourceRefs": [
-    {
-     "repositoryId": "rayx-cli",
-     "path": "README.md"
-    }
-   ],
-   "criteria": [
-    {
-     "id": "DOCS-1",
-     "descriptionMarkdown": "`README.md` documents `rayx self update --release`, the guest `--release`, the downgrade confirmation, that nothing is remembered, the `--vm` name for `setup --lima` and `setup --update` (default `rayx`, one VM per project, the never-adopt rule, the `-<old version>` retired name), and the `MIN_REFRESH_RELEASE` note; every new flag has help text.\\n\\nVerified by the new group `tests/readme_versions.rs` (README sections and `--help` of `setup` and `self update`).",
-     "verification": "automated"
-    }
-   ]
-  },
-  {
-   "id": "MAN",
-   "title": "Proof on real machines",
-   "descriptionMarkdown": "What the recording runner cannot show.",
-   "sourceRefs": [
-    {
-     "repositoryId": "rayx-cli",
-     "path": "docs/manual-verification.md"
-    }
-   ],
-   "criteria": [
-    {
-     "id": "MAN-1",
-     "descriptionMarkdown": "On this Mac (Lima 2.2.1, the owner's `gpux` VM running and untouched), with local builds of this branch and the published `1.0.0` and `1.1.0` releases: `rayx setup --lima --vm proj-a --release 1.0.0 --vm-cpus 2 --vm-memory 4 --yes` creates `proj-a` whose `~/.rayx/bin/rayx --version` is `rayx 1.0.0`; a second VM `proj-b` is created on the running version; `rayx setup --update --vm proj-a --release 1.1.0` upgrades only `proj-a` (and `proj-b` is untouched); `--release 1.0.0` on a `1.1.0` guest asks the downgrade question; a nonexistent release is refused before anything changes; `--vm gpux` is refused; `rayx doctor` lists both VMs; both are removed after confirmation. Recorded with date and results in `docs/manual-verification.md`.",
-     "verification": "manual"
-    },
-    {
-     "id": "MAN-2",
-     "descriptionMarkdown": "Owner-run after the first release that contains this epic, on the Mac and on Windows: `rayx self update --release <older>` asks the downgrade question and installs it; then a plain `rayx self update` goes to the latest release and, with a guest recorded and the older release at least `MIN_REFRESH_RELEASE`, offers the refresh and refreshes the guest (this also closes MAN-4 of the guest epic). Recorded with date, versions and results.",
-     "verification": "manual"
-    },
-    {
-     "id": "MAN-3",
-     "descriptionMarkdown": "Owner-run on the Windows PC after the release: `rayx setup --wsl --release <X.Y.Z>` puts that release in `Ubuntu-24.04`, and `rayx setup --update --vm Ubuntu-24.04 --release <Y>` refreshes it to another. Recorded with date and results.",
-     "verification": "manual"
-    }
-   ]
-  }
- ]
+  ]
 }

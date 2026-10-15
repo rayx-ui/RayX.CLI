@@ -1,54 +1,126 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-versions",
-  "revision": 4,
-  "planRevision": 1,
+  "revision": 56,
+  "planRevision": 2,
   "specHashes": {
-    "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
-    "design": "376a365593cd2b8249458e85028271c4add1f6430fc0b08bc286e3f4e3571eaa",
-    "plan": "eddfd568c140d03a054f90f8b0e328ba2495efe0be81f3eb93fcde23ba1a33bf"
+    "requirements": "65fb9ba0c370521cb8bc378e23ec6173d5674407c5b2ade018905a3249490532",
+    "design": "944e54ccd1cb0b184af6efdd7a6f799d33a81ef57f6421066d72150e9547d9fa",
+    "plan": "19e1f531674ae1a1c596c811b8b02d940afa8636ec93a0b3f056528114d38116"
   },
   "tasks": {
     "t01-release-module": {
-      "status": "implemented",
+      "status": "done",
       "workerIds": [
         "claude-man2-win"
       ]
     },
     "t02-self-update-release": {
-      "status": "implemented",
+      "status": "done",
       "workerIds": [
-        "claude-man2-win"
+        "claude-man2-win",
+        "claude-impl-91b31a6e"
       ]
     },
     "t03-guest-release": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "claude-impl-91b31a6e"
+      ]
     },
     "t04-vm-names": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "claude-impl-91b31a6e"
+      ]
     },
     "t05-update-target": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "claude-impl-91b31a6e"
+      ]
     },
     "t06-docs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "claude-impl-91b31a6e"
+      ]
     },
     "t07-mac-proof": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "claude-impl-91b31a6e",
+        "mac-claude-1015"
+      ]
     },
     "t08-release-proof": {
-      "status": "pending"
+      "status": "blocked",
+      "workerIds": [
+        "mac-claude-1015"
+      ],
+      "blockerMarkdown": "Owner-run after a release that contains this epic: MAN-2 on the Mac and Windows, MAN-3 on the Windows PC"
+    },
+    "t09-release-probe": {
+      "status": "done",
+      "workerIds": [
+        "mac-claude-1015"
+      ]
     }
   },
   "validationBatches": {
-    "b0c24206e3a607042da67ede3c066ca596d5bb002d6286595e18819502368fea": {
+    "e0f80d761510590461ac3661d476e217c20247abec1b7a5dcc582f93afe9edbd": {
       "snapshot": {
         "specHash": "a7930166344d2989a94ba045ddd41a3a7e1ca24bfcdf317453ce3d97ab5bde02",
         "repositories": {
-          "rayx-cli": "63c25148559e28ab1688dd58a53957ba6a212d40384e6c89a248e9852269b2d5"
+          "rayx-cli": "b8df4f89a51b1026a08edb5fc503307e2c9f37df3702c73a0431b7c60f82a6bd"
         }
       },
-      "recordedAt": "2026-10-14T20:17:27Z"
+      "recordedAt": "2026-10-14T21:38:46Z"
+    },
+    "47ad0a46a2678a8faaf3db4b32342c55e90730c1e9b5d31f767b8eb750479e3c": {
+      "snapshot": {
+        "specHash": "a7930166344d2989a94ba045ddd41a3a7e1ca24bfcdf317453ce3d97ab5bde02",
+        "repositories": {
+          "rayx-cli": "ac2f28b8533b55dfbf25fda8f422a5e699b50ac630fe9262d11295a14835f298"
+        }
+      },
+      "recordedAt": "2026-10-14T21:49:27Z"
+    },
+    "c79e9ac07946828c9f60c8bb46a74db76dabfbd141bda2f435da736ba97dbf9d": {
+      "snapshot": {
+        "specHash": "a7930166344d2989a94ba045ddd41a3a7e1ca24bfcdf317453ce3d97ab5bde02",
+        "repositories": {
+          "rayx-cli": "8680c702ea72d9aa46339c4868d3bf1c126f712fbf7793fbdd348bc0fbc7d970"
+        }
+      },
+      "recordedAt": "2026-10-14T22:01:44Z"
+    },
+    "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2": {
+      "snapshot": {
+        "specHash": "a7930166344d2989a94ba045ddd41a3a7e1ca24bfcdf317453ce3d97ab5bde02",
+        "repositories": {
+          "rayx-cli": "dec4817cb4d8883374f8f526a01bc556614188f2ef641abb1f7ca94b18c8c93a"
+        }
+      },
+      "recordedAt": "2026-10-14T22:20:30Z"
+    },
+    "d87884eabf9e3fda983915b3a70376522165cc698442e57f83dad4dedb52221b": {
+      "snapshot": {
+        "specHash": "a7930166344d2989a94ba045ddd41a3a7e1ca24bfcdf317453ce3d97ab5bde02",
+        "repositories": {
+          "rayx-cli": "8d3d35eaabf73c293762bdef5349d5919f8ab2094e2103d8275b750c6055c0f4"
+        }
+      },
+      "recordedAt": "2026-10-15T00:48:55Z"
+    },
+    "253bd6044aeb33a76155a18142654ce4c0599a84602016305538c1df2afe8e8a": {
+      "snapshot": {
+        "specHash": "73c867a85b7432583af3da112ee4d1ed31c80483b976516c911aeea44bb47258",
+        "repositories": {
+          "rayx-cli": "c49800a7571ed26e4f8ddd10cf96a6813aa14cf5f72e3340af38c95eaf6806fc"
+        }
+      },
+      "recordedAt": "2026-10-15T01:08:14Z"
     }
   },
   "checkResults": {
@@ -56,40 +128,757 @@
       "checkId": "check-release-module",
       "boundaryId": "s1-release-core",
       "phase": "final",
-      "batchId": "b0c24206e3a607042da67ede3c066ca596d5bb002d6286595e18819502368fea",
+      "batchId": "e0f80d761510590461ac3661d476e217c20247abec1b7a5dcc582f93afe9edbd",
       "definitionHash": "01ed32e1334f86947f40892066717c933272d87224cf8e3cf01f83324ada51c5",
-      "basisHash": "f1ec1de1bfa6349212bb66bcb6ae56ce8ca8b04bbef9df750a6bb9f9120e2300",
+      "basisHash": "a327020392e89043ae9357262c32ee9c3be34b950faf065090cea7359681d148",
       "status": "passed",
       "exitCode": 0,
       "testCount": 11,
-      "durationSeconds": 2.4034,
-      "recordedAt": "2026-10-14T20:17:26Z",
+      "durationSeconds": 16.6933,
+      "recordedAt": "2026-10-14T21:38:44Z",
       "messageMarkdown": "Expectation matched",
-      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s1-release-core-final-8b724c269e18.log",
-      "logSha256": "7915e439a698efacf0f77d31575aa043826f25317fbb8b6b4c03e1d1a2220378",
-      "inputsHash": "6c36a941ecfedca386fa5a733b3b1b9e3cb1289936d519a960cf9a779e2dd4fa"
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s1-release-core-final-54841ba056a0.log",
+      "logSha256": "c925326778f0c88573e54bf3a84d54d0988241e17ac0cdcce238428a458a14cc",
+      "inputsHash": "6ac04e0fa13ef16ec633e01d17b3757d1b6013c09a36bef925d4396f26967489"
     },
     "s1-release-core/check-self-update-release/final": {
       "checkId": "check-self-update-release",
       "boundaryId": "s1-release-core",
       "phase": "final",
-      "batchId": "b0c24206e3a607042da67ede3c066ca596d5bb002d6286595e18819502368fea",
+      "batchId": "47ad0a46a2678a8faaf3db4b32342c55e90730c1e9b5d31f767b8eb750479e3c",
       "definitionHash": "cdf4646aa83e02edfd1458eb380cc598be1fe711b42a0797c868315619b1b1a7",
-      "basisHash": "7ca644c0dad51fbd609515beed5da2e7df318376366ed0cc20366561fdaf12fe",
+      "basisHash": "2f714aceef86702c3a157dcda2a3172b2ff25468a116a4dff4346e7a1d158955",
       "status": "passed",
       "exitCode": 0,
-      "testCount": 19,
-      "durationSeconds": 0.3894,
-      "recordedAt": "2026-10-14T20:17:27Z",
+      "testCount": 20,
+      "durationSeconds": 3.152,
+      "recordedAt": "2026-10-14T21:49:26Z",
       "messageMarkdown": "Expectation matched",
-      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s1-release-core-final-3ef4b61c2a07.log",
-      "logSha256": "c2e3eba13a76516fc5e3cbdd1ddb04687657b5f4d5e0e367c961fbf96ad3b055",
-      "inputsHash": "d60c2130b210e63388a03fdf5376b271059371ce8645c99007d6f83e97d85328"
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s1-release-core-final-da6f1828393e.log",
+      "logSha256": "2dba29f3cbaee5920da58d52a446ce58c5da6597f62510e00698156b8968a911",
+      "inputsHash": "21ee2341f7cc65c3ba8209c309560dcef587fabacb1932c75bb4a4eacd8131b0"
+    },
+    "s2-guest-release/check-guest-release/final": {
+      "checkId": "check-guest-release",
+      "boundaryId": "s2-guest-release",
+      "phase": "final",
+      "batchId": "c79e9ac07946828c9f60c8bb46a74db76dabfbd141bda2f435da736ba97dbf9d",
+      "definitionHash": "831fd1767111d83c9255dd2bf930d0470991fb39f2f9fde31708186b4ac59817",
+      "basisHash": "15489100b3aea4cc5875ad961eead8ab7234d865e972ffabdb24abbc077f54dd",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 28,
+      "durationSeconds": 0.4945,
+      "recordedAt": "2026-10-14T22:01:44Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s2-guest-release-final-46ae4f41a38e.log",
+      "logSha256": "9baa044eaf83ba835d147b10466e865357df7d6df5b7b81da1d748cbe96f708d",
+      "inputsHash": "1d0daa630cc9333136f1450673f6fc3a15585e706e74881e75aa62f5c67d98ea"
+    },
+    "s3-named-vms/check-vm-names/final": {
+      "checkId": "check-vm-names",
+      "boundaryId": "s3-named-vms",
+      "phase": "final",
+      "batchId": "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2",
+      "definitionHash": "5bd8a8980af760c2ebd2f24922ac369b94ef990bcd941815304409442ab23a39",
+      "basisHash": "d462019efa1dc05ed51d99d730da450ea7da7e76f1f4820a4c4f0a60b7d8f338",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 23,
+      "durationSeconds": 0.4674,
+      "recordedAt": "2026-10-14T22:20:27Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s3-named-vms-final-520fc4ea40e0.log",
+      "logSha256": "67f7277e786a4f49bb27398573cf6b8ab50cf2254ac66b2ae6488c0cc6bafa8a",
+      "inputsHash": "7d86475241a6a83608db57cb73220d29a9e426d4ffdbf27d4ed25de5fdff0d30"
+    },
+    "s3-named-vms/check-update-target/final": {
+      "checkId": "check-update-target",
+      "boundaryId": "s3-named-vms",
+      "phase": "final",
+      "batchId": "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2",
+      "definitionHash": "39393806d3da4e1ca1b777c6faa4b514945cc3435842b45a8a0009bba97d1b2a",
+      "basisHash": "da18e55edc9dbb2df87922c8c2a5a002051bda55a764928b29b249958d2cf215",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 10,
+      "durationSeconds": 2.4911,
+      "recordedAt": "2026-10-14T22:20:30Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s3-named-vms-final-eaada9436f76.log",
+      "logSha256": "2c5403d173e1c049e9eaa4582f2acefa5b5f7d5fee65bf076071b991bd16d841",
+      "inputsHash": "fb85a88c4aee38204917bfdc535c06a6d091bb788fb2bfcb8519c04e1e941e99"
+    },
+    "s4-docs-mac-proof/check-readme-versions/final": {
+      "checkId": "check-readme-versions",
+      "boundaryId": "s4-docs-mac-proof",
+      "phase": "final",
+      "batchId": "d87884eabf9e3fda983915b3a70376522165cc698442e57f83dad4dedb52221b",
+      "definitionHash": "135efb483e5178e50de0083284773004de2813dbbfbe6bb60e0149b3d7dd3696",
+      "basisHash": "dfbb1f4e8361a887108dc2fd490ce13f293eefd424542656c14112ee5b006441",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 1.8656,
+      "recordedAt": "2026-10-15T00:44:01Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s4-docs-mac-proof-final-fff4d252b6ec.log",
+      "logSha256": "3f043391709738117969a34e62db61e6081c75fd24dfa8148ae391663b107838",
+      "inputsHash": "0a6a959156f60ffc172dbe75d8f75121b660ef39d495d7d889119ec65df8ac16"
+    },
+    "s4b-release-probe-corrective/check-release-probe/final": {
+      "checkId": "check-release-probe",
+      "boundaryId": "s4b-release-probe-corrective",
+      "phase": "final",
+      "batchId": "253bd6044aeb33a76155a18142654ce4c0599a84602016305538c1df2afe8e8a",
+      "definitionHash": "17bfafcd3f3d763dd32ead6befc01eb5088d5fc6de961250237c96386c7cce40",
+      "basisHash": "974d52d22fde7a08962691903827f68c90f302aa4655bdfcfd2511cf74349318",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 10,
+      "durationSeconds": 0.13,
+      "recordedAt": "2026-10-15T01:08:14Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-versions/s4b-release-probe-corrective-final-cf13199aafe7.log",
+      "logSha256": "a9e5575261518da4c6aa862f72a5d6959f0080f807dad5a53d6145a1c62a5eaf",
+      "inputsHash": "dcfb1923340d56dc66963877a2fbe837117db5550ee7183bc3f9c30858e3cd39"
     }
   },
-  "reviews": {},
-  "checkpoints": {},
-  "findings": [],
+  "reviews": {
+    "s1-release-core": {
+      "reviewerId": "reviewer-s1-independent-1",
+      "snapshotId": "e705128c219e3c6adfc833531ea68b36c772d23e177e74609c219d0f5f61b2ae",
+      "criterionIds": [
+        "REL-1",
+        "REL-2",
+        "SU-1",
+        "SU-2",
+        "SU-3"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1",
+            "REL-2"
+          ],
+          "sha256": "619d3c6a4f1816322196b6aebe399001bcffeaa145fd8b2749840c8a30c1c048"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1"
+          ],
+          "sha256": "f34fbb0cd6e1b97a86ec5a71ecdea2cb2490ad2137518bf0a22a015d34a1bd15"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_module.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REL-1",
+            "REL-2"
+          ],
+          "sha256": "fe03983fcfe5e41caf9294e9c5bbb01f68aeae837623ae84b4d8a14d44a662dd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SU-1",
+            "SU-2",
+            "SU-3"
+          ],
+          "sha256": "1bcdbccdfd6b930c40763b9f6a8c97dbd8f43e5c88d885a21f30f08ece030fc9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SU-1"
+          ],
+          "sha256": "ab97f4a1c50ea1369eeed82382c7ac76442efb9b70619dfd0e8b71c05bbe3ff1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/self_update_release.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SU-1",
+            "SU-2",
+            "SU-3"
+          ],
+          "sha256": "32ef82b0e30991926a6f3dda49adfe8fd7fc10104f6755e4fab9b34d6d27a2af"
+        }
+      ],
+      "deltaSummaryMarkdown": "Regenerated the context for revision 11 and compared it with what I reviewed. Working tree: only .agentx/tasks/rayx-cli-versions/state.json is modified; rayx-man2.log and rayx-man3.log are now excluded via .git/info/exclude and no longer part of the inputs. Against the reviewed content: src/ is byte-identical to the release commit 40c3e13 (git diff shows no src change); the only product delta is the committed test `a_bad_release_name_is_refused_before_the_network_is_asked` in tests/self_update_release.rs (HEAD 1773373, +19 lines, already inspected: runs the binary with latest, 1.0.0-rc.1, 1.0 and >=1.0.0, asserts exit 1, `is not a release name`, example 1.0.1, empty stdout, no network), plus the release-commit version bump 1.1.0 -> 1.2.0 in Cargo.toml and Cargo.lock. Nothing else changed; finding s1-f1 stays resolved by that test.",
+      "reattestedFrom": "47ad0a46a2678a8faaf3db4b32342c55e90730c1e9b5d31f767b8eb750479e3c",
+      "summaryMarkdown": "Behaviour verified in source for all five criteria: release module is the single owner of parsing (semver, v prefix, no pre/build), ordering, installer URL (guest.rs now calls `installer_url_for`) and `MIN_REFRESH_RELEASE`; `exists` is a headers-only `curl --proto =https --tlsv1.2 -sfIL` through `Runner::query` (22 -> Missing, else Unknown). `run_release` checks existence, handles check/same, applies the receipt rule before any change, asks the downgrade question via `Refresher::confirm` (`--yes` skips, no terminal refuses with the `--yes` hint, no answer exits 1), installs via axoupdater `SpecificVersion` + `always_update(true)`, offers the refresh only on upgrades to >= 1.1.0, and persists nothing. The plain path is untouched (older Fake backends only gained `unreachable!` stubs). No password handling, no elevation, no new external program outside Runner (the installer run stays axoupdater, as before). Tests cover REL-1/REL-2/SU-2/SU-3 well and SU-1 including, after the repair, the early validation of the release name before the network (s1-f1 resolved by `a_bad_release_name_is_refused_before_the_network_is_asked`, which runs the binary and needs no network). Non-blocking notes: curl exit 22 is any HTTP >= 400, so a 403 or 5xx would read as `was not found` (per spec); after a downgrade to >= 1.1.0 nothing is printed about the refresh, which is the sensible reading of SU-3 (a `predates` line would be untrue). Source is unchanged since the first review; the only delta is the new test.",
+      "findingIds": [
+        "s1-f1-release-name-validation-untested"
+      ],
+      "recordedAt": "2026-10-14T21:50:26Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "3277f06e422ec328e486d0dc69f2bf2c33883af09106873c15d9e226baf7a0c1"
+      }
+    },
+    "s2-guest-release": {
+      "reviewerId": "reviewer-s2-independent-1",
+      "snapshotId": "c79e9ac07946828c9f60c8bb46a74db76dabfbd141bda2f435da736ba97dbf9d",
+      "criterionIds": [
+        "GR-1",
+        "GR-2",
+        "GR-3",
+        "GR-4"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-1",
+            "GR-4"
+          ],
+          "sha256": "72c10a5c13abb367d9a11b6a066e0ba4dea9e8f7d8ffc4fa11e3b9beb965d91a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-1",
+            "GR-2",
+            "GR-3"
+          ],
+          "sha256": "1dd76b69e7eb74cc33bc92482e6b0d464250d3d6270f8faab607cd9e8d4a79b9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-1",
+            "GR-2",
+            "GR-3"
+          ],
+          "sha256": "2b6c4783c35cf0b619a719ec104d03793f5a5c2598f796a028900039eb95d7df"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-1",
+            "GR-2",
+            "GR-3"
+          ],
+          "sha256": "bee709bf00ace48bb5e8911168fdfe4ecac2adfdf33b1f4b26e629168a78c620"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-2",
+            "GR-3",
+            "GR-4"
+          ],
+          "sha256": "ac0ce71dd0e08d752f65b7966122a8f0fe6f3708e914fca07e645c792cd92ae4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GR-2",
+            "GR-4"
+          ],
+          "sha256": "fedd318d1b608f6ea95f431768a380b0fb04464427be029b3f316f900df7f31f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "kind": "test",
+          "criterionIds": [
+            "GR-1",
+            "GR-2",
+            "GR-3",
+            "GR-4"
+          ],
+          "sha256": "cf519b91b72432aca09ed29b810ea1daf2fa02c885e1d6756eeccd34ae920a2e"
+        }
+      ],
+      "summaryMarkdown": "First review failed with F-s2-1..3; all three are repaired in 11ef2d2 and verified. Inspected `git show 11ef2d2` (src/setup/guest.rs, update.rs, wsl.rs, tests/guest_release.rs). F-s2-1: both messages in `confirm_downgrade` are single-spaced; the tests assert the full refusal text (Lima and WSL) and the full `--check` subject line. F-s2-2: `update::run` only builds the collaborators and calls the new injectable `update::run_with`, whose order is `plan_release` (with the override name), then `update_host`, then `refresh_guests`; `a_missing_release_stops_setup_update_before_the_host_part_runs` uses a machine with recorded host work, so moving or removing the early probe would make `update_host` print `==> setup --update: ...` and run commands, breaking both the empty-output and `programs == [curl]` assertions; the order test checks curl first and then limactl work, and the override test covers macOS and Windows. F-s2-3: `plan_release` now precedes `wsl_is_running`/`os_version` in `migrate_older_guest`, and the test asserts no recorded spec carries `-d`. No other source changed; nothing recorded, probes still read-only, all external programs still through Runner. GR-1..GR-4 hold as described in the first submission: clap rules, validation before anything runs, probe before any change on every path (Lima run_with, WSL run_with_prompter and migrate_older_guest, update::run_with, refresh_guests), override conflict, downgrade question in all modes, inner update skipped below MIN_REFRESH_RELEASE, nothing recorded, plain behaviour unchanged. Notes: from_args swallows a bad name (safe, every run validates first); on a Linux host --update --release probes and then ignores the release.",
+      "findingIds": [
+        "F-s2-1",
+        "F-s2-2",
+        "F-s2-3"
+      ],
+      "recordedAt": "2026-10-14T22:02:18Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "3277f06e422ec328e486d0dc69f2bf2c33883af09106873c15d9e226baf7a0c1"
+      }
+    },
+    "s3-named-vms": {
+      "reviewerId": "reviewer-s3-independent-1",
+      "snapshotId": "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2",
+      "criterionIds": [
+        "VM-1",
+        "VM-2",
+        "VM-3",
+        "VM-4",
+        "VM-5"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/name.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-1",
+            "VM-3"
+          ],
+          "sha256": "293a60813ef673503ec3949b639a12a7bb9585559a788e18c88e637eecd3c51c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-1",
+            "VM-4"
+          ],
+          "sha256": "50799b47c1f66d95aeb4cd4b2f529708675710cc21e42d92a2e48c02f77ce68a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-1",
+            "VM-2",
+            "VM-3",
+            "VM-5"
+          ],
+          "sha256": "215962cdecbf2182b9852e48e674d208b1a83d56a41c1782a8d89f028c24d4bd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/edit.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3",
+            "VM-5"
+          ],
+          "sha256": "7ad883dff25c129c35d63be3d02a9827fda732344b453e1729032ba1334993f9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3"
+          ],
+          "sha256": "36b182c5c6df5c58b4783daf3be01170e7c43f50d924543a60538f4d67ec5d91"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/remove.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3"
+          ],
+          "sha256": "d3a3d98c19f42c2072080ee0ee95cdc160215a46fe48f68b951b6d69c0612dab"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/guests.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3"
+          ],
+          "sha256": "949c48561b82a2a15dd90bbf0d60d36a9ec6abe5269b6bdb9c10185a41285b10"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-3",
+            "VM-4"
+          ],
+          "sha256": "a37496d57025acecb39259e5ebdc68d9fb7ecca33a424dbe2a7042de1359c725"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "VM-4"
+          ],
+          "sha256": "88d123693aa7b3c2536e712fb3200db21cf0850150afc0162796a5bf50fe99d8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/lima_named_vms.rs",
+          "kind": "test",
+          "criterionIds": [
+            "VM-1",
+            "VM-2",
+            "VM-3",
+            "VM-5"
+          ],
+          "sha256": "c02327f4fe90c4fb6a506cdc6926606fbcc033990fe039e603f4cb0a7f148832"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/update_target_vm.rs",
+          "kind": "test",
+          "criterionIds": [
+            "VM-4"
+          ],
+          "sha256": "88efd47f9781b691057946dc12577685b2c44f80cd4f5595f58a7c2be96d6fef"
+        }
+      ],
+      "summaryMarkdown": "Name rules, create/start/shell arguments, default-name byte-for-byte output, never-adopt (interrupted-migration exemption, other guest kind, unreadable record), per-name migration/resume/pending, `--vm` clap rules, `setup --update --vm` (names validated before any command, host part skipped, WSL names, --check, --release, notice only for targeted names), remove hint and doctor are implemented and covered by tests/lima_named_vms.rs and tests/update_target_vm.rs; all programs go through host::Runner, no password handling or elevation. The earlier finding (unreadable guests.json let a new VM be created that was then never adopted) is repaired in 4c2d0f5: creation stops before any VM command while the record is unreadable, --check still reports, and a new test covers names app and rayx. Non-blocking notes: LimaRequest::from_args falls back to rayx on an invalid --vm (run validates first); pending detection assumes a retired entry's recorded ubuntu equals the version in its name.",
+      "findingIds": [
+        "F-s3-unreadable-record-creates-unrecordable-vm"
+      ],
+      "recordedAt": "2026-10-14T22:20:50Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "3277f06e422ec328e486d0dc69f2bf2c33883af09106873c15d9e226baf7a0c1"
+      }
+    },
+    "s4-docs-mac-proof": {
+      "reviewerId": "reviewer-s4-indep-7f3a",
+      "snapshotId": "d87884eabf9e3fda983915b3a70376522165cc698442e57f83dad4dedb52221b",
+      "criterionIds": [
+        "DOCS-1",
+        "MAN-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "6d5849bffa61f9aa4045c49cf23dacca8073eb2d5e4df9989be6fea369e3ed85"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "8bbc7d251e7528f24961572a872d8645e576c57bc1b96cff720bbe897cfca2be"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_versions.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "db62e1a6858be24fc3176f077d5fefa59043e80f30ea7a889c85fa2ad592ca22"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-1"
+          ],
+          "sha256": "7615b72bb1708c10bb6d7143293f00d09098acee9e2082a4d3282da873a8b161"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "kind": "source",
+          "criterionIds": [
+            "MAN-1"
+          ],
+          "sha256": "73e188637cc1ce8a43f7e8712ded838824a4b67944450d649b1b51ae13ca8fbf"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_module.rs",
+          "kind": "test",
+          "criterionIds": [
+            "MAN-1"
+          ],
+          "sha256": "1ac771560324622a93bc6aea995c9987fa3590261cc4e73c1db233fc5d0e9c45"
+        }
+      ],
+      "summaryMarkdown": "DOCS-1 holds: README.md matches the help text in src/cli.rs and the code's messages, and tests/readme_versions.rs (6 tests) covers the sections and --help. MAN-1 holds: every step of the criterion is backed by the retained logs; the earlier evidence gap is closed by the captured repeat of steps 6, 7 and 9 on fresh VMs (log 23: proj-a rayx 1.0.0, proj-b rayx 1.2.0, proj-b binary/apt history hashes, mtimes and boot time identical around the targeted update to 1.1.0, guests.json current), VM removals in log 24, and the doc states that the version lines of steps 10-14 were terminal-only with the commands' own output retained. The ba9a126 probe fix (src/release.rs, status via -w; 404/410 missing, other statuses and curl failures unknown) is correct with tests in tests/release_module.rs, callers unchanged, honestly described; only docs/manual-verification.md changed since.",
+      "findingIds": [
+        "s4-man1-evidence-not-retained"
+      ],
+      "recordedAt": "2026-10-15T00:49:27Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "44a176a0ffa30b34f6b6b3720de573d1f5ef01029eb7227d8c16776832290893"
+      }
+    },
+    "s4b-release-probe-corrective": {
+      "reviewerId": "reviewer-s4b-indep-52d0",
+      "snapshotId": "253bd6044aeb33a76155a18142654ce4c0599a84602016305538c1df2afe8e8a",
+      "criterionIds": [
+        "REL-3"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REL-3"
+          ],
+          "sha256": "55ae9a2dc9f7081f3002fbab5738abfa2cbb903aac5bcf79a0a091ec1298e317"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_probe.rs",
+          "kind": "test",
+          "criterionIds": [
+            "REL-3"
+          ],
+          "sha256": "4006d5c860034abec6e5332ce85570895c9d99e0235d378bbf7eb883daae027a"
+        }
+      ],
+      "summaryMarkdown": "REL-3 holds in commit c380ec1. `release::exists` runs exactly `curl --proto =https --tlsv1.2 -sIL -w '\\nstatus=%{http_code}\\n' <url>` through `Runner::query`, with no `-f`; the last `status=` line wins. A 2xx with exit 0 is Exists. A 404 or 410 is Missing under any exit code. Any other status of 100 or more now reports `the server answered HTTP <status>` whatever curl's exit code is. A 2xx under a failing curl and a failure without a status (including a signal) report `curl exited with <code>`. `tests/release_probe.rs` (10 tests) covers every REL-3 obligation, including the new 403/503 under exits 0, 22 and 56; `tests/release_module.rs` keeps names, ordering, URL and the refresh floor. Callers `update::run_release` and `guest::plan_release` keep REL-2's messages and exit 1 before any change. Arguments are a plain argv, so Windows `curl.exe` gets them unchanged (not executed on Windows; MAN-2 stays owner-run). A live curl 8.7.1 probe of a missing tag gave status=404 with exit 0. Requirement and design text and the memory records match the code. F-s4b-1 (stale test-file name in docs/manual-verification.md) and F-s4b-2 (reason wording) are resolved.",
+      "findingIds": [
+        "F-s4b-1",
+        "F-s4b-2"
+      ],
+      "recordedAt": "2026-10-15T01:08:28Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "02c944736592025155d0ecbb90ad612545993a3e31f6dbc0cb6a686de607bff1"
+      }
+    }
+  },
+  "checkpoints": {
+    "s1-release-core": {
+      "snapshotId": "e705128c219e3c6adfc833531ea68b36c772d23e177e74609c219d0f5f61b2ae",
+      "commits": {
+        "rayx-cli": "1773373911f8e2ce507ea6bebbefadaf1c4acf98"
+      },
+      "reviewHash": "97dc9e09203e31484513ab32f6ae52bf224559155be938adfb77c55122ad3633",
+      "recordedAt": "2026-10-14T21:50:35Z"
+    },
+    "s2-guest-release": {
+      "snapshotId": "c79e9ac07946828c9f60c8bb46a74db76dabfbd141bda2f435da736ba97dbf9d",
+      "commits": {
+        "rayx-cli": "11ef2d25a85739ee54fcf0b2ebdeeb297a8a3c88"
+      },
+      "reviewHash": "be62c0c9c2ad6cf3aad299c9dfc8dc9fc77a7280c8f1bbba53ae2b4008126663",
+      "recordedAt": "2026-10-14T22:02:29Z"
+    },
+    "s3-named-vms": {
+      "snapshotId": "01c76b91f7503a9da1dc032f943c5ecd8305a80005ff8ebbadfd397e6e8b6ea2",
+      "commits": {
+        "rayx-cli": "4c2d0f5c40ebd425949a5873c5c30239eab37228"
+      },
+      "reviewHash": "25f75ba9daefb72a7f4d92354e50be9b96f35ebb2e3625b78d9229c5a405f9fe",
+      "recordedAt": "2026-10-14T22:21:01Z"
+    },
+    "s4-docs-mac-proof": {
+      "snapshotId": "d87884eabf9e3fda983915b3a70376522165cc698442e57f83dad4dedb52221b",
+      "commits": {
+        "rayx-cli": "9f2e7b133c5a02c3ae3efc1f00c92647748fa31f"
+      },
+      "reviewHash": "1514bcabbba0e90cb95b8a102cae037374bb5c8dea965efbe3c5dc0b3b620af9",
+      "recordedAt": "2026-10-15T00:49:36Z"
+    },
+    "s4b-release-probe-corrective": {
+      "snapshotId": "253bd6044aeb33a76155a18142654ce4c0599a84602016305538c1df2afe8e8a",
+      "commits": {
+        "rayx-cli": "c380ec120216f3cc2bafef3a1c5961be0aa3e743"
+      },
+      "reviewHash": "643d380281e64aeea807b251d186a9ea67dda6a02c3fea543ae20b5ac656789d",
+      "recordedAt": "2026-10-15T01:08:38Z"
+    }
+  },
+  "findings": [
+    {
+      "id": "s1-f1-release-name-validation-untested",
+      "boundaryId": "s1-release-core",
+      "criterionIds": [
+        "SU-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Expected (SU-1, automated): `--release` accepts the REL-1 names and \"is validated before the network is asked\"; a bad value exits 1 with an example and nothing has run (epic constraint). Observed: the behaviour is correct in `update::run` (src/update.rs: `release::parse` runs before `GithubBackend::new`, error printed, exit 1) and the CLI wiring is correct (src/cli.rs `--release`, src/lib.rs dispatch), but `tests/self_update_release.rs` only drives `run_release` with an already parsed `Release`, and no test anywhere parses `self update --release <bad>` or runs `update::run` with a bad name. Removing the early validation or dropping `release` in the dispatch would pass every automated check; only the manual row 8 in docs/manual-verification.md covers it. Repair: add one test to `tests/self_update_release.rs` that runs the built binary (`env!(\"CARGO_BIN_EXE_rayx\")`, as tests/setup_update.rs does) with `self update --release latest` (and e.g. `1.0.0-rc.1`), asserting exit 1, stderr containing `is not a release name` and `1.0.1`, with no network needed; optionally also assert `--release 1.0.1 --check --yes` is refused by clap (--yes conflicts with --check) or that `--release` appears in `self update --help`.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/self_update_release.rs",
+          "symbol": "a_bad_release_name_is_refused_before_the_network_is_asked"
+        }
+      ]
+    },
+    {
+      "id": "F-s2-1",
+      "boundaryId": "s2-guest-release",
+      "criterionIds": [
+        "GR-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Downgrade messages single-spaced and asserted in full.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "yes_skips_the_downgrade_question_and_no_terminal_without_yes_refuses"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "check_still_probes_the_release_and_only_prints_the_downgrade_subject"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "wsl_asks_before_a_downgrade_and_refuses_without_an_answer"
+        }
+      ]
+    },
+    {
+      "id": "F-s2-2",
+      "boundaryId": "s2-guest-release",
+      "criterionIds": [
+        "GR-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "setup --update probes the release before the host part through the injectable update::run_with, covered by tests.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "a_missing_release_stops_setup_update_before_the_host_part_runs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "setup_update_probes_the_release_before_the_host_part_and_the_refresh_follows"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "setup_update_refuses_a_release_with_the_override_of_its_host_before_anything_runs"
+        }
+      ]
+    },
+    {
+      "id": "F-s2-3",
+      "boundaryId": "s2-guest-release",
+      "criterionIds": [
+        "GR-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "WSL migration probes the release before the old distribution is asked anything; the test asserts no wsl -d command.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "symbol": "wsl_probes_the_release_before_an_older_distribution_is_replaced"
+        }
+      ]
+    },
+    {
+      "id": "F-s3-unreadable-record-creates-unrecordable-vm",
+      "boundaryId": "s3-named-vms",
+      "criterionIds": [
+        "VM-1",
+        "VM-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** with the record unreadable (`guests.json` unparsable or unreadable), `rayx setup --lima [--vm <name>]` must not create a VM it cannot record, because a VM missing from the record is now never adopted. The guest-layer invariant is that a failed read is never presented as an empty record, and the migration already guards the same hazard (`migrate_lima` calls `records::update_guests(.., |_| {})` and stops before any stop/rename when the record cannot be read or written).\n\n**Observed:** `lima::run_with` turns a failed `records::read_guests` into `GuestsFile::default()` and keeps the error in `unreadable`, but only uses it to word the never-adopt refusal for an already existing VM. When the VM does not exist (and no migration is pending), the `None` branch runs `limactl create` and `limactl start` and the guest steps; `guest::record_run` then fails on the same unreadable record (`records::record_guest` -> `read_guests_at` error, only printed, 'never fails the run'). Result: a VM that rayx just created is unrecorded. The next run refuses it as `<name> exists in Lima and rayx cannot tell whether it created it`, and once the owner repairs or deletes `guests.json` it is refused as `exists in Lima but was not created by rayx`, so the owner has to delete the VM rayx made by hand. Before this sprint nothing refused such a VM, so the trap is new with never-adopt. The same default-empty read also hides an interrupted migration's retired entry from `pending_lima`, so a new `<name>` is created from scratch instead of resuming. No test covers creation with an unreadable record (the only unreadable-record test starts from an existing VM).\n\n**Repair:** in `run_with`, when `unreadable` is `Some` and the run is not `--check`, and the VM is about to be created (existing is `None`), return `LimaError::Failed` with the record error and an instruction to fix or remove the file, before `sizing::customize` / `limactl create` (the same condition as the migration guard; `--check` may still print the plan). Add a test to `tests/lima_named_vms.rs`: unparsable `guests.json`, no VM in Lima, name `app` and `rayx` -> error carries the record problem, `limactl_lines` is empty (nothing created or started), record file left untouched.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/lima_named_vms.rs",
+          "symbol": "an_unreadable_record_stops_a_creation_before_any_vm_exists_and_check_still_reports"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "symbol": "run_with"
+        }
+      ]
+    },
+    {
+      "id": "s4-man1-evidence-not-retained",
+      "criterionIds": [
+        "MAN-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Version captures and the proj-b before/after comparison were not retained; now captured in 23-repeat-steps-6-9.log and cited by rows 6, 7 and 9 of the MAN-1 section, with the terminal-only remainder (steps 10-14) disclosed.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ],
+      "boundaryId": "s4-docs-mac-proof"
+    },
+    {
+      "id": "F-s4b-1",
+      "criterionIds": [
+        "REL-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "docs/manual-verification.md (Findings fixed while verifying, MAN-1) still says the probe fix 'extended `tests/release_module.rs`: a 404 under exit 0, 22 and 56, and 403, 429, 500 and 503'. Commit 0893059 moved those tests to `tests/release_probe.rs`, so the pointer is stale. Repair: name `tests/release_probe.rs` there. Documentation only; REL-3 behaviour and tests are unaffected.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ],
+      "boundaryId": "s4b-release-probe-corrective"
+    },
+    {
+      "id": "F-s4b-2",
+      "criterionIds": [
+        "REL-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Reason wording for a non-404/410 status under a failing curl. REL-3 and d-release-status say any other status is `Unknown('the server answered HTTP <status>')`, but `release::exists` only produces that reason when curl exited 0. With a status such as 503 and a non-zero exit (for example 22 or 56) the `(Some(code), _)` arm yields `curl exited with <code>` and drops the status; `another_http_status_is_unknown...` only drives exit 0. The outcome (Unknown, exit 1 before any change) is correct and REL-3 names both reason forms, but the text and the code disagree and nothing pins the behaviour. Repair (either): in `exists` prefer the status reason whenever a status of 100 or more was read, or amend REL-3/d-release-status to say the reason is the exit code whenever curl failed, and add a test pinning the choice (a 503 under exit 22 and 56).",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "symbol": "exists"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_probe.rs",
+          "symbol": "another_http_status_is_reported_as_the_status_whatever_exit_code_curl_ends_with"
+        }
+      ],
+      "boundaryId": "s4b-release-probe-corrective"
+    }
+  ],
   "handoffMarkdown": "",
   "protectedPaths": {
     "rayx-cli": {

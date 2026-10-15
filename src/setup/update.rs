@@ -6,12 +6,13 @@ use std::io::{self, IsTerminal, Write};
 
 use crate::cli::SetupArgs;
 use crate::host::path_env::UserPath;
-use crate::host::{HostFacts, Runner};
+use crate::host::{HostFacts, Os, Runner};
 use crate::project::Project;
 
-use super::lima::sizing::TerminalPrompter;
+use super::guest;
+use super::lima::sizing::{Prompter, TerminalPrompter};
 use super::records::{self, SetupFile};
-use super::refresh::{RefreshOptions, refresh_guests};
+use super::refresh::{RefreshOptions, check_targets, refresh_probed};
 use super::wsl;
 use super::{Machine, Set, SystemMachine, ask_on_terminal, environment_for, run_sets};
 
@@ -145,6 +146,13 @@ pub fn wsl_binary_for_refresh(
 /// Runs `rayx setup --update` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
     let host = crate::host::facts();
+    let release = match guest::chosen_release(args) {
+        Ok(release) => release,
+        Err(error) => {
+            eprintln!("rayx: {error}");
+            return 1;
+        }
+    };
     let mut runner = if args.check {
         Runner::print()
     } else {
@@ -160,17 +168,10 @@ pub fn run(args: &SetupArgs) -> u8 {
     let machine = SystemMachine;
     let interactive = io::stdin().is_terminal() && io::stdout().is_terminal();
     let mut confirm = move |question: &str| interactive && ask_on_terminal(question);
-    let update = update_host(
-        args,
-        &host,
-        &mut runner,
-        &machine,
-        &mut user_path,
-        &mut io::stdout(),
-        Some(&mut confirm),
-    );
     let options = RefreshOptions {
-        version: env!("CARGO_PKG_VERSION").to_string(),
+        version: guest::guest_version(release.as_ref()),
+        release,
+        targets: args.vm.clone(),
         yes: args.yes,
         check: args.check,
         lima_binary: std::env::var("RAYX_LIMA_BINARY")
@@ -183,20 +184,70 @@ pub fn run(args: &SetupArgs) -> u8 {
     let mut prompter = TerminalPrompter {
         terminal: interactive,
     };
-    let refreshed = refresh_guests(
+    run_with(
+        args,
         &options,
         &host,
         &mut runner,
         &machine,
+        &mut user_path,
+        Some(&mut confirm),
         Some(&mut prompter),
         &mut io::stdout(),
-    );
+    )
+}
+
+/// The body of `rayx setup --update` over injectable collaborators: a chosen release is looked
+/// for first (nothing has changed if it is missing), then the host part runs, then the guests
+/// are refreshed. Returns the exit code.
+#[allow(clippy::too_many_arguments)]
+pub fn run_with(
+    args: &SetupArgs,
+    options: &RefreshOptions,
+    host: &HostFacts,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    user_path: &mut UserPath,
+    confirm: Option<&mut dyn FnMut(&str) -> bool>,
+    prompter: Option<&mut dyn Prompter>,
+    out: &mut dyn Write,
+) -> u8 {
+    // Names are checked before the first command, the release probe included.
+    if let Err(error) = check_targets(options, host, machine) {
+        eprintln!("rayx: {error}");
+        return 1;
+    }
+    // Only a host that drives guests has anything to give the release to; asking about it
+    // elsewhere would make an offline Linux box fail an update it can do.
+    if host.os != Os::Linux && !host.wsl {
+        let override_name = match host.os {
+            Os::MacOs => options.lima_binary.is_some().then_some("RAYX_LIMA_BINARY"),
+            _ => options.wsl_binary.is_some().then_some("RAYX_WSL_BINARY"),
+        };
+        if let Err(error) = guest::plan_release(options.release.as_ref(), override_name, runner) {
+            eprintln!("rayx: {error}");
+            return 1;
+        }
+    }
+    // Naming guests is an explicit target, not a host run: the host part is skipped.
+    let update = if options.targets.is_empty() {
+        update_host(args, host, runner, machine, user_path, out, confirm)
+    } else {
+        let _ = writeln!(out, "the host part is skipped: --vm names guests only");
+        HostUpdate {
+            code: 0,
+            recorded: true,
+            unreadable: false,
+        }
+    };
+    let refreshed = refresh_probed(options, host, runner, machine, prompter, out);
     if !update.recorded
         && !update.unreadable
         && !refreshed.unreadable
+        && refreshed.refused.is_none()
         && refreshed.guests.is_empty()
     {
-        println!("nothing recorded: run `rayx setup` first");
+        let _ = writeln!(out, "nothing recorded: run `rayx setup` first");
     }
     update.code.max(refreshed.code())
 }

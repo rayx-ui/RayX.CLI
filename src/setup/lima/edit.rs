@@ -7,7 +7,7 @@ use std::path::Path;
 use crate::host::CommandSpec;
 use crate::setup::Machine;
 
-use super::{INSTANCE, Instance, LimaError, VmFlags};
+use super::{Instance, LimaError, VmFlags, VmName};
 
 /// What explicit flags change in an existing VM.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -43,8 +43,8 @@ impl VmEdit {
     }
 
     /// The `limactl edit` command with only the changed flags.
-    pub fn command(&self, home: &Path) -> CommandSpec {
-        let mut spec = CommandSpec::new("limactl").args(["edit", "--tty=false", INSTANCE]);
+    pub fn command(&self, name: &VmName, home: &Path) -> CommandSpec {
+        let mut spec = CommandSpec::new("limactl").args(["edit", "--tty=false", name.as_str()]);
         if let Some((_, to)) = self.cpus {
             spec = spec.arg(format!("--cpus={to}"));
         }
@@ -94,6 +94,7 @@ pub fn home_is_writable(lima_yaml: &str, home: &Path) -> bool {
 /// What the explicit `flags` change in `instance`; a smaller disk is refused because Lima cannot
 /// shrink one. Flags equal to the VM change nothing.
 pub fn plan_edit(
+    name: &VmName,
     instance: &Instance,
     flags: &VmFlags,
     machine: &dyn Machine,
@@ -113,7 +114,7 @@ pub fn plan_edit(
         match u64::from(disk).cmp(&instance.disk_gib()) {
             std::cmp::Ordering::Less => {
                 return Err(LimaError::Failed(format!(
-                    "--vm-disk {disk} is smaller than the {} GiB disk of {INSTANCE}: Lima cannot \
+                    "--vm-disk {disk} is smaller than the {} GiB disk of {name}: Lima cannot \
                      shrink a disk",
                     instance.disk_gib()
                 )));
