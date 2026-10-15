@@ -5,6 +5,16 @@ All notable changes to `rayx` are documented in this file. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). It is generated from
 Conventional Commits by release-plz.
 
+## [1.3.0] - 2026-10-15
+
+### Documentation
+- *(verify)* record chosen-release self update on Windows
+- *(verify)* record the in-WSL chosen-release self update and refresh offer
+- *(verify)* record the complete Windows self update refresh as a pass
+
+### Features
+- *(setup)* choose the rayx release and name the Lima VM ([#7](https://github.com/rayx-ui/RayX.CLI/pull/7))
+
 ## [1.2.0] - 2026-10-14
 
 ### Features
