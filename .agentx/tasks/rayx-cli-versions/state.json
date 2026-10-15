@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-versions",
-  "revision": 45,
+  "revision": 46,
   "planRevision": 1,
   "specHashes": {
     "requirements": "e09cfe08b2462a557b37f407193abeef9eae0164d1264a45ef1bbe84387281b4",
@@ -54,10 +54,11 @@
       ]
     },
     "t08-release-proof": {
-      "status": "in_progress",
+      "status": "blocked",
       "workerIds": [
         "mac-claude-1015"
-      ]
+      ],
+      "blockerMarkdown": "Owner-run after a release that contains this epic: MAN-2 on the Mac and Windows, MAN-3 on the Windows PC"
     }
   },
   "validationBatches": {
