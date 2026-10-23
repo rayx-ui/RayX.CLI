@@ -1,0 +1,69 @@
+# release-plz: keeps a release pull request with the version bump and the CHANGELOG.md section
+# open on `main`; merging it pushes the tag `vX.Y.Z`, which starts dist's Release workflow.
+# dist (not release-plz) builds the binaries and creates the GitHub Release. The first release is
+# 1.0.0, the version Cargo.toml starts at. See docs/releasing.md.
+
+[workspace]
+# Versions come from git tags; nothing goes to crates.io (`publish = false` in Cargo.toml).
+git_only = true
+publish = false
+git_tag_enable = true
+git_tag_name = "v{{ version }}"
+# dist creates the GitHub Release from the tag.
+git_release_enable = false
+changelog_update = true
+# The library target is an implementation detail, not a public API.
+semver_check = false
+# Only changes that reach users start a release; docs, tests, CI and agentx commits ride along in
+# the next one. rayx stays on 1.x: a break is a `feat`/`fix` commit with a `Migration:` footer,
+# never `!` or `BREAKING CHANGE:` (see docs/releasing.md).
+release_commits = "^(feat|fix|perf)"
+
+[[package]]
+name = "rayx-cli"
+
+[changelog]
+header = """# Changelog
+
+All notable changes to `rayx` are documented in this file. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html). It is generated from
+Conventional Commits by release-plz.
+
+"""
+# `## [X.Y.Z] - YYYY-MM-DD` is the heading form dist's changelog parser reads for the release notes.
+body = """
+## [{{ version }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}
+{%- if commit.scope -%}
+- *({{ commit.scope }})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+{% else -%}
+- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+{% endif -%}
+{%- for footer in commit.footers | default(value=[]) -%}
+{%- if footer.token == "Migration" %}  Migration: {{ footer.value }}
+{% endif -%}
+{%- endfor -%}
+{% endfor -%}
+{% endfor %}
+"""
+trim = true
+protect_breaking_commits = true
+tag_pattern = "v[0-9].*"
+sort_commits = "oldest"
+commit_parsers = [
+  # Housekeeping that is not a change to rayx.
+  { message = "^chore\\(agentx\\)", skip = true },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore\\(deps\\)", skip = true },
+  { message = "^feat", group = "Features" },
+  { message = "^fix", group = "Fixes" },
+  { message = "^perf", group = "Performance" },
+  { message = "^refactor", group = "Refactoring" },
+  { message = "^docs", group = "Documentation" },
+  { message = "^(ci|build)", group = "Build and CI" },
+  { message = "^test", group = "Tests" },
+  { message = "^chore", group = "Maintenance" },
+]

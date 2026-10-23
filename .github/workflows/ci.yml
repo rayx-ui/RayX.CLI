@@ -1,0 +1,47 @@
+name: CI
+
+# Runs on pull requests (opened, new commits, reopened) and on pushes to `main`, in
+# rayx-ui/RayX.CLI only, so forks and copies of the repository run nothing. Pull request branches are
+# not pushed through this trigger, so a branch with an open pull request runs once.
+# `workflow_dispatch` runs it by hand on any branch.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: ${{ matrix.os }}
+    if: github.repository == 'rayx-ui/RayX.CLI'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+
+      # Reads rust-toolchain.toml (1.99.0 with clippy and rustfmt) and caches the cargo registry
+      # and target directory.
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          rustflags: ""
+
+      - name: Format
+        run: cargo fmt --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      # The real proofs (`proof_*` groups) are `#[ignore]`d: they download or build NSH and run
+      # apps, and run on demand with `cargo test --test proof_<name> -- --ignored`.
+      - name: Test
+        run: cargo test
