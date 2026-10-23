@@ -45,8 +45,8 @@
         "REPO",
         "OWN"
       ],
-      "descriptionMarkdown": "Releases as in 1.4.1: release-plz in git-only mode makes `vX.Y.Z` tags from Conventional Commits, cargo-dist builds six targets with shell and PowerShell installers into `$RAYX_HOME/bin` or `~/.rayx/bin`, with GitHub attestations; axoupdater updates app `rayx-cli` from `rayx-ui/RayX.CLI`. The package starts at 1.0.0 (D4) and the first release pull request tags it; the 1.x policy holds. The repository is created only after `RayX.CLI.Old`'s README links move (design §11).",
-      "invariantsMarkdown": "- Crate `rayx-cli`, binary `rayx` and install path unchanged from the old CLI, so the installer replaces the old binary and the receipt.\n- Never `!` or `BREAKING CHANGE:`.",
+      "descriptionMarkdown": "Releases as in 1.4.1: release-plz in git-only mode makes `vX.Y.Z` tags from Conventional Commits, cargo-dist builds six targets with shell and PowerShell installers into `$RAYX_HOME/bin` or `~/.rayx/bin`, with GitHub attestations; axoupdater updates app `rayx-cli` from `rayx-ui/RayX.CLI`. The package starts at 1.0.0 (D4), and the 1.x policy holds.\n\n**The first release has no release pull request.** In git-only mode release-plz treats a version without a tag as an initial release: its `release` job tags `v1.0.0` on the first push to `main`, and dist publishes it. `CHANGELOG.md` therefore carries a hand-written `1.0.0` section. Before that push the owner moves `RayX.CLI.Old`'s README links, creates the repository, sets `RELEASE_PLZ_TOKEN` and dates the section (design §11; `docs/releasing.md`).\n\n**CI runs on pull requests and on pushes to `main`** (REPO-3), in `rayx-ui/RayX.CLI` only, plus by hand. This replaces the 1.4.1 invariant that `ci.yml` stays pull-request only and that `release-plz.yml` is the one workflow on pushes to `main`. `release-plz.yml` still runs no tests.",
+      "invariantsMarkdown": "- Crate `rayx-cli`, binary `rayx` and install path unchanged from the old CLI, so the installer replaces the old binary and the receipt.\n- Never `!` or `BREAKING CHANGE:`.\n- `ci.yml` runs on `pull_request`, pushes to `main` only (never other branches) and `workflow_dispatch`, guarded to `rayx-ui/RayX.CLI`; `release-plz.yml` runs no tests.\n- `release.yml` changes only through `dist generate`.",
       "sourceRefs": [
         {
           "repositoryId": "rayx-cli-old",
@@ -73,7 +73,10 @@
         {
           "repositoryId": "rayx-cli-old",
           "path": ".agentx/memory/decisions/distribution/2026-10-08-distribution-cargo-dist-and-axoupdater.md"
-        },
+        }
+      ],
+      "rationaleMarkdown": "REPO-3, accepted with this epic, asks for CI on pushes to `main`. A push trigger limited to `main` keeps what the old rule protected against (a pull request branch runs once, not twice) and adds one run per merge, which proves `main` itself on every host after each merge. Nothing else of the release-plz and dist decision changes.",
+      "supersedesMemoryDecisions": [
         {
           "repositoryId": "rayx-cli-old",
           "path": ".agentx/memory/decisions/distribution/2026-10-14-distribution-release-plz-tags-dist-releases.md"

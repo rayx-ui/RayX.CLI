@@ -480,7 +480,7 @@
         },
         {
           "id": "OWN-4",
-          "descriptionMarkdown": "With the owner's go-ahead: `RayX.CLI.Old`'s README install links point at `rayx-ui/RayX.CLI.Old` and are pushed before `rayx-ui/RayX.CLI` is created; the repository is created public and pushed, `RELEASE_PLZ_TOKEN` is set, release-plz's 1.0.0 pull request is merged and cargo-dist publishes six targets; the installer over a rayx 1.4.1 install keeps `setup.json` and `guests.json`, and `rayx setup --update` refreshes.",
+          "descriptionMarkdown": "With the owner's go-ahead: `RayX.CLI.Old`'s README install links point at `rayx-ui/RayX.CLI.Old` and are pushed before `rayx-ui/RayX.CLI` is created; the repository is created public, `RELEASE_PLZ_TOKEN` is set, the `1.0.0` section of `CHANGELOG.md` is dated, and the first push to `main` makes release-plz tag `v1.0.0` (an initial release, with no release pull request) and cargo-dist publish six targets; the installer over a rayx 1.4.1 install keeps `setup.json` and `guests.json`, and `rayx setup --update` refreshes.",
           "verification": "manual"
         }
       ]
