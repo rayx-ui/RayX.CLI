@@ -107,7 +107,7 @@
         },
         {
           "id": "PORT-5",
-          "descriptionMarkdown": "`rayx doctor [--json]` is ported: every applicable set's steps with status, found version and exact fix, the pins with their sources, guests, the interactive desktop and the WSL findings; it has no GPU section and exits 0 whenever the host could be inspected.\n\nVerified by the ported group `doctor`.",
+          "descriptionMarkdown": "`rayx doctor [--json]` is ported: every applicable set's steps with status, found version and exact fix, the pins with their sources, guests, the interactive desktop and the WSL findings; it has no GPU section and exits 0 whenever the host could be inspected.\n\nVerified by the ported group `doctor`, which also takes the old `pin_sources` test `doctor_shows_only_project_and_default_sources` (doctor's pins show only the `project` and `default` sources), adapted to `android-36`.",
           "verification": "automated"
         },
         {

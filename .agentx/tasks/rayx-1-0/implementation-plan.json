@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 2,
+  "revision": 3,
   "title": "rayx 1.0.0: the new RayX CLI for NSH apps, with the machine side ported, nsh managed per project, and fork releases",
   "validationMode": "sprint",
   "repositories": [
@@ -1465,7 +1465,7 @@
         {
           "id": "t12-doctor",
           "title": "Port doctor",
-          "descriptionMarkdown": "Port `src/doctor/` with the group `doctor`, without the GPU section (PORT-5).",
+          "descriptionMarkdown": "Port `src/doctor/` with the group `doctor`, without the GPU section (PORT-5). Add to `tests/doctor.rs` the old `pin_sources` test `doctor_shows_only_project_and_default_sources`, which moved out of `pin_sources` in sprint 2 because `doctor` did not exist yet; adapt it to `android-36`.",
           "criterionIds": [
             "PORT-5"
           ],

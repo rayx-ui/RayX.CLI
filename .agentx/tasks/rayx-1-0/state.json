@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 10,
-  "planRevision": 2,
+  "revision": 22,
+  "planRevision": 3,
   "specHashes": {
-    "requirements": "1a0b02b03832a49bc5ab9ee11d34a091cf954077acebff670f75e2d48bddafec",
+    "requirements": "85472d11ba34d3f58552b0dbe94dcab55f1238f5ef2dc2ded8d4e542b3a2fec2",
     "design": "1ec2827ec4daf63dff4ad1ccd02d6c0e9284550549388d8160426c4efc441bb5",
-    "plan": "d663f3c97640fa258fd91d83a78d4cac689b5da21750fca5ac43224fe0ade5dc"
+    "plan": "f19f9e9b4b601082799c7692a4c5d66adbc283bb347eda2545326a33475d16e9"
   },
   "tasks": {
     "t01-package": {
@@ -22,16 +22,28 @@
       ]
     },
     "t03-host": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t04-setup-engine": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t05-project-pins": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t06-base-sets": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t07-web-set": {
       "status": "pending"
@@ -124,6 +136,18 @@
         }
       },
       "recordedAt": "2026-10-23T23:37:07Z"
+    },
+    "5ecea6cc4b389dff55cc436e3000cae3ad6a05486c2e439904ece58657ec7217": {
+      "snapshot": {
+        "specHash": "f433010b0cbf77306abb36b5d110caf73d328ea4dd5f8779f0420b87e19189b2",
+        "repositories": {
+          "rayx-cli": "779abcf8666f41fd382d0fc8f991c258c1e4cb340f383d84996025d6fb957e2d",
+          "nsh-release": "14ed95fc71adaaab3ea3a3e8481e900d14835a4d38674de1c63baa49414121f7",
+          "nsh-fork-docs": "d931ff0a99d2910762a9a9960dd27e71244d1851c434194547d1747de596cf04",
+          "rayx-cli-old": "0a91cabcfa47ef8639b7c693923239841428bfacc031a32c37d7acc5de5d77ee"
+        }
+      },
+      "recordedAt": "2026-10-23T23:55:59Z"
     }
   },
   "checkResults": {
@@ -177,6 +201,74 @@
       "logPath": "artifacts-temp/agentx/rayx-1-0/s1-foundation-final-f2849832274d.log",
       "logSha256": "b5ef34948d119b8c9a2a83ea3fa7be28686336c326ed4fa8cbd531bc51a84a27",
       "inputsHash": "4ff3051ea95a0433246876226f1e081928bafb00e656e1414145ceefc494dbca"
+    },
+    "s2-host-engine/check-host/final": {
+      "checkId": "check-host",
+      "boundaryId": "s2-host-engine",
+      "phase": "final",
+      "batchId": "5ecea6cc4b389dff55cc436e3000cae3ad6a05486c2e439904ece58657ec7217",
+      "definitionHash": "8bad926441fd07b88bea54cc4a730964944d8ee467d2b5588b23e1646c67e151",
+      "basisHash": "f027403143edaf78cfccc08362e6cc23313b6c1a1e1ffc6bb51ef977a77eabab",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 47,
+      "durationSeconds": 1.8239,
+      "recordedAt": "2026-10-23T23:55:55Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s2-host-engine-final-6a700adbced5.log",
+      "logSha256": "ed996dc7441f995ae8c51f6a524ecae4e461422e8fabcac055e85878ced23a59",
+      "inputsHash": "3dd229e2fc88f0cb57a00d155305657fd429812a80c74d6ceb6767034b38cf32"
+    },
+    "s2-host-engine/check-setup-engine/final": {
+      "checkId": "check-setup-engine",
+      "boundaryId": "s2-host-engine",
+      "phase": "final",
+      "batchId": "5ecea6cc4b389dff55cc436e3000cae3ad6a05486c2e439904ece58657ec7217",
+      "definitionHash": "1282005730f23c84fbe099a4d23e57cb99d7d2dd7bddf1e7e6f7c7dbfeb3132a",
+      "basisHash": "adff19d0cb5a4f9bfb3340727b474d1db99bb039f7fdbead80c8208824a6874c",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 25,
+      "durationSeconds": 0.7688,
+      "recordedAt": "2026-10-23T23:55:56Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s2-host-engine-final-24e8d68efbc6.log",
+      "logSha256": "d81bf51a4a528aa499554df0a59525b44c2022c1f4ea947d47e5a0f287fdaeb3",
+      "inputsHash": "c7bbcf7ce45d4e50adbbcb069eaf486320365b2ad2b786ed96b12cba5e590c1e"
+    },
+    "s2-host-engine/check-project-pins/final": {
+      "checkId": "check-project-pins",
+      "boundaryId": "s2-host-engine",
+      "phase": "final",
+      "batchId": "5ecea6cc4b389dff55cc436e3000cae3ad6a05486c2e439904ece58657ec7217",
+      "definitionHash": "7b12d235ff0e8ef4843f78187f21318d7456e2b3320293a961a9577412249503",
+      "basisHash": "531d0d1297c1b932ae772d6a618c04614694e12929f9ae3c947ddd651a294c7b",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 23,
+      "durationSeconds": 1.4114,
+      "recordedAt": "2026-10-23T23:55:57Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s2-host-engine-final-05964eb7a437.log",
+      "logSha256": "56d8399cec45a1fbc6beb7d65494aacec68a797818a7ccdcf09367c77fce4b1e",
+      "inputsHash": "44804bdca9ce3140d18f7690aff4191619e18bcc0218a9d0eb21d15f49cbad4f"
+    },
+    "s2-host-engine/check-base-sets/final": {
+      "checkId": "check-base-sets",
+      "boundaryId": "s2-host-engine",
+      "phase": "final",
+      "batchId": "5ecea6cc4b389dff55cc436e3000cae3ad6a05486c2e439904ece58657ec7217",
+      "definitionHash": "d9cf6d083703c64a7bfab3751ab596c7f840738a80e9793256bc9a4aff750db8",
+      "basisHash": "9f16bbdbaaf0c23ddfc03c5829458cca3173089c7959b51534f57a9116f8f59c",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 33,
+      "durationSeconds": 1.2178,
+      "recordedAt": "2026-10-23T23:55:59Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s2-host-engine-final-918135964a17.log",
+      "logSha256": "62969fb7114540965ebb9b7fd9caf97892830771c4c0b0f59d8e3a41990e64fe",
+      "inputsHash": "44739cc0fa36ee351bbe6d9f5531329ea7c937a3c0877c2e7b90bb6f460a8bb5"
     }
   },
   "reviews": {
@@ -404,6 +496,305 @@
         "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
       }
+    },
+    "s2-host-engine": {
+      "reviewerId": "reviewer-s2-1ed9e22e",
+      "snapshotId": "5ecea6cc4b389dff55cc436e3000cae3ad6a05486c2e439904ece58657ec7217",
+      "criterionIds": [
+        "PORT-1",
+        "PORT-2",
+        "PORT-3",
+        "PORT-7",
+        "SETS-1",
+        "SETS-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-1"
+          ],
+          "sha256": "c490b352096297c8073e5c777833dad16846c1a5863085274f8c688f585eda07"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/probe.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-1"
+          ],
+          "sha256": "6f72cda2472596ededac4aa4acd9e1fd260a3e882f66c99b49f58bf85d9a1ecf"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/runner.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-1"
+          ],
+          "sha256": "8c805a84e984a193c8938a576005c8a0b272496803e167cfe4630eb4387138b4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/path_env.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-1"
+          ],
+          "sha256": "814608ed05faddbe61322bb780741a1856dce297cd868b306d230794283b3dd3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/command_runner.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-1"
+          ],
+          "sha256": "118a1401a5491e085f084b9da67dd77959dbcae252a3607d4685238be88b1b2c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/host_facts.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-1"
+          ],
+          "sha256": "cb688bfb9ba345f5508dee6f5424cffbc6e977cbd16e8e6be20a745fc5a0d90f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/path_env.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-1"
+          ],
+          "sha256": "aeb344d5cfcbbbdee6adb312161c26b9e3527c3d8fa28207cf26d62dd71d6ae2"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-2",
+            "PORT-7",
+            "PORT-3"
+          ],
+          "sha256": "3cb9d6333e87f34c885a4d47f4c2ae99195cf64b826f144e3e619111f90ccaf9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-2"
+          ],
+          "sha256": "7f4baa2e30e6308ed3b0f71f0cac0b1fb7125fb74504f57f5d3ffcc8e2750617"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/machine.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-2"
+          ],
+          "sha256": "14b7c35087f3a76ca6163c7766fdfb1a2ff910e4370acd7c79986bd24ec53b8b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/lib.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-2",
+            "PORT-3"
+          ],
+          "sha256": "d0de64b68ede8f1b98dd962f6f2a66bb24dcbbf353e65da2d3549fb2f9eeafd5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-7"
+          ],
+          "sha256": "659b5041093dc9db31bdca1aa40d19b9bd0d241ab00b56ad0d0264e287d24f7b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_engine.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-2",
+            "PORT-7"
+          ],
+          "sha256": "b04b121fce7a99f95c1b7783a9feb128d4b6760bb1ea934e8305d7ed2ab651f2"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_update_prompt.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-2"
+          ],
+          "sha256": "6cd35dc4292038e6578ddbc08ef5e1d0c77f1f787cd7cec828ce8ea4e066845e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-3"
+          ],
+          "sha256": "3614d5ef2c610c8e966444f0360c9840414d46c4027dc02f0df32c732712679d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-3"
+          ],
+          "sha256": "0a9d29c49ac9d38482e5190af925b4baa96f7742c65ef38a4a00726dbfb67211"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/fmt.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-3"
+          ],
+          "sha256": "02d934071fc031e9c188e1e2ab4c0b30ae4a93acdb4c9f03d3057964249ccde5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-3"
+          ],
+          "sha256": "c23af3dcfebbc0aa47b23092c84d87d487d2ab10e47e171cd0f6a6a0784f7e98"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/pin_sources.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-3"
+          ],
+          "sha256": "8c01d43c4aaf9faa3c7c97059bcdb9e34484aaa2a134e205b0ee2c6286c3e5b6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/fmt_command.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-3"
+          ],
+          "sha256": "89c572426d1755e78ad7b925dbc6d12a62108b714d1de1a4db94542a92e733a4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/fixtures/pinned-app/Cargo.toml",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-3"
+          ],
+          "sha256": "f16c36a405a916829b2de809bfd679e7195c12f51c4213e1accc470c4a36ce66"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/fixtures/missing-toolchain/Cargo.toml",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-3"
+          ],
+          "sha256": "bb60dadcaf6610396928ffb2216abcdb010b22f27c9ee8579da5b8df5a0bb2d1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/linux.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-1"
+          ],
+          "sha256": "33c69ef4535050ee38afed89f70a2d2ba6b2a75251ce7808097369a1572ee91f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/macos.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-1"
+          ],
+          "sha256": "8fa52e21f418277a34640d4eeec1e8d9fe70ac0ad30458537ad947e8a058324d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/rust.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-1",
+            "SETS-2"
+          ],
+          "sha256": "c454172e0038e9642472e922c97b2dfd89cef36b36f546a18c2f4b748d93a0a1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_linux.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETS-1"
+          ],
+          "sha256": "c351a7e1406db1668070d3adabc96399acdbe121ee106fa4818f81c093f24281"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_macos.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETS-1"
+          ],
+          "sha256": "fc8007458a8ea7f9a5ff608efc713759a7a311f1d89a0ac2197a4bf9e70ba17f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/windows.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-2"
+          ],
+          "sha256": "7325163bb9cf19fcea126754bc4aeb9af577bdfa4379bd6c4329a521197bbe70"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_windows.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETS-2"
+          ],
+          "sha256": "6b4ad48603db4a370a0d1a7ba3e9261216fcd06de0353d7a77bec01ed031e407"
+        }
+      ],
+      "summaryMarkdown": "All four findings from the first review are fixed. S2-F1: `setup_engine::record` tests `setup.json` (version 1, records merged across runs, `--check`, `--update` and failed runs record nothing, the 1.x paths on Linux, macOS and Windows, no temporary file left, an unparsable record untouched). S2-F2: t12 and PORT-5 now name the moved doctor test. S2-F3: `project_pins` tests that `tools-node` reaches `PlanEnv`. S2-F4: the too-old refusal now has separate wording for native Linux and WSL, and `setup_linux` asserts both. The rest is unchanged from the first review: the host layer, macOS, rust, records, test_tools and fmt match `d006250`; the pins follow design §6 and §7; the Linux list is NSH's; Windows drops fxc and adds WebView2; the PORT-7 proofs are in place. Checks pass at this snapshot.",
+      "findingIds": [
+        "S2-F1",
+        "S2-F2",
+        "S2-F3",
+        "S2-F4"
+      ],
+      "recordedAt": "2026-10-23T23:57:14Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-release:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893",
+        "rayx-cli:CHANGELOG.md": "e6500f82ef1acfbb8b4250a19c5ddda94ed93e2b25d556b2c22e3fa4e04f1add",
+        "nsh-release:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
+      }
     }
   },
   "checkpoints": {
@@ -417,6 +808,17 @@
       },
       "reviewHash": "140702f7b8a59f6c66ad8cfe871f05ffc0fd98b9b83042778e1e291f7e5bbed7",
       "recordedAt": "2026-10-23T23:39:49Z"
+    },
+    "s2-host-engine": {
+      "snapshotId": "5ecea6cc4b389dff55cc436e3000cae3ad6a05486c2e439904ece58657ec7217",
+      "commits": {
+        "rayx-cli": "90d279aec7226da93ac61ef36238e5c77712ce80",
+        "nsh-release": "327bb9ea65d08ffac4af498cc7fbbfa18a1b3623",
+        "nsh-fork-docs": "3c3cd5c177c16618d8cbdee5e61ef929a45d887c",
+        "rayx-cli-old": "d0062509bf65b57ef65375a50709f1dbc4777198"
+      },
+      "reviewHash": "13995b7be635c06dc0b9c12d21294fea89f809c83cb45984c2a50f793055f6bb",
+      "recordedAt": "2026-10-23T23:57:45Z"
     }
   },
   "findings": [
@@ -523,6 +925,82 @@
         }
       ],
       "boundaryId": "s1-foundation"
+    },
+    {
+      "id": "S2-F1",
+      "boundaryId": "s2-host-engine",
+      "criterionIds": [
+        "PORT-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "PORT-2's `setup.json` clause had no test in this sprint. Resolved: `setup_engine::record` proves that a successful run records its sets and root in version 1 and that later runs merge into it; that `--check`, `--update` and a failed run record nothing; that a run outside a project records no root; that an unparsable record is reported and left untouched; the 1.x locations (`$XDG_CONFIG_HOME/rayx`, `~/.config/rayx` on Linux and macOS, `%LOCALAPPDATA%\\rayx`); and that a dry run writes nothing while repeated writes leave only `setup.json`, with no temporary file.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_engine.rs",
+          "symbol": "record"
+        }
+      ]
+    },
+    {
+      "id": "S2-F2",
+      "boundaryId": "s2-host-engine",
+      "criterionIds": [
+        "PORT-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "The move of `doctor_shows_only_project_and_default_sources` was untracked. Resolved: specification revision 19 names it in t12's description and in PORT-5's verification line, adapted to `android-36`.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/tasks/rayx-1-0/implementation-plan.json"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/tasks/rayx-1-0/requirements.json"
+        }
+      ]
+    },
+    {
+      "id": "S2-F3",
+      "boundaryId": "s2-host-engine",
+      "criterionIds": [
+        "PORT-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "`[workspace.metadata.rayx] tools-node` was untested. Resolved: `tools_node_reaches_the_plan_environment` runs `setup::environment_for` on a discovered workspace. With `tools-node = \"tests/e2e\"` the value and the root arrive in `PlanEnv`; without the key it is `None`; outside a project there is neither value nor root.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs",
+          "symbol": "tools_node_reaches_the_plan_environment"
+        }
+      ]
+    },
+    {
+      "id": "S2-F4",
+      "boundaryId": "s2-host-engine",
+      "criterionIds": [
+        "SETS-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "The too-old refusal suggested guest commands that cannot run where it shows. Resolved: `too_old(distro, wsl)` now tells a native host to upgrade to Ubuntu 24.04 or Debian 13, with no guest command, and tells a WSL distribution to run `rayx setup --wsl` on Windows. `setup_linux` asserts both wordings, and the absence of the other, for Ubuntu 22.04 and Debian 12.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_linux.rs",
+          "symbol": "a_distribution_older_than_ubuntu_24_04_or_debian_13_is_refused_naming_gtk_and_webkitgtk"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/linux.rs",
+          "symbol": "too_old"
+        }
+      ]
     }
   ],
   "handoffMarkdown": "",
