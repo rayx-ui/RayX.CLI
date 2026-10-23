@@ -1,0 +1,5 @@
+version = 4
+
+[[package]]
+name = "wasm-bindgen"
+version = "0.2.129"

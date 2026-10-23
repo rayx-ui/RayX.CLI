@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["apps/demo"]
+
+[workspace.metadata.rayx]
+node = 24
+jdk = "23"
+android-ndk = "29.0.1"
+android-platform = "android-36"
+android-build-tools = "36.0.0"
+android-system-image = "android-36;google_apis_playstore"
+xcode = "26.1"

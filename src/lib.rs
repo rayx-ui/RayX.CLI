@@ -3,6 +3,11 @@
 //! [`run`].
 
 pub mod cli;
+pub mod fmt;
+pub mod host;
+pub mod project;
+pub mod setup;
+pub mod wsl;
 
 use std::ffi::OsString;
 use std::process::ExitCode;
@@ -38,18 +43,29 @@ where
 
 fn dispatch(cli: Cli) -> ExitCode {
     let name = match &cli.command {
-        Command::Setup(_) => "setup",
+        Command::Setup(args) => return ExitCode::from(setup::run(args)),
+        Command::Fmt(args) => return run_fmt(args.args.clone()),
         Command::Doctor(_) => "doctor",
         Command::Wsl { .. } => "wsl",
         Command::Lima { .. } => "lima",
         Command::SelfCommand { .. } => "self",
-        Command::Fmt(_) => "fmt",
         Command::App(_) => "app",
         Command::Nsh { .. } => "nsh",
         Command::New(_) => "new",
         Command::Serve(_) => "serve",
     };
     not_available(name)
+}
+
+/// Runs `rayx fmt` and turns its error into a message and an exit code.
+fn run_fmt(args: Vec<String>) -> ExitCode {
+    match fmt::run(args) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("rayx: {error:#}");
+            ExitCode::FAILURE
+        }
+    }
 }
 
 /// The answer of a command this build does not implement yet.
