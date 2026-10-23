@@ -1,0 +1,413 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-1-0",
+  "decisions": [
+    {
+      "id": "d-package",
+      "requirementIds": [
+        "REPO"
+      ],
+      "descriptionMarkdown": "One package `rayx-cli` (library `rayx_cli`, binary `rayx`) on Rust 1.99.0, the toolchain RayX and Gamify use. The clap surface lists all ten commands from the first sprint; later sprints fill them in. The repository guards of 1.4.1 carry over, and `library_agnostic` becomes `library_guard` for D14: rayx names NSH as a toolchain (the `nsh` CLI, its releases, crate names inside pins and patches) and depends on no NSH crate.",
+      "invariantsMarkdown": "- `src/main.rs` only calls `rayx_cli::run()`.\n- No `env!(\"CARGO_MANIFEST_DIR\")` outside tests.\n- Every external program through `host::Runner`.",
+      "rationaleMarkdown": "D14 replaces the old library-agnostic rule: the old CLI named no library at all; the new one runs NSH but must still not grow knowledge of RayX's crates or of any app. It builds on the old CLI's library-agnostic guard and contract (one package, public dependencies, no RayX or gpux library, projects declare what they need) and narrows its one change: NSH is the toolchain rayx runs, named but never depended on.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "Cargo.toml"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "tests/library_agnostic.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "tests/dependency_sources.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "tests/package_layout.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/repository/2026-10-19-repository-library-agnostic-guard.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/app-pipeline/2026-10-19-app-pipeline-library-agnostic-contract.md"
+        }
+      ]
+    },
+    {
+      "id": "d-release",
+      "requirementIds": [
+        "REPO",
+        "OWN"
+      ],
+      "descriptionMarkdown": "Releases as in 1.4.1: release-plz in git-only mode makes `vX.Y.Z` tags from Conventional Commits, cargo-dist builds six targets with shell and PowerShell installers into `$RAYX_HOME/bin` or `~/.rayx/bin`, with GitHub attestations; axoupdater updates app `rayx-cli` from `rayx-ui/RayX.CLI`. The package starts at 1.0.0 (D4) and the first release pull request tags it; the 1.x policy holds. The repository is created only after `RayX.CLI.Old`'s README links move (design §11).",
+      "invariantsMarkdown": "- Crate `rayx-cli`, binary `rayx` and install path unchanged from the old CLI, so the installer replaces the old binary and the receipt.\n- Never `!` or `BREAKING CHANGE:`.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "dist-workspace.toml"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "release-plz.toml"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "docs/releasing.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".github/workflows/release-plz.yml"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/distribution/2026-10-08-distribution-cargo-dist-and-axoupdater.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/distribution/2026-10-14-distribution-release-plz-tags-dist-releases.md"
+        }
+      ]
+    },
+    {
+      "id": "d-port",
+      "requirementIds": [
+        "PORT",
+        "SETS"
+      ],
+      "descriptionMarkdown": "Port by copying `RayX.CLI.Old` @ `d006250` module by module with its tests, then adapting: no `src/app/` pipeline (only `app/prereqs.rs`'s logic survives, rewritten for §6.1), no `setup/gpu.rs`, the project model without per-package dependencies, and the NSH set contents of §6. Records keep their paths and schema version 1 so machines and guests set up by 1.4.1 carry over. Each port commit names `d006250`.",
+      "invariantsMarkdown": "- A ported group keeps its tests unless the criterion changes the behaviour they assert.\n- No module of the dropped pipeline is copied and then deleted in a later sprint: the port leaves it out.",
+      "rationaleMarkdown": "Adapting the sets while porting avoids porting gpux's package lists and tests only to rewrite them in a later sprint.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/setup/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/setup/records.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/project/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/project/pins.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/host/2026-10-08-host-facts-and-command-runner.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-one-plan-for-setup-check-and-doctor.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-wsl-scripts-run-with-exec.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/setup/2026-10-15-setup-named-lima-vms-chosen-releases-and-targeted-update.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/app-pipeline/2026-10-08-app-pipeline-fmt-per-member.md"
+        }
+      ]
+    },
+    {
+      "id": "d-nsh-sets",
+      "requirementIds": [
+        "SETS",
+        "PORT"
+      ],
+      "descriptionMarkdown": "Set contents per design §6 and pins per §7. The Linux base apt list comes from NSH's release workflow and installation docs; distributions older than Ubuntu 24.04 or Debian 13 are refused because GTK 4.14 and WebKitGTK 6.0 are not available there. `setup::test_tools` exposes the Playwright Chromium path for RUN-2.",
+      "invariantsMarkdown": "- `--web` never installs a nightly or `rust-src` (D3).\n- No set installs XcodeGen, `cargo-ndk`, Vulkan tools or GPU drivers (D15).",
+      "sourceRefs": [
+        {
+          "repositoryId": "nsh",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": "website/docs/installation.md"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": "crates/nsh-cli/src/android.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/setup/2026-10-08-setup-android-studio-through-its-wizard.md"
+        },
+        {
+          "repositoryId": "gamify",
+          "path": ".agentx/memory/decisions/nsh-fork/wasm-bindgen/2026-10-20-nsh-fork-wasm-bindgen-opt-in-wasm-bindgen-runtime.md"
+        }
+      ]
+    },
+    {
+      "id": "d-pin",
+      "requirementIds": [
+        "PIN"
+      ],
+      "descriptionMarkdown": "`nsh::pin` resolves the pin per design §4.1 from `Cargo.lock` (read as TOML; `cargo metadata` only when the lock is missing), then `rayx.toml`, then the default. The default pin and its NSH crate list live in `project::pins`' defaults table. Ids: 12 hex digits of a commit, `v<version>` for a crates.io release; path pins have none.",
+      "invariantsMarkdown": "- The pin is read in the directory nsh will run in.\n- One source for all `nsh-*` packages, else an error naming both.\n- A pin has at most one source: `Cargo.lock` or `rayx.toml`, never both.",
+      "rationaleMarkdown": "The crate list travels with the default pin because a distribution entry has no checkout to list crates from (design §4.7).",
+      "sourceRefs": [
+        {
+          "repositoryId": "gamify",
+          "path": "src/frontend/Cargo.lock"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": "Cargo.toml"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/project/2026-10-19-project-pins-from-project-or-default.md"
+        }
+      ]
+    },
+    {
+      "id": "d-store",
+      "requirementIds": [
+        "STORE"
+      ],
+      "descriptionMarkdown": "`nsh::store`: entries under `$RAYX_HOME/nsh` (else `~/.rayx/nsh`), one directory per id, `receipt.json` written last through a temporary file and rename, an OS file lock `<id>.lock` held during installs, sizes computed on demand. Prune keeps the default and every recorded project's pin.",
+      "invariantsMarkdown": "- An entry without a receipt is never run.\n- Nothing outside the store and the system temporary directory is written by an install."
+    },
+    {
+      "id": "d-install",
+      "requirementIds": [
+        "INST"
+      ],
+      "descriptionMarkdown": "`nsh::install` tries the release archive first and falls back to source (D11). Downloads run `curl` through `Runner` into the store, the digest is checked in Rust, archives are unpacked in Rust (`tar.gz` and `zip`). The source path runs `git`, `rustup` and `cargo` through `Runner` in `<id>/source`, which is a checkout nsh recognizes (`target/release/nsh` beside `crates/nsh-ios-host/Cargo.toml`), so nsh builds its hosts and runtimes there on demand. Both paths end with the version and commit check of `nsh --version`.",
+      "invariantsMarkdown": "- Platform names: `macos-arm64`, `linux-x86_64`, `linux-arm64`, `windows-x86_64`, `windows-arm64`; any other host installs from source.\n- `CARGO` is removed from every command rayx runs for nsh.",
+      "rationaleMarkdown": "nsh finds its runtimes in a distribution or a checkout, never next to a `cargo install`ed binary (design §3), so a bare binary is never an option.",
+      "sourceRefs": [
+        {
+          "repositoryId": "nsh",
+          "path": "crates/nsh-cli/src/runtime.rs"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": "crates/xtask/src/dist.rs"
+        }
+      ]
+    },
+    {
+      "id": "d-run",
+      "requirementIds": [
+        "RUN",
+        "NSHCMD"
+      ],
+      "descriptionMarkdown": "`rayx app` is a pass-through (D12): clap takes rayx's own options (`-C`, `--no-install`) before the command and hands the rest over raw. rayx reads only the command name and `--target` for the prerequisite map. The prerequisite step reuses the setup engine with a plan of the base set plus the mapped sets; the pinned nsh is its last base step. Unix uses `exec`; Windows spawns and forwards the exit code.",
+      "invariantsMarkdown": "- rayx never runs the `nsh` on `PATH`.\n- An argument after the command is never rewritten, except adding `--browser` when RUN-2 says so.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/app/prereqs.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/app/mod.rs"
+        },
+        {
+          "repositoryId": "gamify",
+          "path": "src/frontend/xtask/src/web.rs"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/app-pipeline/2026-10-08-app-pipeline-cli-surface-raw-app-arguments.md"
+        }
+      ]
+    },
+    {
+      "id": "d-fork-dev",
+      "requirementIds": [
+        "RUN"
+      ],
+      "descriptionMarkdown": "Fork development has two doors (design §4.6): a path pin builds and runs the checkout's CLI, and `RAYX_NSH` replaces the pin's binary with a warning. Neither writes to the store."
+    },
+    {
+      "id": "d-new",
+      "requirementIds": [
+        "NEW"
+      ],
+      "descriptionMarkdown": "`rayx new` runs the default pin's `nsh init`, then writes the pin into the app: `.cargo/config.toml` patches plus `cargo generate-lockfile` for apps with Rust crates, `rayx.toml` for `ts` apps. `--template` takes nsh's three names now; later names can map to fetched templates run after the pin is written (D5), which this epic does not build.",
+      "invariantsMarkdown": "- `rayx new` never writes outside `<dir>` except the store.",
+      "sourceRefs": [
+        {
+          "repositoryId": "nsh",
+          "path": "crates/nsh-cli/src/init.rs"
+        },
+        {
+          "repositoryId": "gamify",
+          "path": "src/frontend/.cargo/config.toml"
+        }
+      ]
+    },
+    {
+      "id": "d-serve",
+      "requirementIds": [
+        "SERVE"
+      ],
+      "descriptionMarkdown": "`rayx serve` is a small blocking HTTP/1.1 server on `std::net`, ported from Gamify's `xtask web serve` (MIME map, `/health`, path containment, `no-store`), with no new dependency.",
+      "sourceRefs": [
+        {
+          "repositoryId": "gamify",
+          "path": "src/frontend/xtask/src/web.rs",
+          "symbol": "serve"
+        }
+      ]
+    },
+    {
+      "id": "d-fork-release",
+      "requirementIds": [
+        "FORK",
+        "OWN"
+      ],
+      "descriptionMarkdown": "`fork-release.yml` is a new file on `fork/release` (D9) that copies upstream's `dist` job and replaces its trigger, version check and release job. `windows-arm64` is a matrix entry with `continue-on-error`; the release job runs after the matrix unless cancelled, requires the four required archives and attaches whatever built. The release is published at once because rayx downloads without signing in. `sync-main.sh upstream` warns when an upstream range changes `release.yml`, because the copy must then be updated by hand.",
+      "invariantsMarkdown": "- `fork/release` differs from `origin/main` only by `fork-release.yml`.\n- Upstream's `release.yml`, `release-crate.yml` and `packages.yml` stay untouched and keep running only on `v*` tags, which the fork never creates.",
+      "rationaleMarkdown": "A separate file never conflicts with upstream syncs; the warning covers its one weakness, drift (design §10). It builds on Gamify's record of the fork process (main as the integration line, `fork-*` tags, `feat/*` and `fix/*` pull requests with merge commits) and adds a third branch kind, `fork/*`, without changing the others; Gamify's record gains that kind in Gamify's follow-up epic.",
+      "sourceRefs": [
+        {
+          "repositoryId": "nsh",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "scripts/sync-main.sh"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "gamify",
+          "path": ".agentx/memory/decisions/nsh-fork/consumption/2026-10-21-nsh-fork-consumption-neutral-fork-tags.md"
+        }
+      ]
+    },
+    {
+      "id": "d-proof",
+      "requirementIds": [
+        "PROOF",
+        "INST"
+      ],
+      "descriptionMarkdown": "Real proofs are integration groups whose tests are `#[ignore]`d and run with `-- --ignored`: they build or download NSH, take minutes and need the network. Their checks never reuse results (`reuse: false`). The Gamify proof reads Gamify as a reference and checks with `git status --porcelain` that its tracked files did not change.",
+      "sourceRefs": [
+        {
+          "repositoryId": "gamify",
+          "path": "src/frontend/nsh.json"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "gamify",
+          "path": ".agentx/memory/decisions/frontend-runtime/configuration/2026-10-20-frontend-runtime-configuration-xtask-generated-runtime-config.md"
+        }
+      ],
+      "rationaleMarkdown": "Gamify's app imports `config/runtime.json`, which its `cargo xtask config` generates (Gamify's runtime-configuration decision), so the Gamify proof needs that file and never writes it."
+    },
+    {
+      "id": "d-memory",
+      "requirementIds": [
+        "REPO"
+      ],
+      "descriptionMarkdown": "Memory is created once the machine side is ported, with domains following the CLI's modules. The old repository's decisions that still hold are rewritten for the new CLI rather than copied, each naming where it came from, and carry `agentx.promoted_from: rayx-1-0` so they count as this epic's own records; the app-pipeline decisions are not carried over.",
+      "rationaleMarkdown": "Creating memory before any source exists would make placeholder domains; carrying the old decisions keeps their reasoning without importing the GPUI pipeline's.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/INDEX.md"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".agentx/memory/decisions/repository/2026-10-07-repository-memory-taxonomy.md"
+        }
+      ]
+    },
+    {
+      "id": "d-docs",
+      "requirementIds": [
+        "DOCS"
+      ],
+      "descriptionMarkdown": "The README documents the CLI as it is, and `readme_nsh` keeps it honest by parsing the documented commands and the pins table against the clap surface and `project::pins`.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "README.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "tests/readme_versions.rs"
+        }
+      ]
+    }
+  ],
+  "memoryDecisionsConsidered": [
+    {
+      "repositoryId": "gamify",
+      "path": ".agentx/memory/decisions/frontend-runtime/assets/2026-10-20-frontend-runtime-assets-flag-density-variants.md"
+    },
+    {
+      "repositoryId": "gamify",
+      "path": ".agentx/memory/decisions/frontend-runtime/composition/2026-10-20-frontend-runtime-composition-one-composition-root.md"
+    },
+    {
+      "repositoryId": "gamify",
+      "path": ".agentx/memory/decisions/frontend-runtime/di/2026-10-20-frontend-runtime-di-awaited-startup-registry.md"
+    },
+    {
+      "repositoryId": "gamify",
+      "path": ".agentx/memory/decisions/frontend-runtime/di/2026-10-20-frontend-runtime-di-nsh-app-di-layers.md"
+    },
+    {
+      "repositoryId": "gamify",
+      "path": ".agentx/memory/decisions/nsh-fork/images/2026-10-20-nsh-fork-images-svg-hybrid-rendering.md"
+    },
+    {
+      "repositoryId": "gamify",
+      "path": ".agentx/memory/decisions/nsh-fork/images/2026-10-20-nsh-fork-images-svg-self-contained.md"
+    },
+    {
+      "repositoryId": "rayx-cli-old",
+      "path": ".agentx/memory/decisions/app-pipeline/2026-10-08-app-pipeline-embedded-playwright-package-template.md"
+    },
+    {
+      "repositoryId": "rayx-cli-old",
+      "path": ".agentx/memory/decisions/app-pipeline/2026-10-08-app-pipeline-real-rayx-proof-uses-a-consistent-sibling-set.md"
+    },
+    {
+      "repositoryId": "rayx-cli-old",
+      "path": ".agentx/memory/decisions/repository/2026-10-08-repository-literal-toolchain-pins-with-one-checklist.md"
+    },
+    {
+      "repositoryId": "rayx-cli-old",
+      "path": ".agentx/memory/decisions/repository/2026-10-08-repository-rayx-keeps-a-slim-xtask.md"
+    }
+  ]
+}

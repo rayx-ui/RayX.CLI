@@ -1,0 +1,489 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-1-0",
+  "scopeMarkdown": "Build **rayx 1.0.0**, the new RayX command-line tool for Native Shell (NSH) apps, in this repository, as the\naccepted design `docs/architecture/rayx-nsh-proposal.md` (revision 4, decisions D1 to D15) describes. That document is\nthe authority for intent; this epic turns it into criteria and work.\n\n## In scope\n\n- **The repository:** the Cargo package `rayx-cli` (library `rayx_cli`, binary `rayx`), version 1.0.0, its CI,\n  cargo-dist and release-plz configuration, repository guards and AgentX memory.\n- **The machine side, ported from `RayX.CLI.Old` @ `d006250`** (D13): the host layer, the setup engine with its\n  records, project discovery and pins, the base and optional sets adapted for NSH (§6, D3, D15), the WSL and Lima\n  guests with refresh, migration and removal, `doctor`, `self update` and `fmt`. The GPUI app pipeline (`src/app/`\n  except the prerequisite logic) and the GPU set are not ported.\n- **Managing nsh** (D1, D2, D10, D11, D7): the pin from `Cargo.lock` or `rayx.toml`, the store under\n  `$RAYX_HOME/nsh`, installing from a release archive or from source, `rayx nsh status|path|install|prune`, the\n  base-set `nsh` step and doctor's nsh lines.\n- **Running nsh** (D12): `rayx app`, the prerequisite map, `RAYX_NSH` and path checkouts, `rayx new` with nsh's own\n  templates (D5), `rayx serve`.\n- **Fork releases** (D6, D8, D9): the fork-only `fork/release` branch with `.github/workflows/fork-release.yml`, and\n  the fork docs on `private/fork-docs`.\n- **Proof:** real installs, an app made by `rayx new` on the web, macOS and the iOS simulator, and Gamify (read only).\n- **Owner-run release:** the fork's first release (`fork-0.2.0-4`), Linux and Windows verification, the old README's\n  links, the new GitHub repository and the 1.0.0 release.\n\n## Out of scope\n\n- Gamify's move to rayx (its `xtask`, Playwright support, README and quality stages, design §9): a follow-up epic in\n  Gamify once rayx 1.0.0 is released. This epic only proves rayx against Gamify without changing it.\n- App templates for `rayx new` beyond nsh's three (D5).\n- Intel Macs get no fork archive and install from source; Windows ARM64 archives come once NSH builds there (D8).\n- Threaded web (D3).\n\n## Assumptions and environment\n\n- The development machine is an Apple silicon Mac with Xcode, an iOS simulator runtime, Homebrew (with `llvm`), Rust\n  1.99.0, Node 20+ and pnpm, Lima, and `gh` authenticated as `dXnSix` with push rights to `dXnSix/nsh` and\n  `rayx-ui`.\n- The fork worktrees `../../dXn/nsh/nsh-wt/release` (branch `fork/release`, from `origin/main` at `327bb9e`) and\n  `../../dXn/nsh/nsh-wt/fork-docs` (branch `private/fork-docs`) exist; they were created when this epic was planned.\n- Real proofs need the network (GitHub, crates.io, npm for `nsh check`) and take minutes: the first NSH source\n  build is about four minutes.\n- Pushing, opening or merging pull requests, dispatching workflows, creating the GitHub repository, setting secrets\n  and releasing need the owner's go-ahead at that moment; the owner-run sprint holds all of them.",
+  "constraintsMarkdown": "- The design's decisions D1 to D15 hold. Where this epic adds detail (the default pin's crate list, the archive\n  platform names, the Windows ARM64 matrix entry), the design records it as a decision here.\n- `AGENTS.md` rules hold: one package with a thin binary; public dependencies only (`tests/dependency_sources.rs`);\n  rayx names NSH and nothing above it, and depends on no NSH crate (`tests/library_guard.rs`); no\n  `env!(\"CARGO_MANIFEST_DIR\")` outside tests; every external program through `host::Runner`; no password or token is\n  read, stored or forwarded; no self-elevation; licenses only with `--yes`; `--check` executes, installs, records\n  and downloads nothing.\n- rayx never runs the `nsh` on `PATH`; it runs the build of the pin, in the directory it read the pin in, without\n  `CARGO` in the environment.\n- Ported behaviour stays as in rayx 1.4.1 unless a criterion here changes it. Records keep their locations\n  (`~/.config/rayx/setup.json`, `guests.json`; `%LOCALAPPDATA%\\rayx` on Windows) and schema version 1.\n- Fork work follows the fork's rules: no AgentX, RayX or Gamify files in the fork, no push to `upstream`, no `v*`\n  tag. `fork/release` changes nothing but `.github/workflows/fork-release.yml`; upstream's workflows stay untouched.\n- Gamify and `RayX.CLI.Old` are not changed, except `RayX.CLI.Old`'s README install links in the owner-run sprint.\n- Diagnostics never contain tokens, environment values or secrets; raw output goes to ignored\n  `artifacts-temp/agentx/rayx-1-0/`.",
+  "requirements": [
+    {
+      "id": "REPO",
+      "title": "Repository foundation",
+      "descriptionMarkdown": "The package, its guards, CI, release configuration and AgentX memory.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "Cargo.toml"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "dist-workspace.toml"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "release-plz.toml"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": ".github/workflows/ci.yml"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "docs/releasing.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "REPO-1",
+          "descriptionMarkdown": "One Cargo package `rayx-cli` at the root: version `1.0.0`, edition 2024, `license = \"Apache-2.0\"`, `repository = \"https://github.com/rayx-ui/RayX.CLI\"`, `publish = false`, library `rayx_cli` (`src/lib.rs`) and a thin binary `rayx` (`src/main.rs`); `rust-toolchain.toml` pins `1.99.0` with `clippy` and `rustfmt`. `rayx --version` prints `rayx 1.0.0`. `rayx --help` lists exactly `setup`, `doctor`, `wsl`, `lima`, `self`, `fmt`, `app`, `nsh`, `new` and `serve`; an unknown command or flag exits 2 with clap's usage.\n\nVerified by the new groups `tests/package_layout.rs` and `tests/cli_surface.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "REPO-2",
+          "descriptionMarkdown": "Repository guards. `tests/dependency_sources.rs` (ported) accepts only crates.io and `https` git dependencies pinned to a `rev`, with no `path`, `branch`, `tag` or `[replace]`. `tests/library_guard.rs` (new, D14) fails when `Cargo.toml` or `Cargo.lock` names a RayX, gpux, GPUI or NSH crate (`rayx_app*`, `rayx_runtime`, `rayx`, `gpux*`, `gpui*`, `nsh-*`), when non-test `src/` names `rayx_app`, `gpux`, `GameX` or `Gamify`, or uses `env!(\"CARGO_MANIFEST_DIR\")`; its allowlist (such as nsh's `gpui` target name in the prerequisite map) fails when an entry no longer matches.\n\nVerified by both groups, each with a failing fixture per rule.",
+          "verification": "automated"
+        },
+        {
+          "id": "REPO-3",
+          "descriptionMarkdown": "CI: `.github/workflows/ci.yml` runs on pull requests and pushes to `main` in `rayx-ui/RayX.CLI` only: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings` and `cargo test` (ignored proofs excluded) on `ubuntu-24.04`, `macos-latest` and `windows-latest`. `release-plz.yml` (release pull request and tag on pushes to `main`, `RELEASE_PLZ_TOKEN`) and cargo-dist's `release.yml` (on `v*` tags) are present. No workflow has duplicate keys.\n\nVerified by `tests/release_automation.rs` (ported, adapted) and the workflow YAML check.",
+          "verification": "automated"
+        },
+        {
+          "id": "REPO-4",
+          "descriptionMarkdown": "Release configuration: `dist-workspace.toml` with cargo-dist's pinned version, the targets `aarch64-apple-darwin`, `x86_64-apple-darwin`, `aarch64-pc-windows-msvc`, `x86_64-pc-windows-msvc`, `aarch64-unknown-linux-musl`, `x86_64-unknown-linux-musl`, the shell and PowerShell installers, `install-path = [\"$RAYX_HOME/bin\", \"~/.rayx/bin\"]`, sha256 checksums and GitHub attestations; `release-plz.toml` in git-only mode with `v{{ version }}` tags, `release_commits = \"^(feat|fix|perf)\"`, `git_release_enable = false`, the 1.x policy comment and a changelog header naming `rayx`; `docs/releasing.md` covering the first release (1.0.0), the 1.x policy, the token, the by-hand fallback and checking a release.\n\nVerified by `tests/release_config.rs` and `tests/release_policy.rs` (ported, adapted).",
+          "verification": "automated"
+        },
+        {
+          "id": "REPO-5",
+          "descriptionMarkdown": "AgentX memory exists: `.agentx/memory/knowledge/INDEX.md` and `.agentx/memory/decisions/INDEX.md`, domains following the CLI's modules (`host`, `project`, `setup`, `nsh`, `app`, `distribution`, `repository`) with `INDEX.md`, `state.md`, `knowledge.md`, `rules.md` and `hypotheses.md` each, AgentX frontmatter on every file and `state.md` backlinks to the source. The decisions of `RayX.CLI.Old` that still hold (one `Runner`; pins from the project or the defaults table; one setup plan for setup, `--check` and doctor; scripts in WSL with `--exec`; Android Studio's own wizard on Windows; named Lima VMs never adopted; the guest layer with records, refresh and side-by-side replacement; release-plz with dist; cargo-dist with axoupdater; one package with public dependencies) are carried over, adapted, each noting where it came from and carrying `agentx.promoted_from: rayx-1-0`; the taxonomy decision is recorded. The AgentX memory audit reports no errors.\n\nVerified by the memory audit check.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "PORT",
+      "title": "The machine side, ported",
+      "descriptionMarkdown": "Rayx 1.4.1's machine side in the new package (D13), with its behaviour unchanged unless a criterion says otherwise.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/host/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/setup/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/project/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/doctor/mod.rs"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/update.rs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "PORT-1",
+          "descriptionMarkdown": "The host layer (`host::{mod, probe, runner, path_env}`: host facts, `Probe`, `Runner` with execute/print/record modes and privileges, user `PATH` and persistent variables) is ported unchanged in behaviour.\n\nVerified by the ported groups `command_runner`, `host_facts` and `path_env`.",
+          "verification": "automated"
+        },
+        {
+          "id": "PORT-2",
+          "descriptionMarkdown": "The setup engine is ported: `Set`, `Step`, `Probed`, `Install`, `Action`, `plan`/`check`/`execute`/`run_plan`, `--check` (prints, installs and records nothing, exit 1 when something is missing), `--yes`, the outdated-item prompt, and `setup.json` at its 1.x location in schema version 1 with atomic writes.\n\nVerified by the ported groups `setup_engine` and `setup_update_prompt`.",
+          "verification": "automated"
+        },
+        {
+          "id": "PORT-3",
+          "descriptionMarkdown": "Project discovery and pins: `Project::discover` (Cargo first, the manifest fallback) without the per-package dependency model of the old pipeline; the pins table and resolution of design §7 (`rust_toolchain`, `wasm_bindgen`, `node`, `jdk`, `android_platform` default `android-35`, `android_build_tools` default `35.0.1`, `android_ndk`, `android_system_image`, `xcode`, `ubuntu`; no `web_toolchain`, `playwright` or `android_ndk_api`), each with its source; `[workspace.metadata.rayx] tools-node`; `rayx fmt [--check]` ported.\n\nVerified by the ported groups `project_pins`, `pin_sources` and `fmt_command`.",
+          "verification": "automated"
+        },
+        {
+          "id": "PORT-4",
+          "descriptionMarkdown": "The guests are ported: the shared guest layer, `setup --wsl` and `rayx wsl status|compact|remove`, `setup --lima` with sizing, edits and named VMs, `rayx lima remove`, `guests.json`, `setup --update [--vm]` with the refresh, chosen releases, side-by-side Ubuntu migration and removal. Changes: `--wsl` runs no Windows-side GPU step; `wsl compact --clean` also removes `.nsh/`; recorded guest flags never contain `--gpu` (an old record's `--gpu` is dropped on the next write); guests install rayx from `rayx-ui/RayX.CLI` releases.\n\nVerified by the ported groups `guest_layer`, `guest_migration`, `guest_records`, `guest_refresh`, `guest_release`, `guest_remove`, `guest_repairs_flow`, `guest_repairs_safety`, `lima_named_vms`, `setup_lima`, `setup_lima_edit`, `setup_lima_sizing`, `setup_update`, `update_target_vm`, `wsl_disk`, `wsl_install` and `wsl_plan`.",
+          "verification": "automated"
+        },
+        {
+          "id": "PORT-5",
+          "descriptionMarkdown": "`rayx doctor [--json]` is ported: every applicable set's steps with status, found version and exact fix, the pins with their sources, guests, the interactive desktop and the WSL findings; it has no GPU section and exits 0 whenever the host could be inspected.\n\nVerified by the ported group `doctor`.",
+          "verification": "automated"
+        },
+        {
+          "id": "PORT-6",
+          "descriptionMarkdown": "`rayx self update [--check] [--release X.Y.Z] [--yes]` is ported: axoupdater for app `rayx-cli` from `rayx-ui/RayX.CLI`, the install-source classification, release existence probes, the downgrade confirmation and the refresh offer; `1.0.0` is the oldest release that can be named and every release offers the refresh.\n\nVerified by the ported groups `self_update`, `self_update_refresh`, `self_update_release`, `release_module` and `release_probe`.",
+          "verification": "automated"
+        },
+        {
+          "id": "PORT-7",
+          "descriptionMarkdown": "No GPU set and no GPUI pipeline (D15, D13): `Set` has `base`, `web`, `test`, `ios` and `android`; `rayx setup --gpu` is rejected as an unknown argument (exit 2); `--all` selects the applicable sets of that list; the source has no `setup::gpu` and no `app` pipeline modules.\n\nVerified by tests in `setup_engine`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "SETS",
+      "title": "Setup sets for NSH",
+      "descriptionMarkdown": "The sets install what NSH needs (design §6, D3, D15).",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/architecture/rayx-nsh-proposal.md"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": "website/docs/installation.md"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": ".github/workflows/release.yml"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "SETS-1",
+          "descriptionMarkdown": "Base set on macOS (Command Line Tools, Homebrew, rustup, the project toolchain, `~/.cargo/bin` on `PATH`) as in 1.x. On Linux, one apt batch of NSH's packages: `build-essential`, `pkg-config`, `git`, `curl`, `clang`, `llvm`, `libclang-dev`, `libgtk-4-dev`, `libwebkitgtk-6.0-dev` and GStreamer's base and good plugins, with none of gpux's X11, Wayland or Vulkan libraries; a distribution older than Ubuntu 24.04 or Debian 13 is refused with a message naming GTK 4.14 and WebKitGTK 6.0.\n\nVerified by `setup_macos` (ported) and `setup_linux` (rewritten).",
+          "verification": "automated"
+        },
+        {
+          "id": "SETS-2",
+          "descriptionMarkdown": "Base set on Windows: winget, Build Tools (with the ARM64 component on ARM64), the VC++ redistributable, LLVM and its `PATH`, rustup with the native default host, as in 1.x, without the `fxc.exe` step; a WebView2 Runtime probe, installed with `winget install Microsoft.EdgeWebView2Runtime` when missing.\n\nVerified by `setup_windows` (ported, adapted).",
+          "verification": "automated"
+        },
+        {
+          "id": "SETS-3",
+          "descriptionMarkdown": "`--web`: `wasm32-unknown-unknown` on the project toolchain; `wasm-bindgen-cli` at `Cargo.lock`'s `wasm-bindgen` version only when the lock has one; Homebrew's `llvm` on macOS. No nightly toolchain and no `rust-src` (D3).\n\nVerified by `setup_web` (rewritten).",
+          "verification": "automated"
+        },
+        {
+          "id": "SETS-4",
+          "descriptionMarkdown": "`--test` as in 1.x (Node at the pin, pnpm through corepack, xvfb and Playwright's libraries on Linux, the project's Playwright package from `tools-node` and its Chromium); `setup::test_tools` exposes the installed Playwright Chromium's executable path for `rayx app test --target web`.\n\nVerified by `setup_test_tools` and `setup_node_selection` (ported).",
+          "verification": "automated"
+        },
+        {
+          "id": "SETS-5",
+          "descriptionMarkdown": "`--ios`: Xcode (mas or xcodes), `xcode-select`, the license, first launch, the iOS simulator runtime, and the targets `aarch64-apple-ios`, `aarch64-apple-ios-sim` and `aarch64-apple-ios-macabi` on the project toolchain; no XcodeGen.\n\nVerified by `setup_ios` (ported, adapted).",
+          "verification": "automated"
+        },
+        {
+          "id": "SETS-6",
+          "descriptionMarkdown": "`--android`: the JDK at the pin, `JAVA_HOME`, Android Studio (optional for builds), the SDK command-line tools, `platform-tools`, `platforms;android-35`, `build-tools;35.0.1`, the NDK at the pin, the emulator and its system image, a default AVD, acceleration, and the targets `aarch64-linux-android`, `armv7-linux-androideabi` and `x86_64-linux-android`; no `cargo-ndk`.\n\nVerified by `setup_android` and `setup_android_pins` (ported, adapted).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "FORK",
+      "title": "Fork releases",
+      "descriptionMarkdown": "Every `fork-*` tag of `dXnSix/nsh` gets a release with NSH's compiled distribution per platform (D6, D8, D9).",
+      "sourceRefs": [
+        {
+          "repositoryId": "nsh",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": "crates/xtask/src/dist.rs"
+        },
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "README.md"
+        },
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "scripts/sync-main.sh"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "FORK-1",
+          "descriptionMarkdown": "On the fork branch `fork/release`, `.github/workflows/fork-release.yml` is the only change from `origin/main`. It runs on pushed `fork-*` tags and by hand with a `tag` input; checks that the tag is `fork-<workspace version>-<n>` and that its commit is on `origin/main`; builds the distribution with upstream's `dist` job steps (Java 17, Android 35, stable Rust with wasm32, LLVM, GTK 4 on Linux, `cargo xtask dist -v`, the smoke test) for `macos-arm64` (`macos-15`), `linux-x86_64` (`ubuntu-24.04`), `linux-arm64` (`ubuntu-24.04-arm`) and `windows-x86_64` (`windows-latest`), plus `windows-arm64` (`windows-11-arm`), which may fail without blocking the release; packs `nsh-<platform>.tar.gz` (`.zip` on Windows) holding `nsh/`, each with a `.sha256`, and attests them; then publishes (never a draft) a release named after the tag with generated notes and those assets, once the four required platforms built. It attaches no installers and touches no Homebrew, Scoop or crates.io.\n\nVerified statically (no duplicate keys; triggers, matrix, the non-blocking entry, a non-draft release and no installers asserted from the parsed YAML); its run is proven by OWN-2.",
+          "verification": "automated"
+        },
+        {
+          "id": "FORK-2",
+          "descriptionMarkdown": "The fork docs on `private/fork-docs`: the README describes `fork/*` branches (fork-only changes that never go upstream and get no draft in `prs/`), says a `fork-*` tag now produces a release through `fork-release.yml` (about an hour; four required platforms, Windows ARM64 when it builds) and replaces \"reinstall the CLI with `cargo install`\" with moving the pins and running `rayx setup`. `scripts/sync-main.sh upstream` warns, naming `.github/workflows/release.yml` and `fork-release.yml`, when the merged upstream range changes `.github/workflows/release.yml`, and prints nothing about it otherwise.\n\nVerified by the new TAP script `scripts/tests/sync-main-release-warning.sh` (throwaway repositories, both cases).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "PIN",
+      "title": "The nsh pin",
+      "descriptionMarkdown": "Which nsh a project uses (design §4.1, D10, D7).",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/architecture/rayx-nsh-proposal.md"
+        },
+        {
+          "repositoryId": "gamify",
+          "path": "src/frontend/Cargo.lock"
+        },
+        {
+          "repositoryId": "gamify",
+          "path": "src/frontend/.cargo/config.toml"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "PIN-1",
+          "descriptionMarkdown": "The pin is read from the workspace's `Cargo.lock`: every `nsh-*` package must have one source; `git+…?tag=…#<commit>` gives a git pin with id = the commit's first 12 hex digits; `?branch=`/`?rev=` and other git URLs give a git pin with no release; a crates.io source gives an upstream release pin `v<version>`; no source gives a path pin to the NSH checkout containing the crate. The workspace is found from the current directory (or `-C`); outside any workspace, from the crates `nsh.json` lists under `\"rust\"`. A missing lock is written by `cargo metadata` first. Two sources stop with both named.\n\nVerified by the new group `tests/nsh_pin.rs`, with fixture locks including Gamify's shape.",
+          "verification": "automated"
+        },
+        {
+          "id": "PIN-2",
+          "descriptionMarkdown": "With no NSH crates, the pin is the `[nsh]` table of `rayx.toml` beside `nsh.json` (`git`, `tag`, `commit`, or `version` for an upstream release); a tag whose commit differs from the recorded one is an error. NSH crates and an `[nsh]` table together stop with both named. With neither, rayx uses the built-in default and, inside an app, warns on every command, showing the three lines that pin it.\n\nVerified by `tests/nsh_pin.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "PIN-3",
+          "descriptionMarkdown": "The defaults table holds the default pin (`https://github.com/dXnSix/nsh`, `fork-0.2.0-4`, `327bb9ea65d08ffac4af498cc7fbbfa18a1b3623`) and its NSH crate list (the `crates/nsh-*` of that commit). Outside any app the default is used and reported as `default`.\n\nVerified by `tests/nsh_pin.rs`; the crate list is compared with the fork at that commit by `proof_nsh_install`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "STORE",
+      "title": "The nsh store",
+      "descriptionMarkdown": "Where installed nsh builds live (design §4.2).",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/architecture/rayx-nsh-proposal.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "STORE-1",
+          "descriptionMarkdown": "Entries live in `$RAYX_HOME/nsh/<id>/`, else `~/.rayx/nsh/<id>/`. `receipt.json` (`version` 1, `id`, `kind` `distribution` or `source`, `url`, `ref`, `commit`, `nsh`, `cli`, `installed`) is written last; an entry without it is unfinished, and the next install resumes it (a source entry reuses its checkout and target directory; a distribution is downloaded again). An install holds `<id>.lock`; a second rayx waits, says so, and then finds the entry installed. Nothing is written outside the store and the system temporary directory.\n\nVerified by the new group `tests/nsh_store.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "STORE-2",
+          "descriptionMarkdown": "`rayx nsh prune [--yes]` lists the entries that no recorded project (`setup.json` roots, each project's pin) and not the default pins, with their sizes, and removes them after a `[y/N]`; `--yes` removes without asking; without a terminal and without `--yes` nothing is removed and it exits 1. `rayx setup --update` offers the same after its runs.\n\nVerified by `tests/nsh_store.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "INST",
+      "title": "Installing nsh",
+      "descriptionMarkdown": "From a release archive first, from source as the fallback (design §4.3, D11).",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/architecture/rayx-nsh-proposal.md"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": "crates/nsh-cli/src/runtime.rs"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": "crates/nsh-cli/build.rs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "INST-1",
+          "descriptionMarkdown": "From a release: the host's platform name (`macos-arm64`, `linux-x86_64`, `linux-arm64`, `windows-x86_64`, `windows-arm64`; none on other hosts), `https://github.com/<owner>/<repo>/releases/download/<tag>/nsh-<platform>.tar.gz` (`.zip` on Windows) and its `.sha256`, the digest checked (a mismatch installs nothing and names both digests), `nsh/` unpacked into `<id>/nsh/`, the CLI checked, a `distribution` receipt. Fork pins use the pin's repository and tag; crates.io pins use `longbridge/nsh` at `v<version>`. A missing archive falls back to source with a line naming the archive it missed.\n\nVerified by the new group `tests/nsh_install.rs` (recorded `Runner` and local archive fixtures).",
+          "verification": "automated"
+        },
+        {
+          "id": "INST-2",
+          "descriptionMarkdown": "From source: `git init`, `git fetch --depth 1 <url> <commit>` (falling back to fetching the ref when the host refuses a commit), a detached checkout in `<id>/source/`, `core.longPaths true` on Windows, `rustup toolchain install` in the checkout, then `cargo build --release --locked -p nsh-cli` there without `CARGO`; a `source` receipt. The CLI check (both paths): `nsh --version` must name the lock's NSH version and the pin's commit, else nothing is recorded and the error names both.\n\nVerified by `tests/nsh_install.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "INST-3",
+          "descriptionMarkdown": "Real installs on this Mac into a temporary `RAYX_HOME`: upstream `v0.2.0` from its release (the `macos-arm64` archive) prints `nsh 0.2.0`; `fork-0.2.0-4` from source prints `nsh 0.2.0 (327bb9e)`; installing either again changes nothing; the default pin's crate list equals the `crates/nsh-*` of the fork at `327bb9e`.\n\nVerified by the ignored group `tests/proof_nsh_install.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "NSHCMD",
+      "title": "rayx nsh, the setup step and doctor",
+      "descriptionMarkdown": "Managing the store from the command line and through setup (design §4.5).",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/architecture/rayx-nsh-proposal.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "NSHCMD-1",
+          "descriptionMarkdown": "`rayx nsh status [--json]` shows the pin (ref and short commit, or version), its source (`project`, `rayx.toml` or `default`), the id, the kind, whether it is installed, its size and the CLI's path. `rayx nsh path` prints the CLI's path, installing it first; with `--no-install` a missing entry exits 1 with the `rayx setup` command. `rayx nsh install` installs the pin.\n\nVerified by the new group `tests/nsh_command.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "NSHCMD-2",
+          "descriptionMarkdown": "The base set ends with an `nsh` step after the project's toolchain: its probe is the receipt plus `nsh --version`, its install §4.3; it asks nothing; `--check` prints its commands and installs nothing. `rayx setup --update` installs each recorded project's pin. `rayx doctor` shows one line per pin (`nsh  fork-0.2.0-4 (327bb9e)  project  installed  <size>`), and `--json` has the same fields.\n\nVerified by the new group `tests/setup_nsh.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "RUN",
+      "title": "Running nsh",
+      "descriptionMarkdown": "`rayx app` and how it reaches nsh (design §4.4, §4.6, §6.1, D12).",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/architecture/rayx-nsh-proposal.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "src/app/prereqs.rs"
+        },
+        {
+          "repositoryId": "gamify",
+          "path": "src/frontend/xtask/src/web.rs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "RUN-1",
+          "descriptionMarkdown": "`rayx app [-C <dir>] [--no-install] <command> [arguments]` runs the pin's CLI with every argument after the command unchanged (including `--` and what follows), in the current directory or `-C`, which is also where the pin was read. The environment loses `CARGO`; `CC_wasm32_unknown_unknown` and `AR_wasm32_unknown_unknown` are set to the web set's LLVM only when unset; everything else passes through. On Unix rayx replaces itself with nsh; on Windows it waits and exits with nsh's code.\n\nVerified by the new group `tests/nsh_run.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "RUN-2",
+          "descriptionMarkdown": "The prerequisite step maps the command and `--target` to sets as design §6.1 says (web for `--target web`; web and test for `test --target web`; ios for `ios`, `ios-simulator`, `catalyst`; android for `android`; none for desktop targets and for `build`, `check`, `init`, `keygen`, `certify`, `publish`, `verify`, `revoke`, `symbolicate`). Missing steps that need no administrator rights or license answer, the pinned nsh among them, are installed with a line saying so; others are asked about in a terminal or refused with the exact `rayx setup` command; `--no-install` reports instead. `test --target web` without `--browser`, on a host with no Chrome, Edge or Chromium, gets `--browser <the test set's Chromium>`.\n\nVerified by the new group `tests/app_prereqs.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "RUN-3",
+          "descriptionMarkdown": "`RAYX_NSH=<path>` runs that binary instead of resolving and installing a pin, with `rayx: RAYX_NSH=<path> replaces the project's nsh <id>` on stderr for every command. A path pin builds `cargo build --release -p nsh-cli` in that checkout and runs its `target/release/nsh`, writing nothing to the store.\n\nVerified by the new group `tests/nsh_fork_dev.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "NEW",
+      "title": "rayx new",
+      "descriptionMarkdown": "A new app pinned from its first commit (design §4.7, D5, D7).",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/architecture/rayx-nsh-proposal.md"
+        },
+        {
+          "repositoryId": "nsh",
+          "path": "crates/nsh-cli/src/init.rs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "NEW-1",
+          "descriptionMarkdown": "`rayx new <dir> [--name <name>] [--template mixed|ts|rust]` (default `mixed`) installs the default pin if needed and runs its `nsh init <dir>` with the name and template. For `mixed` and `rust` it writes `.cargo/config.toml` with a `[patch.crates-io]` entry for every crate of the default pin's crate list (git URL and tag) and runs `cargo generate-lockfile`, after which the app's pin is the default; for `ts` it writes `rayx.toml` with the default's `[nsh]` table. It prints the next steps (`rayx setup --web`, `--ios` on a Mac, `rayx app run`). A directory nsh refuses (existing files) is left unchanged; an unknown template is rejected listing the three.\n\nVerified by the new group `tests/new_app.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "SERVE",
+      "title": "rayx serve",
+      "descriptionMarkdown": "A static host for what `nsh package --target web` writes (design §5).",
+      "sourceRefs": [
+        {
+          "repositoryId": "gamify",
+          "path": "src/frontend/xtask/src/web.rs"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "SERVE-1",
+          "descriptionMarkdown": "`rayx serve [--dir <site>] [--port <port>]` listens on `127.0.0.1` at `--port`, else `PORT`, else 8080, serving `--dir` (default the current directory): files with their MIME types (`.wasm` as `application/wasm`, `.js` as `text/javascript`, HTML, CSS, JSON, images, fonts), `index.html` for a directory, `GET /health` answering 200, and 404 for anything outside the site (`..`, encoded or not); responses carry `Cache-Control: no-store`.\n\nVerified by the new group `tests/serve.rs` against a running server.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "PROOF",
+      "title": "Real proof",
+      "descriptionMarkdown": "rayx with real NSH, real apps and Gamify, on this Mac.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/architecture/rayx-nsh-proposal.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "PROOF-1",
+          "descriptionMarkdown": "With a temporary `RAYX_HOME`, an app made by `rayx new` (`mixed`) builds (`rayx app build`), runs on the web (`rayx app run --target web --strict-port --port <p>` answers `/nsh.version`), passes `rayx app test --target web`, and its `rayx app package --target web --out <dir>` output served by `rayx serve` answers `/health` and `index.html`.\n\nVerified by the ignored group `tests/proof_app_web.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "PROOF-2",
+          "descriptionMarkdown": "The same app passes `rayx app test --target macos` and `rayx app test --target ios` on the iOS simulator.\n\nVerified by the ignored group `tests/proof_app_apple.rs`.",
+          "verification": "automated"
+        },
+        {
+          "id": "PROOF-3",
+          "descriptionMarkdown": "In Gamify's `src/frontend` (`RAYX_PROOF_GAMIFY`, default `../../Six/Six.Gamify/src/frontend`): `rayx nsh status` shows `fork-0.2.0-4 (327bb9e)` from `project`; `rayx app check .` passes; `rayx app package . --target web --out <tmp>` succeeds and `rayx serve --dir <tmp>/Gamify` answers `/health` and serves the page and its `.wasm` as `application/wasm`; Gamify's tracked files are unchanged afterwards. It needs Gamify's `config/runtime.json` (from its `cargo xtask config`).\n\nVerified by the ignored group `tests/proof_gamify.rs`.",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "DOCS",
+      "title": "Documentation",
+      "descriptionMarkdown": "The README and the project contract.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "README.md"
+        },
+        {
+          "repositoryId": "rayx-cli-old",
+          "path": "docs/app-project.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "DOCS-1",
+          "descriptionMarkdown": "`README.md`: installing; that this is a new CLI, how it relates to the old one (GPUI apps stay on `RayX.CLI.Old`; the installer replaces the old binary; records and guests carry over); every command with its options; how rayx chooses and installs nsh (pins, `rayx.toml`, the store, prune, `RAYX_NSH`, path checkouts); the sets per target. `docs/projects.md`: the project contract (pins and their sources, `[workspace.metadata.rayx]` keys, `rayx.toml`). `docs/manual-verification.md` with sections for Linux, Windows and WSL, and releases.\n\nVerified by `readme_versions` and `readme_guests` (ported, adapted) and the new `readme_nsh` (every documented command and flag exists in the CLI; the documented pins table equals the defaults table).",
+          "verification": "automated"
+        }
+      ]
+    },
+    {
+      "id": "OWN",
+      "title": "Owner-run release",
+      "descriptionMarkdown": "Steps that need the owner's go-ahead, accounts or hardware.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/architecture/rayx-nsh-proposal.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "OWN-1",
+          "descriptionMarkdown": "With the owner's go-ahead: `fork/release` is pushed, its pull request into the fork's `main` passes the fork's CI and is merged with a merge commit; `private/fork-docs` is pushed.",
+          "verification": "manual"
+        },
+        {
+          "id": "OWN-2",
+          "descriptionMarkdown": "With the owner's go-ahead, `fork-release.yml` run by hand for `fork-0.2.0-4` publishes the release `fork-0.2.0-4` with the four required archives and their digests (and `windows-arm64` if it built); the `macos-arm64` archive prints `nsh 0.2.0 (327bb9e)` on this Mac, and `rayx nsh install` in Gamify's `src/frontend` creates a `distribution` entry.",
+          "verification": "manual"
+        },
+        {
+          "id": "OWN-3",
+          "descriptionMarkdown": "In a Lima guest on this Mac (`rayx setup --lima --web`) and on the owner's Windows PC with WSL: `rayx setup --web --check`, `rayx doctor` and the web proof pass; results logged in `docs/manual-verification.md`.",
+          "verification": "manual"
+        },
+        {
+          "id": "OWN-4",
+          "descriptionMarkdown": "With the owner's go-ahead: `RayX.CLI.Old`'s README install links point at `rayx-ui/RayX.CLI.Old` and are pushed before `rayx-ui/RayX.CLI` is created; the repository is created public and pushed, `RELEASE_PLZ_TOKEN` is set, release-plz's 1.0.0 pull request is merged and cargo-dist publishes six targets; the installer over a rayx 1.4.1 install keeps `setup.json` and `guests.json`, and `rayx setup --update` refreshes.",
+          "verification": "manual"
+        }
+      ]
+    }
+  ]
+}

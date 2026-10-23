@@ -1,0 +1,1986 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-1-0",
+  "revision": 1,
+  "title": "rayx 1.0.0: the new RayX CLI for NSH apps, with the machine side ported, nsh managed per project, and fork releases",
+  "validationMode": "sprint",
+  "repositories": [
+    {
+      "id": "rayx-cli",
+      "path": ".",
+      "role": "execution"
+    },
+    {
+      "id": "nsh-release",
+      "path": "../../dXn/nsh/nsh-wt/release",
+      "role": "execution"
+    },
+    {
+      "id": "nsh-fork-docs",
+      "path": "../../dXn/nsh/nsh-wt/fork-docs",
+      "role": "execution"
+    },
+    {
+      "id": "rayx-cli-old",
+      "path": "../RayX.CLI.Old",
+      "role": "execution"
+    },
+    {
+      "id": "nsh",
+      "path": "../../dXn/nsh/nsh",
+      "role": "reference"
+    },
+    {
+      "id": "gamify",
+      "path": "../../Six/Six.Gamify",
+      "role": "reference"
+    }
+  ],
+  "boundaries": {
+    "repositoryIds": [
+      "rayx-cli",
+      "nsh-release",
+      "nsh-fork-docs",
+      "rayx-cli-old"
+    ],
+    "forbiddenPaths": [
+      "docs/architecture/rayx-nsh-proposal.md",
+      "nsh-release:.agentx/**",
+      "nsh-release:.github/workflows/release.yml",
+      "nsh-release:.github/workflows/release-crate.yml",
+      "nsh-release:.github/workflows/packages.yml",
+      "nsh-fork-docs:.agentx/**",
+      "rayx-cli-old:src/**",
+      "rayx-cli-old:tests/**",
+      "rayx-cli-old:.agentx/**"
+    ]
+  },
+  "recordPaths": [
+    "docs/manual-verification.md",
+    "CHANGELOG.md"
+  ],
+  "checks": [
+    {
+      "id": "check-package",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REPO-1",
+        "REPO-2"
+      ],
+      "descriptionMarkdown": "Groups `package_layout`, `cli_surface` (new) and `dependency_sources` (ported), `library_guard` (new, D14).",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "package_layout",
+        "--test",
+        "cli_surface",
+        "--test",
+        "dependency_sources",
+        "--test",
+        "library_guard"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 25
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/package_layout.rs",
+        "tests/cli_surface.rs",
+        "tests/dependency_sources.rs",
+        "tests/library_guard.rs",
+        "rust-toolchain.toml",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-release-config",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "REPO-3",
+        "REPO-4"
+      ],
+      "descriptionMarkdown": "Ported, adapted groups for `dist-workspace.toml`, `release-plz.toml`, the workflows and `docs/releasing.md`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "release_config",
+        "--test",
+        "release_policy",
+        "--test",
+        "release_automation"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 15
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/release_config.rs",
+        "tests/release_policy.rs",
+        "tests/release_automation.rs",
+        "dist-workspace.toml",
+        "release-plz.toml",
+        ".github/workflows/**",
+        "docs/releasing.md"
+      ]
+    },
+    {
+      "id": "check-workflow-yaml",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "REPO-3"
+      ],
+      "descriptionMarkdown": "No duplicate keys or YAML errors in the workflows (AgentX's checker).",
+      "argv": [
+        "ruby",
+        "/Users/dinko/.claude/skills/agentx/scripts/check_workflow_yaml.rb",
+        ".github/workflows/ci.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/release-plz.yml"
+      ],
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        ".github/workflows/**"
+      ]
+    },
+    {
+      "id": "check-host",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PORT-1"
+      ],
+      "descriptionMarkdown": "Ported host groups.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "command_runner",
+        "--test",
+        "host_facts",
+        "--test",
+        "path_env"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 40
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/command_runner.rs",
+        "tests/host_facts.rs",
+        "tests/path_env.rs"
+      ]
+    },
+    {
+      "id": "check-setup-engine",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PORT-2",
+        "PORT-7"
+      ],
+      "descriptionMarkdown": "Ported engine groups, with the no-GPU-set tests added to `setup_engine`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_engine",
+        "--test",
+        "setup_update_prompt"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 15
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_engine.rs",
+        "tests/setup_update_prompt.rs"
+      ]
+    },
+    {
+      "id": "check-project-pins",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PORT-3"
+      ],
+      "descriptionMarkdown": "Ported discovery, pins (design §7 table) and fmt groups.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "project_pins",
+        "--test",
+        "pin_sources",
+        "--test",
+        "fmt_command"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 18
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/project_pins.rs",
+        "tests/pin_sources.rs",
+        "tests/fmt_command.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-base-sets",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETS-1",
+        "SETS-2"
+      ],
+      "descriptionMarkdown": "`setup_macos` (ported), `setup_linux` (rewritten for NSH), `setup_windows` (adapted: no fxc, WebView2).",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_macos",
+        "--test",
+        "setup_linux",
+        "--test",
+        "setup_windows"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 25
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_macos.rs",
+        "tests/setup_linux.rs",
+        "tests/setup_windows.rs"
+      ]
+    },
+    {
+      "id": "check-web-set",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETS-3"
+      ],
+      "descriptionMarkdown": "`setup_web` rewritten: no nightly, wasm-bindgen only with a lock entry.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_web"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_web.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-test-set",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETS-4"
+      ],
+      "descriptionMarkdown": "Ported test-set groups plus the Chromium path.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_test_tools",
+        "--test",
+        "setup_node_selection"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 16
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_test_tools.rs",
+        "tests/setup_node_selection.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-ios-set",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETS-5"
+      ],
+      "descriptionMarkdown": "`setup_ios` adapted: no XcodeGen, the Catalyst target.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_ios"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 9
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_ios.rs"
+      ]
+    },
+    {
+      "id": "check-android-set",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SETS-6"
+      ],
+      "descriptionMarkdown": "Android groups adapted for NSH (35, build-tools, targets, no cargo-ndk).",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_android",
+        "--test",
+        "setup_android_pins"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 16
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_android.rs",
+        "tests/setup_android_pins.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-guests",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PORT-4"
+      ],
+      "descriptionMarkdown": "The ported guest groups, with the GPU step gone and `.nsh/` in `compact --clean`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "guest_layer",
+        "--test",
+        "guest_migration",
+        "--test",
+        "guest_records",
+        "--test",
+        "guest_refresh",
+        "--test",
+        "guest_release",
+        "--test",
+        "guest_remove",
+        "--test",
+        "guest_repairs_flow",
+        "--test",
+        "guest_repairs_safety",
+        "--test",
+        "lima_named_vms",
+        "--test",
+        "setup_lima",
+        "--test",
+        "setup_lima_edit",
+        "--test",
+        "setup_lima_sizing",
+        "--test",
+        "setup_update",
+        "--test",
+        "update_target_vm",
+        "--test",
+        "wsl_disk",
+        "--test",
+        "wsl_install",
+        "--test",
+        "wsl_plan"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 220
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/guest_layer.rs",
+        "tests/guest_migration.rs",
+        "tests/guest_records.rs",
+        "tests/guest_refresh.rs",
+        "tests/guest_release.rs",
+        "tests/guest_remove.rs",
+        "tests/guest_repairs_flow.rs",
+        "tests/guest_repairs_safety.rs",
+        "tests/lima_named_vms.rs",
+        "tests/setup_lima.rs",
+        "tests/setup_lima_edit.rs",
+        "tests/setup_lima_sizing.rs",
+        "tests/setup_update.rs",
+        "tests/update_target_vm.rs",
+        "tests/wsl_disk.rs",
+        "tests/wsl_install.rs",
+        "tests/wsl_plan.rs"
+      ]
+    },
+    {
+      "id": "check-doctor",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PORT-5"
+      ],
+      "descriptionMarkdown": "`doctor` ported, without the GPU section.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "doctor"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/doctor.rs"
+      ]
+    },
+    {
+      "id": "check-self-update",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PORT-6"
+      ],
+      "descriptionMarkdown": "Ported self-update and release groups for the new repository and the 1.0.0 floor.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "self_update",
+        "--test",
+        "self_update_refresh",
+        "--test",
+        "self_update_release",
+        "--test",
+        "release_module",
+        "--test",
+        "release_probe"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 40
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/self_update.rs",
+        "tests/self_update_refresh.rs",
+        "tests/self_update_release.rs",
+        "tests/release_module.rs",
+        "tests/release_probe.rs"
+      ]
+    },
+    {
+      "id": "check-memory",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "REPO-5"
+      ],
+      "descriptionMarkdown": "AgentX's memory audit over `.agentx/memory`.",
+      "argv": [
+        "python3",
+        "/Users/dinko/.claude/skills/agentx/scripts/audit_agentx_memory.py"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutPattern": "Summary: 0 error"
+      }
+    },
+    {
+      "id": "check-fork-workflow",
+      "repositoryId": "nsh-release",
+      "kind": "static",
+      "criterionIds": [
+        "FORK-1"
+      ],
+      "descriptionMarkdown": "`fork-release.yml` parses without duplicate keys, and its parsed triggers, matrix, non-blocking Windows ARM64 entry, published release and absence of installers match FORK-1.",
+      "argv": [
+        "ruby",
+        "-ryaml",
+        "-e",
+        "system('ruby', '/Users/dinko/.claude/skills/agentx/scripts/check_workflow_yaml.rb', '.github/workflows/fork-release.yml') or abort('yaml'); w = YAML.load_file('.github/workflows/fork-release.yml'); on = w[true] || w['on']; abort 'tags' unless on['push']['tags'] == ['fork-*']; abort 'dispatch' unless on['workflow_dispatch']['inputs'].key?('tag'); jobs = w['jobs']; dist = jobs.values.find { |j| j.dig('strategy', 'matrix', 'include') }; names = dist['strategy']['matrix']['include'].map { |e| e['name'] }; %w[macos-arm64 linux-x86_64 linux-arm64 windows-x86_64 windows-arm64].each { |n| abort n unless names.include?(n) }; s = File.read('.github/workflows/fork-release.yml'); abort 'draft' if s =~ /draft:\\s*true/; abort 'installers' if s =~ /install\\.sh|install\\.ps1|envsubst|homebrew|scoop|cargo publish/i; abort 'continue-on-error' unless s.include?('continue-on-error'); puts 'fork-release.yml ok'"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutPattern": "fork-release.yml ok"
+      },
+      "inputs": [
+        ".github/workflows/fork-release.yml"
+      ]
+    },
+    {
+      "id": "check-fork-docs",
+      "repositoryId": "nsh-fork-docs",
+      "kind": "test",
+      "criterionIds": [
+        "FORK-2"
+      ],
+      "descriptionMarkdown": "New TAP script for the release-workflow warning of `sync-main.sh upstream` (a range that changes `release.yml` and one that does not).",
+      "argv": [
+        "bash",
+        "scripts/tests/sync-main-release-warning.sh"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 2
+      },
+      "inputs": [
+        "scripts/**",
+        "README.md"
+      ]
+    },
+    {
+      "id": "check-nsh-pin",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PIN-1",
+        "PIN-2",
+        "PIN-3"
+      ],
+      "descriptionMarkdown": "New group: lock sources, discovery, `rayx.toml`, both, neither, the default.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "nsh_pin"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 16
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/nsh_pin.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-nsh-store",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "STORE-1",
+        "STORE-2"
+      ],
+      "descriptionMarkdown": "New group: layout, receipts, unfinished entries, the lock, prune.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "nsh_store"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 10
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/nsh_store.rs"
+      ]
+    },
+    {
+      "id": "check-nsh-install",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "INST-1",
+        "INST-2"
+      ],
+      "descriptionMarkdown": "New group: archive names and URLs, digests, unpacking, fallback, the source commands, the CLI check.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "nsh_install"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 12
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/nsh_install.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-nsh-command",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "NSHCMD-1"
+      ],
+      "descriptionMarkdown": "New group for `rayx nsh status|path|install`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "nsh_command"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/nsh_command.rs"
+      ]
+    },
+    {
+      "id": "check-setup-nsh",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "NSHCMD-2"
+      ],
+      "descriptionMarkdown": "New group: the base-set step, `--check`, `--update`, doctor's lines and JSON.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "setup_nsh"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/setup_nsh.rs"
+      ]
+    },
+    {
+      "id": "check-proof-nsh-install",
+      "repositoryId": "rayx-cli",
+      "kind": "runtime",
+      "criterionIds": [
+        "INST-3"
+      ],
+      "descriptionMarkdown": "Ignored group: real installs of upstream `v0.2.0` (release) and `fork-0.2.0-4` (source) into a temporary `RAYX_HOME`, and the crate list against the fork.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "proof_nsh_install",
+        "--",
+        "--ignored",
+        "--test-threads=1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 3
+      },
+      "timeoutSeconds": 3600,
+      "reuse": false,
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/proof_nsh_install.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-nsh-run",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "RUN-1"
+      ],
+      "descriptionMarkdown": "New group: arguments, directory, environment, exec and exit codes.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "nsh_run"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 10
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/nsh_run.rs"
+      ]
+    },
+    {
+      "id": "check-app-prereqs",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "RUN-2"
+      ],
+      "descriptionMarkdown": "New group: the §6.1 map, silent installs, refusals, `--no-install`, `--browser`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_prereqs"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 12
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/app_prereqs.rs"
+      ]
+    },
+    {
+      "id": "check-nsh-fork-dev",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "RUN-3"
+      ],
+      "descriptionMarkdown": "New group: `RAYX_NSH` and path pins.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "nsh_fork_dev"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/nsh_fork_dev.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-new-app",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "NEW-1"
+      ],
+      "descriptionMarkdown": "New group: each template, the patches, the lock, `rayx.toml`, refusals.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "new_app"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/new_app.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-serve",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "SERVE-1"
+      ],
+      "descriptionMarkdown": "New group against a running server on a free port.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "serve"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/serve.rs"
+      ]
+    },
+    {
+      "id": "check-proof-app-web",
+      "repositoryId": "rayx-cli",
+      "kind": "runtime",
+      "criterionIds": [
+        "PROOF-1"
+      ],
+      "descriptionMarkdown": "Ignored group: a `rayx new` app built, run, tested and packaged on the web.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "proof_app_web",
+        "--",
+        "--ignored",
+        "--test-threads=1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 1
+      },
+      "timeoutSeconds": 5400,
+      "reuse": false,
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/proof_app_web.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-proof-app-apple",
+      "repositoryId": "rayx-cli",
+      "kind": "runtime",
+      "criterionIds": [
+        "PROOF-2"
+      ],
+      "descriptionMarkdown": "Ignored group: the same app's tests on macOS and the iOS simulator.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "proof_app_apple",
+        "--",
+        "--ignored",
+        "--test-threads=1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 2
+      },
+      "timeoutSeconds": 5400,
+      "reuse": false,
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/proof_app_apple.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-proof-gamify",
+      "repositoryId": "rayx-cli",
+      "kind": "runtime",
+      "criterionIds": [
+        "PROOF-3"
+      ],
+      "descriptionMarkdown": "Ignored group: rayx in Gamify's `src/frontend`, read only.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "proof_gamify",
+        "--",
+        "--ignored",
+        "--test-threads=1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 1
+      },
+      "timeoutSeconds": 5400,
+      "reuse": false,
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/proof_gamify.rs",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-docs",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "DOCS-1"
+      ],
+      "descriptionMarkdown": "Ported README groups and the new `readme_nsh`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "readme_versions",
+        "--test",
+        "readme_guests",
+        "--test",
+        "readme_nsh"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 14
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/common/**",
+        "tests/readme_versions.rs",
+        "tests/readme_guests.rs",
+        "tests/readme_nsh.rs",
+        "README.md",
+        "docs/projects.md",
+        "docs/releasing.md"
+      ]
+    },
+    {
+      "id": "final-fmt",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "REPO-1"
+      ],
+      "descriptionMarkdown": "`cargo fmt --check` for the package.",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "final-clippy",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "REPO-1",
+        "REPO-2"
+      ],
+      "descriptionMarkdown": "`cargo clippy --all-targets -- -D warnings`, as CI runs it.",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "final-build",
+      "repositoryId": "rayx-cli",
+      "kind": "build",
+      "criterionIds": [
+        "REPO-1"
+      ],
+      "descriptionMarkdown": "`cargo build --release --locked`: the binary cargo-dist will package builds from the committed lock.",
+      "argv": [
+        "cargo",
+        "build",
+        "--release",
+        "--locked"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    }
+  ],
+  "finalCheckIds": [
+    "final-fmt",
+    "final-clippy",
+    "final-build"
+  ],
+  "sprints": [
+    {
+      "id": "s1-foundation",
+      "title": "Repository foundation",
+      "dependsOn": [],
+      "checkIds": [
+        "check-package",
+        "check-release-config",
+        "check-workflow-yaml"
+      ],
+      "tasks": [
+        {
+          "id": "t01-package",
+          "title": "The package, the CLI surface and the guards",
+          "descriptionMarkdown": "Create `Cargo.toml` (REPO-1), `rust-toolchain.toml`, `src/lib.rs` with `run()`, `src/main.rs`, and `src/cli.rs` with the ten top-level commands (later sprints add their options; until then a command prints that it is not available yet and exits 1). Port `tests/package_layout.rs` and `tests/dependency_sources.rs` from the old CLI, write `tests/cli_surface.rs` for the top level and `tests/library_guard.rs` for D14 with failing fixtures, and `tests/common/mod.rs` (the old `Workspace` helper).",
+          "criterionIds": [
+            "REPO-1",
+            "REPO-2"
+          ],
+          "designIds": [
+            "d-package"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-package"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "Cargo.toml"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/cli.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "tests/common/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "tests/library_agnostic.rs"
+            }
+          ]
+        },
+        {
+          "id": "t02-release-config",
+          "title": "CI and release configuration",
+          "descriptionMarkdown": "Port and adapt `.github/workflows/ci.yml`, `release-plz.yml` and cargo-dist's `release.yml` (generated by the same cargo-dist version, repository guard `rayx-ui/RayX.CLI`), `dist-workspace.toml`, `release-plz.toml`, an initial `CHANGELOG.md` header and `docs/releasing.md` for 1.0.0 (REPO-3, REPO-4); port `tests/release_config.rs`, `tests/release_policy.rs` and `tests/release_automation.rs` with expectations for this repository.",
+          "criterionIds": [
+            "REPO-3",
+            "REPO-4"
+          ],
+          "designIds": [
+            "d-release"
+          ],
+          "dependsOn": [
+            "t01-package"
+          ],
+          "checkIds": [
+            "check-release-config",
+            "check-workflow-yaml"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "dist-workspace.toml"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "release-plz.toml"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": ".github/workflows/ci.yml"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "docs/releasing.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2-host-engine",
+      "title": "Host, setup engine, pins and base sets",
+      "dependsOn": [
+        "s1-foundation"
+      ],
+      "checkIds": [
+        "check-host",
+        "check-setup-engine",
+        "check-project-pins",
+        "check-base-sets"
+      ],
+      "tasks": [
+        {
+          "id": "t03-host",
+          "title": "Port the host layer",
+          "descriptionMarkdown": "Port `src/host/` and its groups `command_runner`, `host_facts`, `path_env` unchanged in behaviour (PORT-1).",
+          "criterionIds": [
+            "PORT-1"
+          ],
+          "designIds": [
+            "d-port"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-host"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/host/runner.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/host/path_env.rs"
+            }
+          ]
+        },
+        {
+          "id": "t04-setup-engine",
+          "title": "Port the setup engine without the GPU set",
+          "descriptionMarkdown": "Port `src/setup/mod.rs`, `machine.rs` and the setup half of `records.rs` with `setup_engine` and `setup_update_prompt` (PORT-2). `Set` has no `Gpu`; `--gpu` is unknown; `--all` covers the remaining sets; add those tests to `setup_engine` (PORT-7). Leave the optional sets as stubs that plan no steps until sprint 3.",
+          "criterionIds": [
+            "PORT-2",
+            "PORT-7"
+          ],
+          "designIds": [
+            "d-port",
+            "d-nsh-sets"
+          ],
+          "dependsOn": [
+            "t03-host"
+          ],
+          "checkIds": [
+            "check-setup-engine"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/records.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/machine.rs"
+            }
+          ]
+        },
+        {
+          "id": "t05-project-pins",
+          "title": "Port project discovery, pins and fmt",
+          "descriptionMarkdown": "Port `src/project/` without the per-package dependency model, the pins table of design §7 (PORT-3), `src/fmt.rs`, and the groups `project_pins`, `pin_sources`, `fmt_command` with fixtures updated for the removed and changed pins.",
+          "criterionIds": [
+            "PORT-3"
+          ],
+          "designIds": [
+            "d-port",
+            "d-nsh-sets"
+          ],
+          "dependsOn": [
+            "t03-host"
+          ],
+          "checkIds": [
+            "check-project-pins"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/project/pins.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/project/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/fmt.rs"
+            }
+          ]
+        },
+        {
+          "id": "t06-base-sets",
+          "title": "Base sets for NSH",
+          "descriptionMarkdown": "Port `setup/rust.rs` and `setup/macos.rs` with `setup_macos`; rewrite `setup/linux.rs` and `setup_linux` for NSH's packages and the distribution floor (SETS-1); adapt `setup/windows.rs` and `setup_windows` (no fxc, WebView2) (SETS-2).",
+          "criterionIds": [
+            "SETS-1",
+            "SETS-2"
+          ],
+          "designIds": [
+            "d-port",
+            "d-nsh-sets"
+          ],
+          "dependsOn": [
+            "t04-setup-engine",
+            "t05-project-pins"
+          ],
+          "checkIds": [
+            "check-base-sets"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/linux.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/windows.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/macos.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/rust.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3-optional-sets",
+      "title": "Optional sets for NSH",
+      "dependsOn": [
+        "s2-host-engine"
+      ],
+      "checkIds": [
+        "check-web-set",
+        "check-test-set",
+        "check-ios-set",
+        "check-android-set"
+      ],
+      "tasks": [
+        {
+          "id": "t07-web-set",
+          "title": "The web set",
+          "descriptionMarkdown": "Rewrite `setup/web.rs` and `setup_web` for SETS-3: no nightly, `wasm-bindgen-cli` only with a lock entry.",
+          "criterionIds": [
+            "SETS-3"
+          ],
+          "designIds": [
+            "d-nsh-sets"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-web-set"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/web.rs"
+            }
+          ]
+        },
+        {
+          "id": "t08-test-set",
+          "title": "The test set",
+          "descriptionMarkdown": "Port `setup/test_tools.rs` with `setup_test_tools` and `setup_node_selection`; expose the Playwright Chromium path (SETS-4).",
+          "criterionIds": [
+            "SETS-4"
+          ],
+          "designIds": [
+            "d-port",
+            "d-nsh-sets"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-test-set"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/test_tools.rs"
+            }
+          ]
+        },
+        {
+          "id": "t09-ios-set",
+          "title": "The iOS set",
+          "descriptionMarkdown": "Port and adapt `setup/ios.rs` and `setup_ios` (SETS-5).",
+          "criterionIds": [
+            "SETS-5"
+          ],
+          "designIds": [
+            "d-nsh-sets"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-ios-set"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/ios.rs"
+            }
+          ]
+        },
+        {
+          "id": "t10-android-set",
+          "title": "The Android set",
+          "descriptionMarkdown": "Port and adapt `setup/android.rs`, `setup_android` and `setup_android_pins` (SETS-6).",
+          "criterionIds": [
+            "SETS-6"
+          ],
+          "designIds": [
+            "d-nsh-sets"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-android-set"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/android.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4-guests-doctor-update",
+      "title": "Guests, doctor, self update and memory",
+      "dependsOn": [
+        "s3-optional-sets"
+      ],
+      "checkIds": [
+        "check-guests",
+        "check-doctor",
+        "check-self-update",
+        "check-memory"
+      ],
+      "tasks": [
+        {
+          "id": "t11-guests",
+          "title": "Port the guests",
+          "descriptionMarkdown": "Port `setup/guest.rs`, `setup/wsl.rs`, `setup/lima/`, `migrate.rs`, the guest half of `records.rs`, `refresh.rs`, `remove.rs`, `setup/update.rs` and `src/wsl.rs` with their seventeen groups (PORT-4), applying the four changes the criterion lists.",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "designIds": [
+            "d-port"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-guests"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/guest.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/lima/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/setup/refresh.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/wsl.rs"
+            }
+          ]
+        },
+        {
+          "id": "t12-doctor",
+          "title": "Port doctor",
+          "descriptionMarkdown": "Port `src/doctor/` with the group `doctor`, without the GPU section (PORT-5).",
+          "criterionIds": [
+            "PORT-5"
+          ],
+          "designIds": [
+            "d-port"
+          ],
+          "dependsOn": [
+            "t11-guests"
+          ],
+          "checkIds": [
+            "check-doctor"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/doctor/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/doctor/guests.rs"
+            }
+          ]
+        },
+        {
+          "id": "t13-self-update",
+          "title": "Port self update and releases",
+          "descriptionMarkdown": "Port `src/update.rs` and `src/release.rs` with their five groups for `rayx-ui/RayX.CLI` and the 1.0.0 floor (PORT-6).",
+          "criterionIds": [
+            "PORT-6"
+          ],
+          "designIds": [
+            "d-port",
+            "d-release"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-self-update"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/update.rs"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/release.rs"
+            }
+          ]
+        },
+        {
+          "id": "t14-memory",
+          "title": "AgentX memory",
+          "descriptionMarkdown": "Create `.agentx/memory` as REPO-5 says, carrying over the old repository's decisions that still hold (read `RayX.CLI.Old/.agentx/memory/decisions/INDEX.md` and those records), and update `AGENTS.md`'s memory line. Run the audit.",
+          "criterionIds": [
+            "REPO-5"
+          ],
+          "designIds": [
+            "d-memory"
+          ],
+          "dependsOn": [
+            "t11-guests",
+            "t12-doctor",
+            "t13-self-update"
+          ],
+          "checkIds": [
+            "check-memory"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": ".agentx/memory/decisions/INDEX.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "AGENTS.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s5-fork-releases",
+      "title": "Fork releases",
+      "dependsOn": [],
+      "checkIds": [
+        "check-fork-workflow",
+        "check-fork-docs"
+      ],
+      "tasks": [
+        {
+          "id": "t15-fork-release-workflow",
+          "title": "The fork's release workflow",
+          "descriptionMarkdown": "On `fork/release` (worktree `nsh-wt/release`), add `.github/workflows/fork-release.yml` as FORK-1 and `d-fork-release` say, copying upstream's `dist` job steps from `.github/workflows/release.yml`; commit it with an NSH-style subject (`ci: Release fork-* tags with prebuilt distributions`). Change nothing else.",
+          "criterionIds": [
+            "FORK-1"
+          ],
+          "designIds": [
+            "d-fork-release"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-fork-workflow"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "nsh",
+              "path": ".github/workflows/release.yml"
+            }
+          ]
+        },
+        {
+          "id": "t16-fork-docs",
+          "title": "The fork docs and the sync warning",
+          "descriptionMarkdown": "On `private/fork-docs` (worktree `nsh-wt/fork-docs`), update `README.md` and `scripts/sync-main.sh` as FORK-2 says, and add `scripts/tests/sync-main-release-warning.sh` (TAP, throwaway repositories under `mktemp -d`).",
+          "criterionIds": [
+            "FORK-2"
+          ],
+          "designIds": [
+            "d-fork-release"
+          ],
+          "dependsOn": [
+            "t15-fork-release-workflow"
+          ],
+          "checkIds": [
+            "check-fork-docs"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "nsh-fork-docs",
+              "path": "README.md"
+            },
+            {
+              "repositoryId": "nsh-fork-docs",
+              "path": "scripts/sync-main.sh"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s6-pin-store",
+      "title": "The nsh pin, store and installs",
+      "dependsOn": [
+        "s4-guests-doctor-update"
+      ],
+      "checkIds": [
+        "check-nsh-pin",
+        "check-nsh-store",
+        "check-nsh-install",
+        "check-nsh-command",
+        "check-setup-nsh",
+        "check-proof-nsh-install"
+      ],
+      "tasks": [
+        {
+          "id": "t17-pin",
+          "title": "Resolving the pin",
+          "descriptionMarkdown": "Write `src/nsh/pin.rs` and the defaults-table entries (PIN-1, PIN-2, PIN-3) with `tests/nsh_pin.rs` and lock fixtures.",
+          "criterionIds": [
+            "PIN-1",
+            "PIN-2",
+            "PIN-3"
+          ],
+          "designIds": [
+            "d-pin"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-nsh-pin"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "gamify",
+              "path": "src/frontend/Cargo.lock"
+            }
+          ]
+        },
+        {
+          "id": "t18-store",
+          "title": "The store and prune",
+          "descriptionMarkdown": "Write `src/nsh/store.rs` (STORE-1) and prune (STORE-2) with `tests/nsh_store.rs`.",
+          "criterionIds": [
+            "STORE-1",
+            "STORE-2"
+          ],
+          "designIds": [
+            "d-store"
+          ],
+          "dependsOn": [
+            "t17-pin"
+          ],
+          "checkIds": [
+            "check-nsh-store"
+          ]
+        },
+        {
+          "id": "t19-install",
+          "title": "Installing from a release and from source",
+          "descriptionMarkdown": "Write `src/nsh/install.rs` (INST-1, INST-2) with `tests/nsh_install.rs`, using recorded `Runner` commands and small archive fixtures.",
+          "criterionIds": [
+            "INST-1",
+            "INST-2"
+          ],
+          "designIds": [
+            "d-install"
+          ],
+          "dependsOn": [
+            "t18-store"
+          ],
+          "checkIds": [
+            "check-nsh-install"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "nsh",
+              "path": "crates/nsh-cli/src/runtime.rs"
+            }
+          ]
+        },
+        {
+          "id": "t20-nsh-commands",
+          "title": "rayx nsh, the setup step and doctor's lines",
+          "descriptionMarkdown": "Add `rayx nsh status|path|install|prune` (NSHCMD-1), the base-set `nsh` step and doctor's lines (NSHCMD-2), with `tests/nsh_command.rs` and `tests/setup_nsh.rs`.",
+          "criterionIds": [
+            "NSHCMD-1",
+            "NSHCMD-2"
+          ],
+          "designIds": [
+            "d-store",
+            "d-install",
+            "d-run"
+          ],
+          "dependsOn": [
+            "t19-install"
+          ],
+          "checkIds": [
+            "check-nsh-command",
+            "check-setup-nsh"
+          ]
+        },
+        {
+          "id": "t21-install-proof",
+          "title": "Real installs",
+          "descriptionMarkdown": "Write the ignored group `tests/proof_nsh_install.rs` (INST-3) and run it.",
+          "criterionIds": [
+            "INST-3"
+          ],
+          "designIds": [
+            "d-proof",
+            "d-install"
+          ],
+          "dependsOn": [
+            "t20-nsh-commands"
+          ],
+          "checkIds": [
+            "check-proof-nsh-install"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s7-run-nsh",
+      "title": "Running nsh",
+      "dependsOn": [
+        "s6-pin-store"
+      ],
+      "checkIds": [
+        "check-nsh-run",
+        "check-app-prereqs",
+        "check-nsh-fork-dev",
+        "check-new-app",
+        "check-serve"
+      ],
+      "tasks": [
+        {
+          "id": "t22-app-forward",
+          "title": "rayx app",
+          "descriptionMarkdown": "Write `src/app/` for RUN-1 with `tests/nsh_run.rs` (an `exec` seam the tests can record).",
+          "criterionIds": [
+            "RUN-1"
+          ],
+          "designIds": [
+            "d-run"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-nsh-run"
+          ]
+        },
+        {
+          "id": "t23-prereqs",
+          "title": "The prerequisite map",
+          "descriptionMarkdown": "Rewrite the old prerequisite logic for design §6.1 (RUN-2) with `tests/app_prereqs.rs`.",
+          "criterionIds": [
+            "RUN-2"
+          ],
+          "designIds": [
+            "d-run",
+            "d-nsh-sets"
+          ],
+          "dependsOn": [
+            "t22-app-forward"
+          ],
+          "checkIds": [
+            "check-app-prereqs"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "src/app/prereqs.rs"
+            }
+          ]
+        },
+        {
+          "id": "t24-fork-dev",
+          "title": "RAYX_NSH and path pins",
+          "descriptionMarkdown": "Implement RUN-3 with `tests/nsh_fork_dev.rs`.",
+          "criterionIds": [
+            "RUN-3"
+          ],
+          "designIds": [
+            "d-fork-dev"
+          ],
+          "dependsOn": [
+            "t22-app-forward"
+          ],
+          "checkIds": [
+            "check-nsh-fork-dev"
+          ]
+        },
+        {
+          "id": "t25-new",
+          "title": "rayx new",
+          "descriptionMarkdown": "Implement `rayx new` (NEW-1) with `tests/new_app.rs`, using a recorded `nsh init`.",
+          "criterionIds": [
+            "NEW-1"
+          ],
+          "designIds": [
+            "d-new",
+            "d-pin"
+          ],
+          "dependsOn": [
+            "t22-app-forward"
+          ],
+          "checkIds": [
+            "check-new-app"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "nsh",
+              "path": "crates/nsh-cli/src/init.rs"
+            }
+          ]
+        },
+        {
+          "id": "t26-serve",
+          "title": "rayx serve",
+          "descriptionMarkdown": "Port Gamify's static server into `src/serve.rs` (SERVE-1) with `tests/serve.rs`.",
+          "criterionIds": [
+            "SERVE-1"
+          ],
+          "designIds": [
+            "d-serve"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-serve"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "gamify",
+              "path": "src/frontend/xtask/src/web.rs",
+              "symbol": "serve"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s8-proof-docs",
+      "title": "Real proof and documentation",
+      "dependsOn": [
+        "s7-run-nsh"
+      ],
+      "checkIds": [
+        "check-proof-app-web",
+        "check-proof-app-apple",
+        "check-proof-gamify",
+        "check-docs"
+      ],
+      "tasks": [
+        {
+          "id": "t27-app-proof",
+          "title": "An app on the web, macOS and the iOS simulator",
+          "descriptionMarkdown": "Write and run `tests/proof_app_web.rs` (PROOF-1) and `tests/proof_app_apple.rs` (PROOF-2); boot a simulator first when none is booted.",
+          "criterionIds": [
+            "PROOF-1",
+            "PROOF-2"
+          ],
+          "designIds": [
+            "d-proof"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-proof-app-web",
+            "check-proof-app-apple"
+          ]
+        },
+        {
+          "id": "t28-gamify-proof",
+          "title": "Gamify through rayx",
+          "descriptionMarkdown": "Write and run `tests/proof_gamify.rs` (PROOF-3), reading Gamify only.",
+          "criterionIds": [
+            "PROOF-3"
+          ],
+          "designIds": [
+            "d-proof"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-proof-gamify"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "gamify",
+              "path": "src/frontend/nsh.json"
+            }
+          ]
+        },
+        {
+          "id": "t29-docs",
+          "title": "README and project docs",
+          "descriptionMarkdown": "Write `README.md`, `docs/projects.md` and `docs/manual-verification.md` (DOCS-1); port and adapt `readme_versions` and `readme_guests`; write `readme_nsh`.",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "designIds": [
+            "d-docs"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-docs"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "README.md"
+            },
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "docs/app-project.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s9-owner-release",
+      "title": "Owner-run: fork release, other hosts and rayx 1.0.0",
+      "dependsOn": [
+        "s8-proof-docs",
+        "s5-fork-releases"
+      ],
+      "tasks": [
+        {
+          "id": "t30-fork-release-publish",
+          "title": "Publish the fork's first release (owner go-ahead)",
+          "descriptionMarkdown": "With the owner's go-ahead: push `fork/release` and `private/fork-docs`, open and merge the fork pull request after its CI (OWN-1); dispatch `fork-release.yml` for `fork-0.2.0-4` and verify the release and a distribution install (OWN-2).",
+          "criterionIds": [
+            "OWN-1",
+            "OWN-2"
+          ],
+          "designIds": [
+            "d-fork-release"
+          ],
+          "dependsOn": [],
+          "checkIds": []
+        },
+        {
+          "id": "t31-other-hosts",
+          "title": "Linux and Windows (owner hardware)",
+          "descriptionMarkdown": "Run the OWN-3 steps in a Lima guest and on the owner's Windows PC with WSL; log them in `docs/manual-verification.md`.",
+          "criterionIds": [
+            "OWN-3"
+          ],
+          "designIds": [
+            "d-proof"
+          ],
+          "dependsOn": [
+            "t30-fork-release-publish"
+          ],
+          "checkIds": []
+        },
+        {
+          "id": "t32-repo-release",
+          "title": "The repository and 1.0.0 (owner go-ahead)",
+          "descriptionMarkdown": "With the owner's go-ahead: move `RayX.CLI.Old`'s README install links and push them, create and push `rayx-ui/RayX.CLI`, set `RELEASE_PLZ_TOKEN`, merge the 1.0.0 release pull request, and check the installer over 1.4.1 (OWN-4).",
+          "criterionIds": [
+            "OWN-4"
+          ],
+          "designIds": [
+            "d-release"
+          ],
+          "dependsOn": [
+            "t31-other-hosts"
+          ],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli-old",
+              "path": "README.md"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-1-0",
+  "revision": 0,
+  "planRevision": 1,
+  "specHashes": {
+    "requirements": "1de42eda3545d6037c11fe04072fd89498ac670b43627c2359fb025516e53f90",
+    "design": "01b6df3fa35512ed6f9c929a7709a89b4d499578c2a95c9f89cab5bee8572c02",
+    "plan": "f6cfb56bc3d47f30bb30bf04a41889109240a1262fea5ce8ff9ff445d29b58a7"
+  },
+  "tasks": {
+    "t01-package": {
+      "status": "pending"
+    },
+    "t02-release-config": {
+      "status": "pending"
+    },
+    "t03-host": {
+      "status": "pending"
+    },
+    "t04-setup-engine": {
+      "status": "pending"
+    },
+    "t05-project-pins": {
+      "status": "pending"
+    },
+    "t06-base-sets": {
+      "status": "pending"
+    },
+    "t07-web-set": {
+      "status": "pending"
+    },
+    "t08-test-set": {
+      "status": "pending"
+    },
+    "t09-ios-set": {
+      "status": "pending"
+    },
+    "t10-android-set": {
+      "status": "pending"
+    },
+    "t11-guests": {
+      "status": "pending"
+    },
+    "t12-doctor": {
+      "status": "pending"
+    },
+    "t13-self-update": {
+      "status": "pending"
+    },
+    "t14-memory": {
+      "status": "pending"
+    },
+    "t15-fork-release-workflow": {
+      "status": "pending"
+    },
+    "t16-fork-docs": {
+      "status": "pending"
+    },
+    "t17-pin": {
+      "status": "pending"
+    },
+    "t18-store": {
+      "status": "pending"
+    },
+    "t19-install": {
+      "status": "pending"
+    },
+    "t20-nsh-commands": {
+      "status": "pending"
+    },
+    "t21-install-proof": {
+      "status": "pending"
+    },
+    "t22-app-forward": {
+      "status": "pending"
+    },
+    "t23-prereqs": {
+      "status": "pending"
+    },
+    "t24-fork-dev": {
+      "status": "pending"
+    },
+    "t25-new": {
+      "status": "pending"
+    },
+    "t26-serve": {
+      "status": "pending"
+    },
+    "t27-app-proof": {
+      "status": "pending"
+    },
+    "t28-gamify-proof": {
+      "status": "pending"
+    },
+    "t29-docs": {
+      "status": "pending"
+    },
+    "t30-fork-release-publish": {
+      "status": "pending"
+    },
+    "t31-other-hosts": {
+      "status": "pending"
+    },
+    "t32-repo-release": {
+      "status": "pending"
+    }
+  },
+  "validationBatches": {},
+  "checkResults": {},
+  "reviews": {},
+  "checkpoints": {},
+  "findings": [],
+  "handoffMarkdown": "",
+  "protectedPaths": {
+    "rayx-cli": {
+      "docs/architecture/rayx-nsh-proposal.md": "5a9be628e7247d9886111746b2893912f89f8b72e3c3bae5c5b840e9fb456e53"
+    },
+    "nsh-release": {
+      "docs/architecture/rayx-nsh-proposal.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "nsh-release:.agentx/**": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "nsh-release:.github/workflows/release.yml": "d8b03dd8513b121e804f830d810749da66fcc6b14b7d003ded9d8aa73ab11d69",
+      "nsh-release:.github/workflows/release-crate.yml": "646a8c5b00adc51452dd892c0021377f9b772aad20e0f968bd9dfc5de8605b48",
+      "nsh-release:.github/workflows/packages.yml": "1f3c2ca525b86740ddbe63364251f0f755a82a0423aba43e46357e9ee1f564f9"
+    },
+    "nsh-fork-docs": {
+      "docs/architecture/rayx-nsh-proposal.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "nsh-fork-docs:.agentx/**": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "rayx-cli-old": {
+      "docs/architecture/rayx-nsh-proposal.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "rayx-cli-old:src/**": "ba4ca144a8c4564ef4be09d07c415d8513c3bd414f408d5ba53c603e7e3963a8",
+      "rayx-cli-old:tests/**": "945abb36f6fb9dc9ea442ed88ddd8924e20260cccdbeafb3ad12d206173c1c2b",
+      "rayx-cli-old:.agentx/**": "6d5481c826fd6291eec6ca4f106402a12f7d4f15d983a01d5733f08b984bf9ab"
+    }
+  }
+}
