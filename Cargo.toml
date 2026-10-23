@@ -1,0 +1,48 @@
+[package]
+name = "rayx-cli"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.99"
+description = "The RayX command-line tool: machine setup, doctor, WSL and Lima guests, self update, and any Native Shell (NSH) app run through the nsh it pins."
+license = "Apache-2.0"
+repository = "https://github.com/rayx-ui/RayX.CLI"
+readme = "README.md"
+publish = false
+
+[lib]
+name = "rayx_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rayx"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.104"
+axoupdater = { version = "0.10.2", features = ["blocking"] }
+clap = { version = "4.6.7", features = ["derive"] }
+serde = { version = "1.0.229", features = ["derive"] }
+semver = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_yaml_ng = "0.10.0"
+tokio = { version = "1", features = ["rt"] }
+toml = "0.9"
+
+[dev-dependencies]
+assert_cmd = "2.2.2"
+predicates = "3.1.4"
+tempfile = "3.27.0"
+
+[target."cfg(windows)".dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_SystemInformation", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_System_Registry", "Win32_System_RemoteDesktop"] }
+
+[target."cfg(unix)".dependencies]
+libc = "0.2.190"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+[package.metadata.dist]
+dist = true
