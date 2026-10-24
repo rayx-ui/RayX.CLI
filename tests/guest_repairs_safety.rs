@@ -433,6 +433,7 @@ fn doctor_reports_a_failing_limactl_list_instead_of_calling_the_guests_missing()
         pins: Pins::resolve(None),
         project_root: None,
         tools_node: None,
+        nsh: None,
         yes: false,
     };
     let mut runner = Runner::record().with_os(Os::MacOs).responder(|spec| {

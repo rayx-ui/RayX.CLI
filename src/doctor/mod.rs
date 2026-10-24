@@ -76,6 +76,9 @@ pub struct Report {
     pub host: HostFacts,
     pub project_root: Option<String>,
     pub pins: Vec<(&'static str, Pin)>,
+    /// The nsh pin and its store entry; `None` when the plan has no nsh pin.
+    /// `Err` when the pin cannot be read, with the reason.
+    pub nsh: Option<Result<crate::nsh::Status, String>>,
     pub sets: Vec<(Set, Vec<Requirement>)>,
     /// Why requirements could not be listed (an unsupported distribution), if so.
     pub unsupported: Option<String>,
@@ -109,7 +112,13 @@ impl Report {
             "project": self.project_root,
             "pins": self.pins.iter().map(|(name, pin)| {
                 (name.to_string(), json!({"value": pin.value, "source": pin.source.as_str()}))
-            }).collect::<serde_json::Map<String, Value>>(),
+            }).chain(self.nsh.iter().flatten().map(|status| {
+                ("nsh".to_string(), json!({"value": status.pin.label(), "source": status.pin.origin.as_str()}))
+            })).collect::<serde_json::Map<String, Value>>(),
+            "nsh": self.nsh.as_ref().map(|status| match status {
+                Ok(status) => status.to_json(),
+                Err(error) => json!({ "error": error }),
+            }),
             "sets": self.sets.iter().map(|(set, items)| json!({
                 "name": set.name(),
                 "requirements": items.iter().map(|r| json!({
@@ -161,6 +170,11 @@ impl Report {
         out.push_str("\nPins:\n");
         for (name, pin) in &self.pins {
             out.push_str(&format!("  {name}: {} ({})\n", pin.value, pin.source));
+        }
+        match &self.nsh {
+            Some(Ok(status)) => out.push_str(&format!("  {}\n", status.line())),
+            Some(Err(error)) => out.push_str(&format!("  nsh  the pin cannot be read: {error}\n")),
+            None => {}
         }
         if let Some(reason) = &self.unsupported {
             out.push_str(&format!("\nRequirements are not listed: {reason}\n"));
@@ -366,10 +380,16 @@ pub fn inspect(env: &PlanEnv, project_root: Option<String>, cx: &mut Cx) -> Repo
         Vec::new()
     };
     let guests = guests::inspect(cx);
+    let nsh = env.nsh.as_ref().and_then(|pin| match pin {
+        Ok(pin) => crate::nsh::store::Store::locate(cx.machine)
+            .map(|store| Ok(crate::nsh::Status::of(pin, &store, &env.host))),
+        Err(unreadable) => Some(Err(unreadable.reason.clone())),
+    });
     Report {
         host: env.host.clone(),
         project_root,
         pins: pin_list(env),
+        nsh,
         sets: report_sets,
         unsupported,
         findings: Findings {
@@ -385,8 +405,9 @@ pub fn inspect(env: &PlanEnv, project_root: Option<String>, cx: &mut Cx) -> Repo
 /// could be inspected.
 pub fn run(args: &DoctorArgs) -> u8 {
     let host = crate::host::facts();
-    let (env, project) = environment(host.clone(), false);
+    // A report: the pin is read with a printing runner, which writes no missing lock.
     let mut runner = Runner::print();
+    let (env, project) = environment(host.clone(), false, &mut runner);
     let machine = SystemMachine;
     let mut user_path = match UserPath::system(host.os) {
         Ok(path) => path,

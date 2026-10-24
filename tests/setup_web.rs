@@ -37,6 +37,7 @@ fn env(os: Os, arch: Arch) -> PlanEnv {
         pins,
         project_root: Some(PathBuf::from("/work/rayx")),
         tools_node: None,
+        nsh: None,
         yes: false,
     }
 }

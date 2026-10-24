@@ -6,13 +6,16 @@ use std::path::PathBuf;
 use crate::host::path_env::PathChange;
 use crate::host::{CommandSpec, Os, Privilege};
 
-use super::{Action, Cx, PlanEnv, Probed, Set, SetupError, Step, windows};
+use super::{Action, Cx, Machine, PlanEnv, Probed, Set, SetupError, Step, windows};
 
 /// `~/.cargo/bin`.
 pub fn cargo_bin_dir(cx: &Cx) -> Option<PathBuf> {
-    cx.machine
-        .home()
-        .map(|home| home.join(".cargo").join("bin"))
+    cargo_bin_dir_on(cx.machine)
+}
+
+/// `~/.cargo/bin` of `machine`'s home.
+pub fn cargo_bin_dir_on(machine: &dyn Machine) -> Option<PathBuf> {
+    machine.home().map(|home| home.join(".cargo").join("bin"))
 }
 
 fn exe(name: &str, os: Os) -> String {
@@ -26,9 +29,14 @@ fn exe(name: &str, os: Os) -> String {
 /// The `rustup` to run: the one in `~/.cargo/bin` when it exists (a shell opened before the
 /// install does not have that directory on PATH yet), else whatever PATH offers.
 pub fn rustup_program(cx: &Cx) -> String {
-    if let Some(bin) = cargo_bin_dir(cx) {
-        let candidate = bin.join(exe("rustup", cx.env.host.os));
-        if cx.machine.exists(&candidate) {
+    rustup_program_on(cx.machine, cx.env.host.os)
+}
+
+/// [`rustup_program`] on `machine`, for code that has no plan context (nsh's installs).
+pub fn rustup_program_on(machine: &dyn Machine, os: Os) -> String {
+    if let Some(bin) = cargo_bin_dir_on(machine) {
+        let candidate = bin.join(exe("rustup", os));
+        if machine.exists(&candidate) {
             return candidate.display().to_string();
         }
     }
@@ -38,12 +46,17 @@ pub fn rustup_program(cx: &Cx) -> String {
 /// A tool installed by cargo or rustup: on PATH, else in `~/.cargo/bin` (a shell opened before
 /// the install does not have that directory yet), else just its name.
 pub fn tool_program(cx: &Cx, name: &str) -> String {
-    if let Some(found) = cx.machine.which(name) {
+    tool_program_on(cx.machine, cx.env.host.os, name)
+}
+
+/// [`tool_program`] on `machine`, for code that has no plan context (nsh's installs).
+pub fn tool_program_on(machine: &dyn Machine, os: Os, name: &str) -> String {
+    if let Some(found) = machine.which(name) {
         return found.display().to_string();
     }
-    if let Some(bin) = cargo_bin_dir(cx) {
-        let candidate = bin.join(exe(name, cx.env.host.os));
-        if cx.machine.exists(&candidate) {
+    if let Some(bin) = cargo_bin_dir_on(machine) {
+        let candidate = bin.join(exe(name, os));
+        if machine.exists(&candidate) {
             return candidate.display().to_string();
         }
     }

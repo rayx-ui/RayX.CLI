@@ -38,7 +38,11 @@ const MANIFEST_DIR_ARGUMENT: &str = "\"CARGO_MANIFEST_DIR\"";
 
 /// Uses of a denied name that are nsh's own vocabulary: `(file, token, reason)`. Every entry must
 /// still match something.
-const ALLOWLIST: &[Allowed] = &[];
+const ALLOWLIST: &[Allowed] = &[(
+    "src/nsh/pin.rs",
+    "gpui",
+    "NSH's own crate nsh-platform-gpui, in NSH's crates/gpui workspace",
+)];
 
 /// An allowlist entry: `(file, token, reason)`.
 type Allowed = (&'static str, &'static str, &'static str);

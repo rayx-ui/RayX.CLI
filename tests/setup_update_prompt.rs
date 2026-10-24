@@ -29,6 +29,7 @@ fn env(yes: bool) -> PlanEnv {
         pins: Pins::resolve(None),
         project_root: None,
         tools_node: None,
+        nsh: None,
         yes,
     }
 }

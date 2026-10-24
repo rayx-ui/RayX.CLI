@@ -29,6 +29,7 @@ fn env(os: Os, yes: bool, xcode: Option<&str>) -> PlanEnv {
         pins,
         project_root: None,
         tools_node: None,
+        nsh: None,
         yes,
     }
 }

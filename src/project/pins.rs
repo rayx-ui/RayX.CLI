@@ -66,6 +66,19 @@ pub struct Defaults {
     /// The Ubuntu version of every guest `rayx` creates (WSL distribution, Lima VM). Guests serve
     /// every project on the machine, so a project cannot override it.
     pub ubuntu: &'static str,
+    /// The nsh pin where a project pins none.
+    pub nsh: DefaultNsh,
+}
+
+/// The nsh this release of `rayx` was tested with, used where a project pins none, with the NSH
+/// crates of that commit (the `crates/nsh-*` a new app's `[patch.crates-io]` lists).
+pub struct DefaultNsh {
+    pub git: &'static str,
+    pub tag: &'static str,
+    pub commit: &'static str,
+    /// The NSH crates' version at that commit.
+    pub version: &'static str,
+    pub crates: &'static [&'static str],
 }
 
 /// The one table of default versions.
@@ -77,6 +90,40 @@ pub const DEFAULTS: Defaults = Defaults {
     android_build_tools: "35.0.1",
     android_image_tag: "google_apis",
     ubuntu: "24.04",
+    nsh: DefaultNsh {
+        git: "https://github.com/dXnSix/nsh",
+        tag: "fork-0.2.0-4",
+        commit: "327bb9ea65d08ffac4af498cc7fbbfa18a1b3623",
+        version: "0.2.0",
+        crates: &[
+            "nsh-base",
+            "nsh-bundler",
+            "nsh-cli",
+            "nsh-core",
+            "nsh-dev",
+            "nsh-engine",
+            "nsh-ios-app",
+            "nsh-ios-host",
+            "nsh-js",
+            "nsh-linux-app",
+            "nsh-linux-host",
+            "nsh-macos-app",
+            "nsh-macos-host",
+            "nsh-macros",
+            "nsh-metal",
+            "nsh-package",
+            "nsh-platform-android",
+            "nsh-platform-ios",
+            "nsh-platform-linux",
+            "nsh-platform-macos",
+            "nsh-platform-web",
+            "nsh-platform-windows",
+            "nsh-shader",
+            "nsh-testing",
+            "nsh-windows-app",
+            "nsh-windows-host",
+        ],
+    },
 };
 
 /// Every version `setup`, `doctor` and `rayx app` need, with where each came from.

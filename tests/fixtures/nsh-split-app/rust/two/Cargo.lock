@@ -1,0 +1,13 @@
+version = 4
+
+[[package]]
+name = "nsh-core"
+version = "0.2.0"
+source = "git+https://github.com/dXnSix/nsh?tag=fork-0.2.0-4#327bb9ea65d08ffac4af498cc7fbbfa18a1b3623"
+
+[[package]]
+name = "split-two"
+version = "0.1.0"
+dependencies = [
+ "nsh-core",
+]

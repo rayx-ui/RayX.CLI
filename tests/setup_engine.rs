@@ -32,6 +32,7 @@ fn env(yes: bool) -> PlanEnv {
         pins: Pins::resolve(None),
         project_root: None,
         tools_node: None,
+        nsh: None,
         yes,
     }
 }
@@ -500,6 +501,7 @@ mod record {
             pins: Pins::resolve(None),
             project_root: root.map(PathBuf::from),
             tools_node: None,
+            nsh: None,
             yes: false,
         }
     }

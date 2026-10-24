@@ -34,6 +34,8 @@ pub struct CommandSpec {
     pub program: String,
     pub args: Vec<String>,
     pub env: Vec<(String, String)>,
+    /// Variables the command runs without (`CARGO` for nsh's builds).
+    pub unset: Vec<String>,
     pub cwd: Option<PathBuf>,
     pub privilege: Privilege,
     /// Text written to the program's standard input, then closed (answers to prompts such as
@@ -70,6 +72,12 @@ impl CommandSpec {
 
     pub fn env(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.env.push((key.into(), value.into()));
+        self
+    }
+
+    /// Runs the command without the variable `key`, whatever this process has.
+    pub fn unset(mut self, key: impl Into<String>) -> Self {
+        self.unset.push(key.into());
         self
     }
 
@@ -531,6 +539,7 @@ fn sudo_wrapped(spec: &CommandSpec, sudo: &str) -> CommandSpec {
         program: sudo.to_string(),
         args,
         env: Vec::new(),
+        unset: spec.unset.clone(),
         cwd: spec.cwd.clone(),
         privilege: Privilege::None,
         stdin: spec.stdin.clone(),
@@ -543,6 +552,9 @@ fn sudo_wrapped(spec: &CommandSpec, sudo: &str) -> CommandSpec {
 fn run_process(spec: &CommandSpec, inherit_stdin: bool) -> Result<Outcome, RunError> {
     let mut command = Command::new(&spec.program);
     command.args(&spec.args);
+    for key in &spec.unset {
+        command.env_remove(key);
+    }
     for (key, value) in &spec.env {
         command.env(key, value);
     }

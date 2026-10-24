@@ -1,0 +1,5 @@
+{
+  "name": "ForkApp",
+  "id": "dev.rayx.fork-app",
+  "rust": ["."]
+}

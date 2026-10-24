@@ -103,7 +103,13 @@ pub fn update_host(
             "==> setup --update: {}",
             root.as_deref().unwrap_or("no project")
         );
-        let env = environment_for(host.clone(), project.as_ref(), args.yes);
+        // The pin is read in the recorded directory (an app without a Cargo workspace is recorded
+        // by its own), through the run's runner, so `--check` writes no lock.
+        let dir = root.as_ref().map_or_else(
+            || std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")),
+            std::path::PathBuf::from,
+        );
+        let env = environment_for(host.clone(), project.as_ref(), &dir, args.yes, runner);
         let mut ask = |question: &str| confirm.as_mut().is_none_or(|ask| ask(question));
         let result = run_sets(
             &run_args,
@@ -184,7 +190,7 @@ pub fn run(args: &SetupArgs) -> u8 {
     let mut prompter = TerminalPrompter {
         terminal: interactive,
     };
-    run_with(
+    let code = run_with(
         args,
         &options,
         &host,
@@ -194,7 +200,34 @@ pub fn run(args: &SetupArgs) -> u8 {
         Some(&mut confirm),
         Some(&mut prompter),
         &mut io::stdout(),
-    )
+    );
+    let mut ask = ask_on_terminal;
+    after_update(
+        args,
+        &mut Runner::print(),
+        &machine,
+        &host,
+        interactive.then_some(&mut ask as &mut dyn FnMut(&str) -> bool),
+        &mut io::stdout(),
+    );
+    code
+}
+
+/// After `rayx setup --update`: the recorded projects' pins are installed now, so it offers to
+/// remove the store entries none of them uses (STORE-2). `--check`, and a run that only targets
+/// guests (`--vm`), leave the store alone.
+pub fn after_update(
+    args: &SetupArgs,
+    runner: &mut Runner,
+    machine: &dyn Machine,
+    host: &HostFacts,
+    confirm: Option<&mut dyn FnMut(&str) -> bool>,
+    out: &mut dyn Write,
+) {
+    if args.check || !args.vm.is_empty() {
+        return;
+    }
+    crate::nsh::offer_prune(runner, machine, host, args.yes, confirm, out);
 }
 
 /// The body of `rayx setup --update` over injectable collaborators: a chosen release is looked

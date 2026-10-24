@@ -12,6 +12,7 @@ pub mod linux;
 pub mod machine;
 pub mod macos;
 pub mod migrate;
+pub mod nsh;
 pub mod records;
 pub mod refresh;
 pub mod remove;
@@ -101,6 +102,10 @@ pub struct PlanEnv {
     pub tools_node: Option<String>,
     /// `--yes`: accept licenses and agreements, and make installers non-interactive.
     pub yes: bool,
+    /// The nsh the directory pins: the base set's last step installs it. `Err` is a pin that
+    /// cannot be read (two sources, a broken `rayx.toml`, no `Cargo.lock` yet in a dry run),
+    /// whose step fails with the reason: nothing stands in for it. `None` plans no nsh step.
+    pub nsh: Option<Result<crate::nsh::pin::Pin, crate::nsh::pin::Unreadable>>,
 }
 
 /// What probes and installs act on.
@@ -436,11 +441,18 @@ pub fn plan(env: &PlanEnv, sets: &[Set]) -> Result<Plan, SetupError> {
     let mut steps = Vec::new();
     for set in wanted {
         match set {
-            Set::Base => steps.extend(match env.host.os {
-                Os::Linux => linux::steps(env)?,
-                Os::Windows => windows::steps(env)?,
-                Os::MacOs => macos::steps(env)?,
-            }),
+            Set::Base => {
+                steps.extend(match env.host.os {
+                    Os::Linux => linux::steps(env)?,
+                    Os::Windows => windows::steps(env)?,
+                    Os::MacOs => macos::steps(env)?,
+                });
+                // Last, after the project's toolchain (design §4.5).
+                steps.extend(env.nsh.as_ref().map(|pin| match pin {
+                    Ok(pin) => nsh::step(pin),
+                    Err(unreadable) => nsh::unreadable(unreadable),
+                }));
+            }
             Set::Web => steps.extend(web::steps(env)?),
             Set::Test => steps.extend(test_tools::steps(env)?),
             Set::Android => steps.extend(android::steps(env)?),
@@ -818,15 +830,27 @@ fn write_file(path: &Path, contents: &str) -> io::Result<()> {
 }
 
 /// The plan environment of the current directory: its project (none is fine, since `setup` also
-/// runs on a fresh machine before cargo exists), the resolved pins and the host.
-pub fn environment(host: HostFacts, yes: bool) -> (PlanEnv, Option<Project>) {
+/// runs on a fresh machine before cargo exists), the resolved pins and the host. The nsh pin is
+/// read through `runner`, the run's own: only an executing one writes a missing `Cargo.lock`.
+pub fn environment(host: HostFacts, yes: bool, runner: &mut Runner) -> (PlanEnv, Option<Project>) {
     let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let project = Project::discover(&mut Runner::print(), &cwd, None).ok();
-    (environment_for(host, project.as_ref(), yes), project)
+    (
+        environment_for(host, project.as_ref(), &cwd, yes, runner),
+        project,
+    )
 }
 
-/// The plan environment of a known project (or none).
-pub fn environment_for(host: HostFacts, project: Option<&Project>, yes: bool) -> PlanEnv {
+/// The plan environment of a known project (or none), with the nsh pin read in `dir` (the
+/// directory setup runs in) through `runner`.
+pub fn environment_for(
+    host: HostFacts,
+    project: Option<&Project>,
+    dir: &Path,
+    yes: bool,
+    runner: &mut Runner,
+) -> PlanEnv {
+    let nsh = crate::nsh::pin::resolve_in(runner, dir);
     PlanEnv {
         host,
         pins: Pins::resolve(project),
@@ -837,6 +861,7 @@ pub fn environment_for(host: HostFacts, project: Option<&Project>, yes: bool) ->
             .and_then(|value| value.as_str())
             .map(str::to_string),
         yes,
+        nsh: Some(nsh),
     }
 }
 
@@ -857,7 +882,7 @@ pub fn run(args: &SetupArgs) -> u8 {
     } else {
         Runner::execute()
     };
-    let (env, _) = environment(host.clone(), args.yes);
+    let (env, _) = environment(host.clone(), args.yes, &mut runner);
     let mut user_path = match UserPath::system(host.os) {
         Ok(path) => path,
         Err(error) => {
@@ -891,9 +916,15 @@ pub fn after_run(args: &SetupArgs, code: u8, env: &PlanEnv, sets: &[Set], machin
         return;
     }
     let names: Vec<String> = sets.iter().map(|set| set.name().to_string()).collect();
+    // A Cargo workspace is recorded by its root; an app without one (its pin in `rayx.toml`) by
+    // its directory, so `--update` installs its pin and prune keeps that entry.
     let root = env
         .project_root
-        .as_ref()
+        .clone()
+        .or_else(|| match &env.nsh {
+            Some(Ok(pin)) if pin.app => Some(pin.dir.clone()),
+            _ => None,
+        })
         .map(|root| root.display().to_string());
     if let Err(error) = records::record_setup(machine, env.host.os, &names, root.as_deref(), false)
     {

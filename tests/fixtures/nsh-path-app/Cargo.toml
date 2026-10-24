@@ -1,0 +1,5 @@
+# An app that works on an NSH checkout through a path dependency (fork development).
+[workspace]
+resolver = "3"
+members = ["app"]
+exclude = ["nsh"]

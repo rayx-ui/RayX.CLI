@@ -490,6 +490,7 @@ fn doctor_lists_the_ubuntu_pin_with_the_other_pins() {
         pins: Pins::resolve(None),
         project_root: None,
         tools_node: None,
+        nsh: None,
         yes: false,
     };
     let mut path = UserPath::Windows(Box::new(MemoryPathStore::new(None)));

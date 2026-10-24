@@ -25,6 +25,7 @@ fn env(os: Os, arch: Arch, wsl: bool, os_release: &str) -> PlanEnv {
         pins: Pins::resolve(None),
         project_root: None,
         tools_node: None,
+        nsh: None,
         yes: false,
     }
 }

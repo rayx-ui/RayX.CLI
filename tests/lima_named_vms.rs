@@ -975,6 +975,7 @@ fn doctor_reports_a_named_vm_and_the_command_that_removes_its_retired_one() {
         pins: Pins::resolve(None),
         project_root: None,
         tools_node: None,
+        nsh: None,
         yes: false,
     };
     let mut path = UserPath::Windows(Box::new(MemoryPathStore::new(None)));

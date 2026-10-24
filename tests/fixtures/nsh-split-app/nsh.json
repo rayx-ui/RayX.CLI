@@ -1,0 +1,5 @@
+{
+  "name": "SplitApp",
+  "id": "dev.rayx.split-app",
+  "rust": ["rust/one", "rust/two"]
+}

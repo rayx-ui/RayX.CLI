@@ -322,7 +322,13 @@ fn tools_node_reaches_the_plan_environment() {
 
     manifest("\n[workspace.metadata.rayx]\ntools-node = \"tests/e2e\"\n");
     let project = discover(dir.path(), None).expect("discovers");
-    let env = environment_for(host.clone(), Some(&project), false);
+    let env = environment_for(
+        host.clone(),
+        Some(&project),
+        dir.path(),
+        false,
+        &mut Runner::record(),
+    );
     assert_eq!(env.tools_node.as_deref(), Some("tests/e2e"));
     assert!(same_dir(
         env.project_root.as_ref().expect("root"),
@@ -331,13 +337,19 @@ fn tools_node_reaches_the_plan_environment() {
 
     manifest("");
     let project = discover(dir.path(), None).expect("discovers");
-    let env = environment_for(host.clone(), Some(&project), true);
+    let env = environment_for(
+        host.clone(),
+        Some(&project),
+        dir.path(),
+        true,
+        &mut Runner::record(),
+    );
     assert_eq!(
         env.tools_node, None,
         "no key, no directory: the test set uses tools-node"
     );
     assert!(env.yes);
 
-    let env = environment_for(host, None, false);
+    let env = environment_for(host, None, dir.path(), false, &mut Runner::record());
     assert_eq!((env.tools_node, env.project_root), (None, None));
 }

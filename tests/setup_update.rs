@@ -48,6 +48,7 @@ fn env() -> PlanEnv {
         pins: Pins::resolve(None),
         project_root: Some(PathBuf::from("/work/app")),
         tools_node: None,
+        nsh: None,
         yes: false,
     }
 }

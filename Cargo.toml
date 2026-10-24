@@ -21,12 +21,16 @@ path = "src/main.rs"
 anyhow = "1.0.104"
 axoupdater = { version = "0.10.2", features = ["blocking"] }
 clap = { version = "4.6.7", features = ["derive"] }
+flate2 = "1.1.10"
 serde = { version = "1.0.229", features = ["derive"] }
 semver = "1"
 serde_json = { version = "1", features = ["preserve_order"] }
 serde_yaml_ng = "0.10.0"
+sha2 = "0.11.1"
+tar = "0.4.46"
 tokio = { version = "1", features = ["rt"] }
 toml = "0.9"
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
 assert_cmd = "2.2.2"

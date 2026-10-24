@@ -1,0 +1,7 @@
+# An app whose Rust crate takes NSH from the fork's tag, as Gamify's frontend does.
+[package]
+name = "fork-app"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]

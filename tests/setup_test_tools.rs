@@ -26,6 +26,7 @@ fn env(os: Os, arch: Arch, os_release: &str, wsl: bool, project: bool) -> PlanEn
         pins: Pins::resolve(None),
         project_root: project.then(|| PathBuf::from("/work/rayx")),
         tools_node: None,
+        nsh: None,
         yes: false,
     }
 }

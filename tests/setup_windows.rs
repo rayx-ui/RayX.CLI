@@ -28,6 +28,7 @@ fn env(arch: Arch, emulated: bool, yes: bool) -> PlanEnv {
         pins: Pins::resolve(None),
         project_root: None,
         tools_node: None,
+        nsh: None,
         yes,
     }
 }

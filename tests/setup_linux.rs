@@ -39,6 +39,7 @@ fn env(os_release: &str, wsl: bool, toolchain: Option<&str>, yes: bool) -> PlanE
         pins,
         project_root: toolchain.map(|_| PathBuf::from("/home/dev/rayx")),
         tools_node: None,
+        nsh: None,
         yes,
     }
 }
