@@ -1,6 +1,7 @@
 //! The test set: Node.js at the pinned major or newer, pnpm through corepack, the Linux libraries
 //! headed Chromium needs, and the project's Playwright package with its browser.
-//! It replaces RayX xtask's `setup-wasm`.
+//! [`playwright_chromium`] is that browser's executable, which `rayx app test --target web` hands
+//! nsh when the machine has no Chrome, Edge or Chromium of its own.
 //!
 //! Probes and installs find Node tools on PATH and in the places the installs put them
 //! (`%ProgramFiles%\nodejs`, the user bin directory, Homebrew's keg-only `node@<major>`), and run
@@ -466,6 +467,66 @@ fn browsers_manifest(cx: &Cx, package_dir: &Path) -> Option<String> {
     })
 }
 
+/// Where a Playwright Chromium build keeps its executable, below `chromium-<revision>/`: the
+/// Chromium builds of older Playwright releases and the Chrome for Testing builds of newer ones.
+fn chromium_executables(os: Os) -> &'static [&'static str] {
+    match os {
+        Os::MacOs => &[
+            "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+            "chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+            "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
+        ],
+        Os::Linux => &["chrome-linux64/chrome", "chrome-linux/chrome"],
+        Os::Windows => &["chrome-win64/chrome.exe", "chrome-win/chrome.exe"],
+    }
+}
+
+/// The executable of the Chromium the test set installed: the revision the project's Playwright
+/// package pins, else the newest `chromium-<revision>` in the browser cache. `None` when there is
+/// none; `rayx app test --target web` passes it to nsh as `--browser`.
+pub fn playwright_chromium(cx: &Cx) -> Option<PathBuf> {
+    let cache = browser_cache(cx)?;
+    let pinned = playwright_dir(cx.env)
+        .and_then(|dir| browsers_manifest(cx, &dir))
+        .and_then(|text| chromium_revision(&text));
+    let mut revisions: Vec<(u64, String)> = cx
+        .machine
+        .list_dir(&cache)
+        .into_iter()
+        .filter_map(|name| {
+            let revision = name.strip_prefix("chromium-")?;
+            Some((revision.parse().ok()?, name.clone()))
+        })
+        .collect();
+    revisions.sort();
+    let mut candidates: Vec<String> = pinned
+        .map(|revision| format!("chromium-{revision}"))
+        .into_iter()
+        .collect();
+    candidates.extend(revisions.into_iter().rev().map(|(_, name)| name));
+    candidates.iter().find_map(|name| {
+        chromium_executables(cx.env.host.os)
+            .iter()
+            .map(|relative| {
+                relative
+                    .split('/')
+                    .fold(cache.join(name), |path, part| path.join(part))
+            })
+            .find(|path| cx.machine.exists(path))
+    })
+}
+
+/// The Chromium revision a `browsers.json` names.
+fn chromium_revision(text: &str) -> Option<String> {
+    serde_json::from_str::<serde_json::Value>(text)
+        .ok()?
+        .get("browsers")?
+        .as_array()?
+        .iter()
+        .find(|browser| browser["name"] == "chromium")
+        .and_then(|browser| browser["revision"].as_str().map(str::to_string))
+}
+
 fn playwright_browser_step(dir: PathBuf) -> Step {
     let probe_dir = dir.clone();
     Step::new(
@@ -480,15 +541,7 @@ fn playwright_browser_step(dir: PathBuf) -> Step {
             let Some(text) = browsers_manifest(cx, &probe_dir) else {
                 return Probed::missing("Playwright is not installed yet");
             };
-            let revision = serde_json::from_str::<serde_json::Value>(&text)
-                .ok()
-                .and_then(|json| {
-                    json["browsers"]
-                        .as_array()?
-                        .iter()
-                        .find(|b| b["name"] == "chromium")
-                        .and_then(|b| b["revision"].as_str().map(str::to_string))
-                });
+            let revision = chromium_revision(&text);
             let (Some(revision), Some(cache)) = (revision, browser_cache(cx)) else {
                 return Probed::missing("the Chromium revision is unknown");
             };
