@@ -3,6 +3,8 @@
 
 #![allow(dead_code)]
 
+pub mod proof;
+
 use rayx_cli::host::{Outcome, Runner};
 
 /// A recording runner that runs Cargo's read-only queries (`locate-project`, `metadata`) for
