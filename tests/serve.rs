@@ -196,7 +196,8 @@ fn a_missing_site_or_a_taken_port_fails_with_the_reason() {
         bind(&site.path("out/hello"), 0).err().expect("no site")
     );
     assert!(
-        error.contains("no site at") && error.contains("out/hello"),
+        error.contains("no site at")
+            && error.contains(&site.path("out/hello").display().to_string()),
         "{error}"
     );
 
