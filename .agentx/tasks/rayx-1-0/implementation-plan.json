@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 5,
+  "revision": 6,
   "title": "rayx 1.0.0: the new RayX CLI for NSH apps, with the machine side ported, nsh managed per project, and fork releases",
   "validationMode": "sprint",
   "repositories": [
@@ -543,14 +543,14 @@
       "criterionIds": [
         "REPO-5"
       ],
-      "descriptionMarkdown": "AgentX's memory audit over `.agentx/memory`.",
+      "descriptionMarkdown": "AgentX's memory audit over `.agentx/memory`: no errors (a clean audit prints `[OK]`, one with only warnings a `Summary: 0 error(s)` line).",
       "argv": [
         "python3",
         "/Users/dinko/.claude/skills/agentx/scripts/audit_agentx_memory.py"
       ],
       "expected": {
         "exitCode": 0,
-        "stdoutPattern": "Summary: 0 error"
+        "stdoutPattern": "(Summary: 0 error|\\[OK\\] \\.agentx memory structure looks consistent)"
       }
     },
     {

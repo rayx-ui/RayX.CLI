@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 36,
-  "planRevision": 5,
+  "revision": 49,
+  "planRevision": 6,
   "specHashes": {
     "requirements": "21671d4f7e98b32bfa7df18a4b6025692146068f5d5df0f1508f6729038f5275",
     "design": "228318d3f441e3d9105308ab0c0b949df321b782790a24217b3d1c3d81e078bc",
-    "plan": "c7a8bab7c5352325716d6f173d9a68ee6403c1d6a2cad752a59b62ad91f3dc56"
+    "plan": "3c7b3085269616e935eb5d527a90a0d58b6f4b9ce80b63a603b4f84fb749e8ec"
   },
   "tasks": {
     "t01-package": {
@@ -70,16 +70,28 @@
       ]
     },
     "t11-guests": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t12-doctor": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t13-self-update": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t14-memory": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t15-fork-release-workflow": {
       "status": "pending"
@@ -172,6 +184,18 @@
         }
       },
       "recordedAt": "2026-10-24T00:13:36Z"
+    },
+    "43ca290e3d69a6c1ec2a126c361588e3f6e1eae3d01cbc8e4f05652ce862b463": {
+      "snapshot": {
+        "specHash": "2f90e372e4c00fe2ea70813d0c1ab1a0825a4ed181ef617c929e0aff9cbacf90",
+        "repositories": {
+          "rayx-cli": "281530afd810a393a788b984d45c787e833acbc5b052885fe40165c5de1ffe35",
+          "nsh-release": "14ed95fc71adaaab3ea3a3e8481e900d14835a4d38674de1c63baa49414121f7",
+          "nsh-fork-docs": "d931ff0a99d2910762a9a9960dd27e71244d1851c434194547d1747de596cf04",
+          "rayx-cli-old": "0a91cabcfa47ef8639b7c693923239841428bfacc031a32c37d7acc5de5d77ee"
+        }
+      },
+      "recordedAt": "2026-10-24T00:32:08Z"
     }
   },
   "checkResults": {
@@ -361,6 +385,73 @@
       "logPath": "artifacts-temp/agentx/rayx-1-0/s3-optional-sets-final-1565cbf06b52.log",
       "logSha256": "0025adcd5bd6cd138af453e0d4e7fdcf2db4c096d198b07dda15a50da996252e",
       "inputsHash": "dfdc623a86350d9c66e4612ecc575e222a7ae4e75d904980f36b560bc37617e3"
+    },
+    "s4-guests-doctor-update/check-guests/final": {
+      "checkId": "check-guests",
+      "boundaryId": "s4-guests-doctor-update",
+      "phase": "final",
+      "batchId": "43ca290e3d69a6c1ec2a126c361588e3f6e1eae3d01cbc8e4f05652ce862b463",
+      "definitionHash": "60f6154da1aa784acfa080927f27c07fb423a4d34792a5912bdc6a63610d1324",
+      "basisHash": "7d07213e5aafae25987feabc46b09e16f455ddc13f6dcd5bf20019249fcde90e",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 279,
+      "durationSeconds": 8.7282,
+      "recordedAt": "2026-10-24T00:32:02Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s4-guests-doctor-update-final-f56f45a746ba.log",
+      "logSha256": "0deb0a94a1faaa9d77ad13a515967a3a31d8f557d7a7f01c318587690bca73f8",
+      "inputsHash": "bb3ebbb23b78457f887a3a34722d2ba680fb6fb9662608ecfbd16edcba0bc2bd"
+    },
+    "s4-guests-doctor-update/check-doctor/final": {
+      "checkId": "check-doctor",
+      "boundaryId": "s4-guests-doctor-update",
+      "phase": "final",
+      "batchId": "43ca290e3d69a6c1ec2a126c361588e3f6e1eae3d01cbc8e4f05652ce862b463",
+      "definitionHash": "fcf242b5667a49ca968438c160b65b0e318724cf463998e48e68a75d12d3f019",
+      "basisHash": "c0ac4c37920e591ac4e5c556a37553d1eb33832c44c6e8c78632420cb2ad3ec2",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 11,
+      "durationSeconds": 3.1028,
+      "recordedAt": "2026-10-24T00:32:05Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s4-guests-doctor-update-final-7040c0d42539.log",
+      "logSha256": "56f1dbd7edf5b30f34f8b26ffed10b9469a3bf19520a7f43a05c905f419ad9f2",
+      "inputsHash": "13efbd06dc886034406651c28527342f87393d215db483e81e8caa0cf493e944"
+    },
+    "s4-guests-doctor-update/check-self-update/final": {
+      "checkId": "check-self-update",
+      "boundaryId": "s4-guests-doctor-update",
+      "phase": "final",
+      "batchId": "43ca290e3d69a6c1ec2a126c361588e3f6e1eae3d01cbc8e4f05652ce862b463",
+      "definitionHash": "2da0cef5f6f0d1f91b89d378c8f21871b7f7d837390b3ebbeb3ef96f09bc3b0f",
+      "basisHash": "3181501e26cf342a991eda0329288c692b9352c2efede40d2b852f049994003e",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 54,
+      "durationSeconds": 2.5052,
+      "recordedAt": "2026-10-24T00:32:08Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s4-guests-doctor-update-final-487c661134ac.log",
+      "logSha256": "232fc801380a32c3b29ea86dd71206c4315881d808e5858a9417427f6da26923",
+      "inputsHash": "9fcb3274e3a4b47705d6439934430b7429154eee3dade338383617394cbe72ea"
+    },
+    "s4-guests-doctor-update/check-memory/final": {
+      "checkId": "check-memory",
+      "boundaryId": "s4-guests-doctor-update",
+      "phase": "final",
+      "batchId": "43ca290e3d69a6c1ec2a126c361588e3f6e1eae3d01cbc8e4f05652ce862b463",
+      "definitionHash": "a46a082cf470397eb5c8eb7f15f7502e40c26dac5645f882b5556b5ed7ac70ce",
+      "basisHash": "9d378b1478b7a9aaf3b5f630f7ce9ef267170e0933be00668d492a3ce5f461fe",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.0395,
+      "recordedAt": "2026-10-24T00:32:08Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s4-guests-doctor-update-final-09f7c67bb2ad.log",
+      "logSha256": "163073f6c31cfe3415e6c8ca4971853a7d1fcde92009e02e10b5645dfa815ffd"
     }
   },
   "reviews": {
@@ -1028,6 +1119,447 @@
         "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
       }
+    },
+    "s4-guests-doctor-update": {
+      "reviewerId": "reviewer-s4-3a1576d6",
+      "snapshotId": "43ca290e3d69a6c1ec2a126c361588e3f6e1eae3d01cbc8e4f05652ce862b463",
+      "criterionIds": [
+        "PORT-4",
+        "PORT-5",
+        "PORT-6",
+        "REPO-5"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/guest.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "820cc7e4d5720d412a032cc72c51ffdcc4a7d16a489e70e938541336feb0abcf"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "6e4f4c0ea04b69931e8a8a45ca417050da7cd3381d46ff5c792aae22b98df720"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/lima/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "215962cdecbf2182b9852e48e674d208b1a83d56a41c1782a8d89f028c24d4bd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/migrate.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "542aebb389a5d8e89d432654d6d1b0c6c7e436bbbf70c1430b169a62a9247732"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/refresh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4",
+            "PORT-6"
+          ],
+          "sha256": "2c0729df9c18e32c161ba6da5ad402f65a4e974c119f9334f097f3771f194f49"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/remove.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "d3a3d98c19f42c2072080ee0ee95cdc160215a46fe48f68b951b6d69c0612dab"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "aac2f4bbc9efc63f66a6ccec943ba7d226015b530efd71d94f53b88b215a9054"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/records.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "0335d7efe940123ee6b9342d83664e30bfbd346ea20ee91a884e31259b50b9ea"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4",
+            "PORT-5"
+          ],
+          "sha256": "a2986c3c263e82f909c201f9168e65a026ecd596012c8fd92979cde724c3accd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "c5dd5fc397673fa52d8bc3bc7c601534517c7f41064ea835df9173fd9f07e543"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/lib.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4",
+            "PORT-5",
+            "PORT-6"
+          ],
+          "sha256": "b0e728a6c20d97d7a54dc40819336ebbd2aeea30c1a0f6c4cb21127baaf9c575"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-5"
+          ],
+          "sha256": "0a5e0c56196a95ff2a719824fa4abbf76aee75e846598c805cf7a4814fe44bb2"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/guests.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-5"
+          ],
+          "sha256": "949c48561b82a2a15dd90bbf0d60d36a9ec6abe5269b6bdb9c10185a41285b10"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-6"
+          ],
+          "sha256": "1bcdbccdfd6b930c40763b9f6a8c97dbd8f43e5c88d885a21f30f08ece030fc9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PORT-4",
+            "PORT-6"
+          ],
+          "sha256": "f2847171a3dbb93f296bb4cb32a8aa7332f3b1d2472eb71e658e8f27afa43940"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/knowledge/INDEX.md",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-5"
+          ],
+          "sha256": "4e15b6ed2a47c406856c28e5b414e041afdd7789826dbcc35fc05757dd450cdd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/INDEX.md",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-5"
+          ],
+          "sha256": "8916263b5a3cf332af51b771bcc45fe54589449d9c7b3bdb8131c24c747cd854"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/setup/2026-10-24-setup-guest-layer-records-refresh-and-replacement.md",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-5"
+          ],
+          "sha256": "ce16722b46298b776a0a336468aaa814abe1b66854f0edc4889f2798a6c89448"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/repository/2026-10-24-repository-memory-taxonomy.md",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-5"
+          ],
+          "sha256": "e06a7f3f4b58bab16c1718aa7105464e9f743f62e5fc09f9616dc01b897fc032"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/knowledge/setup/state.md",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-5"
+          ],
+          "sha256": "84f5ef8e418726ce74d7386ebbf3097ace6fc4c8a611304c0cfdcc1f1c0a066e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md",
+          "kind": "source",
+          "criterionIds": [
+            "REPO-5"
+          ],
+          "sha256": "e973bc0520d87a0262c55da2e00aee05326f6156fec559ddad79e475f6c07250"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "artifacts-temp/agentx/rayx-1-0/s4-guests-doctor-update-final-35b7fddf8f74.log",
+          "kind": "runtime",
+          "criterionIds": [
+            "REPO-5"
+          ],
+          "sha256": "163073f6c31cfe3415e6c8ca4971853a7d1fcde92009e02e10b5645dfa815ffd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_layer.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "0f27d0a043cf269401216500c9a2f69676e7d4f21617ecc0748df244fa812119"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_migration.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "9600e9b7d8b98beb2e90e51916172bda8845eb96d50b2e5f7694234180332b81"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_records.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "ee38e22420eedac403bf103d645bd1debb9d4cd8a0d2fb0b15e617bececf0402"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_refresh.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "dec7ae74d3fe05115f1bcc48dfc6077a0e53279b916ea3e4c8943febd8f199e7"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_release.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "6ef64a7882f0a50d8ee4f5a405b0b10ac9815d1fbcbea3bf3f27c0c02eeeb400"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_remove.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "9259a47a25c36cfacf83d99032217016b0b14f5c7922c4ebdac3b6035980745b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_flow.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "0ae78ec7bdafe9fd5280c1152093c1570d2364ba7c8750be9392de4af3d6f710"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/guest_repairs_safety.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "117ca33f655be007eb4fc85c7e1f0cee813117409b4e4f9f2302fd99b4cf8ace"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/lima_named_vms.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "1220ba99493f2f250abe58121cfc9716c30c60f82e699a71cb411894993526d1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "3d06e8e9c52f9c06f43306177749146906e7449aa751612a535023d679e1e684"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima_edit.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "1ea5ab63be46e9d83a4c1213e024e80cfb3cdcff302acf8d90c5e5e9757801ae"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_lima_sizing.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "61088cc5c43e54e993228fe108d4567976efabd751631a8d8a5a96b42a04d8bd"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_update.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "7dd2faee660260be083710eb9b21647da7510a2fe00d214b51aad0bc40ec8c99"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/update_target_vm.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "e55f85657ad0f39ba5dd6dd649b1bbe556cbba1a0d1dc9173662dbdfe03db534"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "536422232704211b349833206fe1010e749c0bd7c771dc76521f87d53511046f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_install.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "eece2a52ce20fd152fa59a367818c23d4068a99cbf83241354ffc64918d66f69"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_plan.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-4"
+          ],
+          "sha256": "7c8323476a6ceeda80abc77762b7c6dda4e4d3a01383db163ccfa34b2a937d01"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/doctor.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-5"
+          ],
+          "sha256": "3856ac323cb8047746cfe75d37cf9747c24d4d793c52f544c2bd57cee2652083"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/self_update.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-6"
+          ],
+          "sha256": "5595014fd2bcd7724ffc9bd6ff9066210efc1a81f0377ea867c7a439b4dcce4e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/self_update_refresh.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-6"
+          ],
+          "sha256": "dc2dacc820d48e92f6496cd1196ab71cb031bc10d28f12b9885318c9d9c5e6c1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/self_update_release.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-6"
+          ],
+          "sha256": "01f7e059fe01595d4a87bfccdc7fa48e304fd0c051bcaea65b192b1181ff85f6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_module.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-6"
+          ],
+          "sha256": "b466536ef36096292a418e7e5802bd55ba4e9d6387321645aaac199b361a6081"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_probe.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PORT-6"
+          ],
+          "sha256": "80b7d20df5eaa550ff842ab55e7ac8623218925f6d26075a358c14543f872ab1"
+        }
+      ],
+      "deltaSummaryMarkdown": "Since the first review, only `src/wsl.rs`, `tests/wsl_disk.rs`, `tests/setup_update.rs` and `tests/doctor.rs` changed (by mtime against the first submission). I inspected all four:\n- `nsh_dirs_command` uses `-mindepth 1`, so the prune now applies at the clone root. `status_script` embeds it for `\"$d\"`. `parse_status` already keeps one line for the root `.nsh`, which both the loop and the find report.\n- The new Unix test runs the real command over a tree with traps at the root and in an app. It expects exactly `.nsh`, `apps/a/b/.nsh` and `src/frontend/.nsh`, which also proves the depth bound (`apps/a/b/c/.nsh` is left out) and that a `.nsh` inside another `.nsh` is not reported.\n- `setup_update` checks both directions again.\n- The no-op line in `doctor.rs` is gone.\n\nThe checks at revision 47 (snapshot 43ca290e) passed: 279, 11 and 54 tests, plus the audit.",
+      "reattestedFrom": "d1e767f9cbc518efed47d7460772a0c2353b2dddf0ea6f3597852f38c92c16a9",
+      "summaryMarkdown": "Each module and test group was diffed against `d006250`.\n\n**What matches the port:**\n- `lima/`, `migrate.rs`, `refresh.rs`, `remove.rs`, `setup/update.rs` and `update.rs` are byte-identical to the old code.\n- `guest.rs` drops only `--gpu` from `setup_flags`. `setup/wsl.rs` drops only `WindowsGpu` and the Windows-side step. `records.rs` adds `RETIRED_FLAGS`, which `parse_guests` and `upsert` apply. Every reader goes through `parse_guests`, so refresh, migration and doctor never see `--gpu`.\n- `doctor` drops only the GPU adapters, `hardwareAdapter` and the Vulkan and lavapipe findings. Its pins follow §7, with `android-build-tools` always shown.\n- `release.rs` adds `OLDEST_RELEASE` and sets `MIN_REFRESH_RELEASE` to it. `RELEASES` and the axoupdater target are unchanged.\n- No GPU, Vulkan or adapter text is left in `src/`.\n\n**Tests:** every ported group keeps its test count. Each changed assertion follows a criterion, apart from S4-F2. The two doctor halves moved here faithfully.\n\n**Memory (REPO-5):** the tree matches the criterion: 7 domains × 5 files, 11 decisions with `promoted_from: rayx-1-0` and valid old-source citations. I spot-checked their facts against the source (HostFacts, `curl -sIL -w`, atomic writes, `release_commits`, `linux::too_old`, WebView2, the CLI surface). The audit prints `[OK]`, and the amended pattern is right.\n\n**Accepted as is:**\n- The `predates the guest refresh` branches in `refresh.rs` and `update.rs` can no longer be reached. Keeping them stays close to the port.\n- The `fmt-per-member` decision stays behind, as d-memory says, and `project/state.md` still records the behaviour.\n\nThe checks at revision 45 were reused (278, 11 and 54 tests, plus the audit).\n\n**Open:** S4-F1 (the `.nsh` find does not prune at the clone root) and S4-F2 (one weakened assertion and one no-op line).",
+      "findingIds": [
+        "S4-F1",
+        "S4-F2"
+      ],
+      "recordedAt": "2026-10-24T00:33:01Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-release:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893",
+        "rayx-cli:CHANGELOG.md": "e6500f82ef1acfbb8b4250a19c5ddda94ed93e2b25d556b2c22e3fa4e04f1add",
+        "nsh-release:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
+      }
     }
   },
   "checkpoints": {
@@ -1063,6 +1595,17 @@
       },
       "reviewHash": "a538b2b2bf02e7438a2299ef9f53bbe7585cb6861002477bf321bf5d524a0175",
       "recordedAt": "2026-10-24T00:17:02Z"
+    },
+    "s4-guests-doctor-update": {
+      "snapshotId": "43ca290e3d69a6c1ec2a126c361588e3f6e1eae3d01cbc8e4f05652ce862b463",
+      "commits": {
+        "rayx-cli": "d004637e3ab878700c8e1a38417f49519a7b9664",
+        "nsh-release": "327bb9ea65d08ffac4af498cc7fbbfa18a1b3623",
+        "nsh-fork-docs": "3c3cd5c177c16618d8cbdee5e61ef929a45d887c",
+        "rayx-cli-old": "d0062509bf65b57ef65375a50709f1dbc4777198"
+      },
+      "reviewHash": "681d0e677af192e5802de5d3bd1aea8a3a3682b1a0e7928db237c9348485e3d9",
+      "recordedAt": "2026-10-24T00:33:36Z"
     }
   },
   "findings": [
@@ -1299,6 +1842,56 @@
         }
       ],
       "boundaryId": "s3-optional-sets"
+    },
+    {
+      "id": "S4-F1",
+      "criterionIds": [
+        "PORT-4"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: the `.nsh` search (`wsl::nsh_dirs_command`) runs with `-mindepth 1`. It prunes `target/`, `node_modules/` and `.git/` at the clone root as well as below it, and never looks inside another `.nsh/`. A Unix test runs it over a real tree.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/wsl.rs",
+          "symbol": "nsh_dirs_command"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "symbol": "the_nsh_search_finds_app_output_and_never_looks_inside_target_node_modules_or_git"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/wsl_disk.rs",
+          "symbol": "the_status_script_also_measures_nsh_build_output"
+        }
+      ],
+      "boundaryId": "s4-guests-doctor-update"
+    },
+    {
+      "id": "S4-F2",
+      "criterionIds": [
+        "PORT-4",
+        "PORT-5"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: the per-root `setup_update` test again asserts that the pinned root lacks the default (`target on stable`). The no-op `let _ = report_for_windows;` is removed from `tests/doctor.rs`.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_update.rs",
+          "symbol": "update_runs_the_recorded_sets_once_per_root_with_each_roots_pins"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/doctor.rs",
+          "symbol": "there_is_no_gpu_section"
+        }
+      ],
+      "boundaryId": "s4-guests-doctor-update"
     }
   ],
   "handoffMarkdown": "",
