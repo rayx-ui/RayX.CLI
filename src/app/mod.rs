@@ -310,10 +310,25 @@ fn cli_of(
     })
 }
 
-/// The variables rayx sets for nsh, each only when it is unset: the wasm32 C tools of the web
-/// set's LLVM, and the pinned NDK as `ANDROID_NDK_HOME`.
+/// The variables rayx sets for nsh: the wasm32 C tools of the web set's LLVM and the pinned NDK as
+/// `ANDROID_NDK_HOME`, each only when unset, and a set `PATH` with `~/.cargo/bin` in front when
+/// that directory exists and `PATH` lacks it (the prerequisite step may just have installed
+/// rustup, and nsh runs `cargo` by name).
 pub fn environment(cx: &mut Cx) -> Vec<(String, String)> {
     let mut set = Vec::new();
+    // An unset or empty `PATH` stays as it is: nsh then gets the system's default search path.
+    if let Some(bin) = setup::rust::cargo_bin_dir(cx).filter(|bin| cx.machine.is_dir(bin))
+        && let Some(path) = cx.machine.env("PATH").filter(|path| !path.is_empty())
+    {
+        let dirs: Vec<PathBuf> = std::env::split_paths(&path)
+            .filter(|dir| !dir.as_os_str().is_empty())
+            .collect();
+        if !dirs.contains(&bin)
+            && let Ok(joined) = std::env::join_paths(std::iter::once(bin).chain(dirs))
+        {
+            set.push(("PATH".to_string(), joined.to_string_lossy().into_owned()));
+        }
+    }
     let unset = |cx: &Cx, name: &str| cx.machine.env(name).is_none_or(|value| value.is_empty());
     if let Some((cc, ar)) = wasm_tools(cx) {
         for (name, tool) in [
