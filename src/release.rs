@@ -14,8 +14,8 @@ use crate::host::{CommandSpec, Runner};
 /// Where releases are published from.
 pub const RELEASES: &str = "https://github.com/rayx-ui/RayX.CLI/releases/download";
 
-/// The first release of this `rayx`, and the oldest one `--release` can name. The releases
-/// before it in version order belong to the old CLI (`rayx-ui/RayX.CLI.Old`).
+/// The first release of this `rayx`, and the oldest one `--release` can name. `--release` names
+/// this CLI's releases only; the old CLI's (1.0.0 to 1.4.1) are in `rayx-ui/RayX.CLI.Old`.
 pub const OLDEST_RELEASE: Release = Release(Version::new(1, 0, 0));
 
 /// The first release with `setup --update` and the refresh offer after `self update`: every
@@ -39,8 +39,8 @@ impl fmt::Display for ReleaseError {
         if self.too_old {
             write!(
                 f,
-                "`{}` is older than {OLDEST_RELEASE}, the first release of this rayx; the releases \
-                 before it are the old CLI's (rayx-ui/RayX.CLI.Old)",
+                "`{}` is older than {OLDEST_RELEASE}, the first release of this rayx; there is none \
+                 before it (the old CLI's releases are in rayx-ui/RayX.CLI.Old)",
                 self.text
             )
         } else {
