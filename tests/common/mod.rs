@@ -7,6 +7,15 @@ pub mod proof;
 
 use rayx_cli::host::{Outcome, Runner};
 
+/// A canonical path as a process sees its working directory: without the `\\?\` prefix Windows'
+/// canonical paths carry (a UNC path keeps it).
+fn plain(path: PathBuf) -> PathBuf {
+    match path.to_str().and_then(|text| text.strip_prefix(r"\\?\")) {
+        Some(rest) if !rest.starts_with("UNC") => PathBuf::from(rest),
+        _ => path,
+    }
+}
+
 /// A recording runner that runs Cargo's read-only queries (`locate-project`, `metadata`) for
 /// real, as a printing runner runs its queries, so pins are read from the fixtures; every other
 /// command is recorded.
@@ -58,7 +67,7 @@ impl Workspace {
 
     pub fn empty() -> Self {
         let dir = tempfile::tempdir().expect("temp dir");
-        let root = fs::canonicalize(dir.path()).expect("canonical temp dir");
+        let root = plain(fs::canonicalize(dir.path()).expect("canonical temp dir"));
         Self { _dir: dir, root }
     }
 
