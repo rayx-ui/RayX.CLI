@@ -847,7 +847,7 @@ pub fn environment(host: HostFacts, yes: bool, runner: &mut Runner) -> (PlanEnv,
 }
 
 /// The plan environment of a known project (or none), with the nsh pin read in `dir` (the
-/// directory setup runs in) through `runner`.
+/// directory setup runs in) through `runner`. The default pin's warning goes to standard error.
 pub fn environment_for(
     host: HostFacts,
     project: Option<&Project>,
@@ -856,6 +856,10 @@ pub fn environment_for(
     runner: &mut Runner,
 ) -> PlanEnv {
     let nsh = crate::nsh::pin::resolve_in(runner, dir);
+    // An app that pins no nsh hears so from every command, with the lines that pin it.
+    if let Some(warning) = nsh.as_ref().ok().and_then(|pin| pin.default_warning()) {
+        eprintln!("{warning}");
+    }
     environment_with(host, project, yes, Some(nsh))
 }
 
@@ -932,16 +936,14 @@ pub fn after_run(args: &SetupArgs, code: u8, env: &PlanEnv, sets: &[Set], machin
         return;
     }
     let names: Vec<String> = sets.iter().map(|set| set.name().to_string()).collect();
-    // A Cargo workspace is recorded by its root; an app without one (its pin in `rayx.toml`) by
-    // its directory, so `--update` installs its pin and prune keeps that entry.
-    let root = env
-        .project_root
-        .clone()
-        .or_else(|| match &env.nsh {
-            Some(Ok(pin)) if pin.app => Some(pin.dir.clone()),
-            _ => None,
-        })
-        .map(|root| root.display().to_string());
+    // An app is recorded by the directory its pin was read in (a `rayx.toml` app inside a Cargo
+    // workspace pins nothing at the workspace root), anything else by its workspace root, so
+    // `--update` installs the same pin and prune keeps that entry.
+    let root = match &env.nsh {
+        Some(Ok(pin)) if pin.app => Some(pin.dir.clone()),
+        _ => env.project_root.clone(),
+    }
+    .map(|root| root.display().to_string());
     if let Err(error) = records::record_setup(machine, env.host.os, &names, root.as_deref(), false)
     {
         eprintln!("rayx: {error}");
