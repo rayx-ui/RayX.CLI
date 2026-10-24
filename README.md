@@ -285,7 +285,9 @@ support, only the pinned nsh is checked, with `rayx nsh install -C <dir>` as its
 
 nsh runs in the directory the pin was read in, without `CARGO` in its environment. When they are
 unset, `rayx` sets `CC_wasm32_unknown_unknown` and `AR_wasm32_unknown_unknown` to the LLVM the web
-set installed, and `ANDROID_NDK_HOME` to the pinned NDK; everything else passes through. On macOS
+set installed, and `ANDROID_NDK_HOME` to the pinned NDK, and it puts `~/.cargo/bin` first on `PATH`
+when that directory exists and `PATH` lacks it (the prerequisite step may just have installed
+rustup); everything else passes through. On macOS
 and Linux `rayx` replaces itself with nsh, so a process manager that stops `rayx` stops nsh; on
 Windows it leaves Ctrl+C to nsh, waits for it and exits with nsh's code.
 
@@ -294,11 +296,19 @@ Windows it leaves Ctrl+C to nsh, waits for it and exits with nsh's code.
 | `rayx app` command and target | Sets beyond the base set |
 | --- | --- |
 | any command with `--target web` | `--web` |
-| `test --target web` | `--web` and `--test`; with no Chrome, Edge or Chromium installed, `rayx` passes nsh `--browser` with the test set's Chromium |
+| `test --target web` | `--web` and `--test`; with no Chrome, Edge or Chromium installed, `rayx` passes nsh `--browser` with Playwright's Chromium (see below) |
 | `--target ios`, `ios-simulator` or `catalyst` | `--ios` |
 | `--target android` | `--android` |
 | `--target macos`, `linux`, `windows` or `gpui`, or no target | none |
 | `build`, `check`, `init`, `keygen`, `certify`, `publish`, `verify`, `revoke`, `symbolicate` | none |
+
+Playwright's Chromium is the one `--test` installs for the project's Playwright package (its
+`tools-node` directory, see [Projects](docs/projects.md)), else the newest in Playwright's per-user
+cache. An app without a Playwright package, such as one `rayx new` makes, gets none from `--test`:
+on a host with no browser, put one in the cache with `pnpm dlx playwright install chromium` (with
+`--with-deps` on Linux). Ubuntu 24.04 and later let only known browsers create the user namespaces
+Chromium's sandbox needs, and nsh starts it sandboxed, so Playwright's Chromium there needs the
+AppArmor profile that [Manual verification](docs/manual-verification.md) shows.
 
 ### How `rayx` chooses and installs nsh
 
