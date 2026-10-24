@@ -44,11 +44,31 @@ sudo apparmor_parser -r /etc/apparmor.d/playwright-chromium
 
 | Check | Command | Result |
 |---|---|---|
-| The web and test sets are complete | `rayx setup --web --test --check` | |
-| The browser rayx passes | `ls ~/.cache/ms-playwright` shows a `chromium-<revision>`, and `command -v chromium chromium-browser google-chrome google-chrome-stable` prints nothing | |
-| It starts sandboxed | `~/.cache/ms-playwright/chromium-*/chrome-linux*/chrome --headless=new --dump-dom about:blank` prints `<html>` (no "No usable sandbox!") | |
-| Doctor in the guest | `rayx doctor` | |
-| The web proof | `cargo test --test proof_app_web -- --ignored --test-threads=1` | |
+| The web and test sets are complete | `rayx setup --web --test --check` | pass (2026-10-24): every step `ok`, "Everything is installed.", exit 0 |
+| The browser rayx passes | `ls ~/.cache/ms-playwright` shows a `chromium-<revision>`, and `command -v chromium chromium-browser google-chrome google-chrome-stable` prints nothing | pass: `chromium-1248` (`chrome-linux-arm64`), no system browser |
+| It starts sandboxed | `~/.cache/ms-playwright/chromium-*/chrome-linux*/chrome --headless=new --dump-dom about:blank` prints `<html>` (no "No usable sandbox!") | pass: without the profile Chromium stops with "No usable sandbox!" (`kernel.apparmor_restrict_unprivileged_userns = 1`); with it, it prints `<html><head></head><body></body></html>` |
+| Doctor in the guest | `rayx doctor` | pass: 13 requirements, 0 missing; `nsh  fork-0.2.0-4 (327bb9e)  default  installed  1.6 GiB` |
+| The web proof | `cargo test --test proof_app_web -- --ignored --test-threads=1` | pass after the fix below: 1 passed in 367 s (the default nsh built from source in a temporary `RAYX_HOME`, the app built, run, tested on the web in Playwright's Chromium, packaged and served) |
+
+Run on macOS 26.6.2 on an Apple M5 with Lima 2.2.1, in the VM `rayx` (Ubuntu 24.04.5, kernel
+6.8.0-147, aarch64), which `rayx setup --lima --web --test --clone --vm-cpus 6 --vm-memory 8 --yes`
+resized from 2 CPUs and 4 GiB and set up. Raw logs: `artifacts-temp/agentx/rayx-1-0/own3/`.
+
+Deviations from the steps above:
+
+- 1.0.0 is not published yet, so the guest's `rayx` came from `RAYX_LIMA_BINARY`: a Linux build of
+  this repository (`1250e51`) made inside the guest and copied to `~/.rayx-lima-proof` on the Mac,
+  which the guest reads through its read-only home mount.
+- The guest's earlier clone `~/RayX.CLI` held the old CLI's history (the checkout was renamed to
+  RayX.CLI.Old), so it was moved to `~/RayX.CLI.old-history` and `--clone` cloned afresh.
+- The fork has no release of `fork-0.2.0-4` yet, so the guest built the default nsh from source
+  (`nsh-linux-arm64.tar.gz` was missing, as rayx said).
+
+Findings fixed while verifying:
+
+- rayx looked for Playwright's Linux Chromium in `chrome-linux64` and `chrome-linux` only, not in
+  ARM64's `chrome-linux-arm64`, so `rayx app test --target web` passed nsh no browser and nsh found
+  none. Fixed in `562dcc1`; the proof then passed.
 
 ## Windows and WSL (the owner's PC)
 

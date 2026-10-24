@@ -71,8 +71,12 @@ impl Workspace {
         Self { _dir: dir, root }
     }
 
+    /// `relative` (`/`-separated) inside the workspace, written with this host's separators.
     pub fn path(&self, relative: &str) -> PathBuf {
-        self.root.join(relative)
+        relative
+            .split('/')
+            .filter(|part| !part.is_empty())
+            .fold(self.root.clone(), |path, part| path.join(part))
     }
 
     pub fn write(&self, relative: &str, text: &str) {
