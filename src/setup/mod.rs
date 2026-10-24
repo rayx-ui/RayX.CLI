@@ -5,15 +5,22 @@
 //! list. A probe never installs anything, and a second run of `setup` executes nothing.
 
 pub mod android;
+pub mod guest;
 pub mod ios;
+pub mod lima;
 pub mod linux;
 pub mod machine;
 pub mod macos;
+pub mod migrate;
 pub mod records;
+pub mod refresh;
+pub mod remove;
 pub mod rust;
 pub mod test_tools;
+pub mod update;
 pub mod web;
 pub mod windows;
+pub mod wsl;
 
 use std::fmt;
 use std::io::{self, BufRead, IsTerminal, Write};
@@ -835,16 +842,14 @@ pub fn environment_for(host: HostFacts, project: Option<&Project>, yes: bool) ->
 
 /// Runs `rayx setup` against the real machine and returns the process exit code.
 pub fn run(args: &SetupArgs) -> u8 {
-    if args.wsl || args.lima || args.update {
-        let flag = if args.wsl {
-            "--wsl"
-        } else if args.lima {
-            "--lima"
-        } else {
-            "--update"
-        };
-        eprintln!("rayx: `rayx setup {flag}` is not available in this build yet");
-        return 1;
+    if args.wsl {
+        return wsl::run(args);
+    }
+    if args.lima {
+        return lima::run(args);
+    }
+    if args.update {
+        return update::run(args);
     }
     let host = crate::host::facts();
     let mut runner = if args.check {

@@ -153,7 +153,10 @@ impl GuestsFile {
         };
         guest.ubuntu = update.ubuntu.clone();
         for flag in &update.flags {
-            if matches!(flag.as_str(), "--check" | "--yes") || guest.flags.contains(flag) {
+            if matches!(flag.as_str(), "--check" | "--yes")
+                || RETIRED_FLAGS.contains(&flag.as_str())
+                || guest.flags.contains(flag)
+            {
                 continue;
             }
             guest.flags.push(flag.clone());
@@ -280,15 +283,27 @@ impl std::fmt::Display for RecordError {
 
 impl std::error::Error for RecordError {}
 
+/// Set flags a record may hold from an older `rayx` that this one does not have: the GPU set
+/// (D15). They are dropped when a record is read, so the next write leaves them out and no guest
+/// is set up with them again.
+pub const RETIRED_FLAGS: [&str; 1] = ["--gpu"];
+
 /// Reads a record from its text; an empty or missing file is an empty record.
 pub fn parse_guests(path: &Path, text: Option<&str>) -> Result<GuestsFile, RecordError> {
     let Some(text) = text.filter(|text| !text.trim().is_empty()) else {
         return Ok(GuestsFile::default());
     };
-    serde_json::from_str(text).map_err(|error| RecordError::Unparsable {
-        path: path.to_path_buf(),
-        message: error.to_string(),
-    })
+    let mut guests: GuestsFile =
+        serde_json::from_str(text).map_err(|error| RecordError::Unparsable {
+            path: path.to_path_buf(),
+            message: error.to_string(),
+        })?;
+    for guest in &mut guests.guests {
+        guest
+            .flags
+            .retain(|flag| !RETIRED_FLAGS.contains(&flag.as_str()));
+    }
+    Ok(guests)
 }
 
 /// Reads `guests.json` from disk.

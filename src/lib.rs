@@ -3,10 +3,13 @@
 //! [`run`].
 
 pub mod cli;
+pub mod doctor;
 pub mod fmt;
 pub mod host;
 pub mod project;
+pub mod release;
 pub mod setup;
+pub mod update;
 pub mod wsl;
 
 use std::ffi::OsString;
@@ -14,7 +17,7 @@ use std::process::ExitCode;
 
 use clap::Parser;
 
-use crate::cli::{Cli, Command};
+use crate::cli::{Cli, Command, LimaCommand, SelfCommand, WslCommand};
 
 /// Runs the command line of this process and returns the process exit code.
 pub fn run() -> ExitCode {
@@ -45,10 +48,31 @@ fn dispatch(cli: Cli) -> ExitCode {
     let name = match &cli.command {
         Command::Setup(args) => return ExitCode::from(setup::run(args)),
         Command::Fmt(args) => return run_fmt(args.args.clone()),
-        Command::Doctor(_) => "doctor",
-        Command::Wsl { .. } => "wsl",
-        Command::Lima { .. } => "lima",
-        Command::SelfCommand { .. } => "self",
+        Command::Doctor(args) => return ExitCode::from(doctor::run(args)),
+        Command::Wsl {
+            command: WslCommand::Status { json },
+        } => return ExitCode::from(wsl::run_status(*json)),
+        Command::Wsl {
+            command: WslCommand::Compact(args),
+        } => return ExitCode::from(wsl::run_compact(args)),
+        Command::Wsl {
+            command: WslCommand::Remove(args),
+        } => {
+            return ExitCode::from(setup::remove::run(setup::guest::GuestKind::Wsl, args));
+        }
+        Command::Lima {
+            command: LimaCommand::Remove(args),
+        } => {
+            return ExitCode::from(setup::remove::run(setup::guest::GuestKind::Lima, args));
+        }
+        Command::SelfCommand {
+            command:
+                SelfCommand::Update {
+                    check,
+                    release,
+                    yes,
+                },
+        } => return ExitCode::from(update::run(*check, *yes, release.as_deref())),
         Command::App(_) => "app",
         Command::Nsh { .. } => "nsh",
         Command::New(_) => "new",
