@@ -229,7 +229,7 @@
       "criteria": [
         {
           "id": "PIN-1",
-          "descriptionMarkdown": "The pin is read from the workspace's `Cargo.lock`: every `nsh-*` package must have one source; `git+…?tag=…#<commit>` gives a git pin with id = the commit's first 12 hex digits; `?branch=`/`?rev=` and other git URLs give a git pin with no release; a crates.io source gives an upstream release pin `v<version>`; no source gives a path pin to the NSH checkout containing the crate. The workspace is found from the current directory (or `-C`); outside any workspace, from the crates `nsh.json` lists under `\"rust\"`. A missing lock is written by `cargo metadata` first. Two sources stop with both named.\n\nVerified by the new group `tests/nsh_pin.rs`, with fixture locks including Gamify's shape.",
+          "descriptionMarkdown": "The pin is read from the workspace's `Cargo.lock`: every NSH package (the crates of the defaults table's list, and `nsh-platform-gpui` from NSH's `crates/gpui`, as nsh's own list has them; an app's own `nsh-app-*` crates are not NSH's) must have one source; `git+…?tag=…#<commit>` gives a git pin with id = the commit's first 12 hex digits; `?branch=`/`?rev=` and other git URLs give a git pin with no release (the ref decoded from Cargo's percent-encoding); a crates.io source gives an upstream release pin `v<version>`; no source gives a path pin to the NSH checkout containing the crate. The workspace is found from the current directory (or `-C`) with `cargo locate-project`, else from the manifests when cargo cannot run (a fresh machine, a missing toolchain); outside any workspace, from the crates `nsh.json` lists under `\"rust\"`. A missing lock is written by `cargo metadata` first when the command executes (`rayx setup`, `rayx app`, `rayx nsh path|install`); a dry run (`--check`, `doctor`, `rayx nsh status`, the project reads of `rayx nsh prune`) writes nothing and reports the pin as unknown until the lock exists. A workspace with neither a lock nor a working cargo is an error, never the default. Two sources stop with both named.\n\nVerified by the new group `tests/nsh_pin.rs`, with fixture locks including Gamify's shape.",
           "verification": "automated"
         },
         {
@@ -257,12 +257,12 @@
       "criteria": [
         {
           "id": "STORE-1",
-          "descriptionMarkdown": "Entries live in `$RAYX_HOME/nsh/<id>/`, else `~/.rayx/nsh/<id>/`. `receipt.json` (`version` 1, `id`, `kind` `distribution` or `source`, `url`, `ref`, `commit`, `nsh`, `cli`, `installed`) is written last; an entry without it is unfinished, and the next install resumes it (a source entry reuses its checkout and target directory; a distribution is downloaded again). An install holds `<id>.lock`; a second rayx waits, says so, and then finds the entry installed. Nothing is written outside the store and the system temporary directory.\n\nVerified by the new group `tests/nsh_store.rs`.",
+          "descriptionMarkdown": "Entries live in `$RAYX_HOME/nsh/<id>/`, else `~/.rayx/nsh/<id>/`. `receipt.json` (`version` 1, `id`, `kind` `distribution` or `source`, `url`, `ref`, `commit`, `nsh`, `cli`, `installed`) is written last; an entry without it is unfinished, and the next install resumes it (a source entry reuses its checkout and target directory; a distribution is downloaded again). An install holds `<id>.lock`; a second rayx waits, says so, and then finds the entry installed. A complete entry whose CLI no longer answers as the pin wants loses its receipt before it is installed again, so an interrupted repair leaves it unfinished. A dry run writes nothing, not even the lock. Nothing is written outside the store and the system temporary directory.\n\nVerified by the new group `tests/nsh_store.rs`.",
           "verification": "automated"
         },
         {
           "id": "STORE-2",
-          "descriptionMarkdown": "`rayx nsh prune [--yes]` lists the entries that no recorded project (`setup.json` roots, each project's pin) and not the default pins, with their sizes, and removes them after a `[y/N]`; `--yes` removes without asking; without a terminal and without `--yes` nothing is removed and it exits 1. `rayx setup --update` offers the same after its runs.\n\nVerified by `tests/nsh_store.rs`.",
+          "descriptionMarkdown": "`rayx nsh prune [--yes]` lists the entries that no recorded project (`setup.json` roots, each project's pin) and not the default pins, with their sizes, and removes them after a `[y/N]`; `--yes` removes without asking; without a terminal and without `--yes` nothing is removed and it exits 1. An entry another rayx is installing (its lock held) is kept, and lock files stay; while a recorded project's pin cannot be read, nothing is pruned and the reason is shown. `rayx setup --update` offers the same after its runs, except with `--check` or `--vm`.\n\nVerified by `tests/nsh_store.rs`.",
           "verification": "automated"
         }
       ]
@@ -293,7 +293,7 @@
         },
         {
           "id": "INST-2",
-          "descriptionMarkdown": "From source: `git init`, `git fetch --depth 1 <url> <commit>` (falling back to fetching the ref when the host refuses a commit), a detached checkout in `<id>/source/`, `core.longPaths true` on Windows, `rustup toolchain install` in the checkout, then `cargo build --release --locked -p nsh-cli` there without `CARGO`; a `source` receipt. The CLI check (both paths): `nsh --version` must name the lock's NSH version and the pin's commit, else nothing is recorded and the error names both.\n\nVerified by `tests/nsh_install.rs`.",
+          "descriptionMarkdown": "From source: `git init`, `git fetch --depth 1 <url> <commit>` (falling back to fetching the ref when the host refuses a commit), a detached checkout in `<id>/source/`, `core.longPaths true` on Windows, `rustup toolchain install` in the checkout, then `cargo build --release --locked -p nsh-cli --target-dir target` there (the target directory pinned inside the entry, whatever `CARGO_TARGET_DIR` or `build.target-dir` say), both without `CARGO` and `RUSTUP_TOOLCHAIN` (so NSH's own `rust-toolchain.toml` applies) and run as the Rust steps find them (on `PATH`, else in `~/.cargo/bin`, as in the same `rayx setup` run that installed rustup); a `source` receipt. The CLI check (both paths): `nsh --version` must name the lock's NSH version and the pin's commit, else nothing is recorded and the error names both.\n\nVerified by `tests/nsh_install.rs`.",
           "verification": "automated"
         },
         {
@@ -321,7 +321,7 @@
         },
         {
           "id": "NSHCMD-2",
-          "descriptionMarkdown": "The base set ends with an `nsh` step after the project's toolchain: its probe is the receipt plus `nsh --version`, its install §4.3; it asks nothing; `--check` prints its commands and installs nothing. `rayx setup --update` installs each recorded project's pin. `rayx doctor` shows one line per pin (`nsh  fork-0.2.0-4 (327bb9e)  project  installed  <size>`), and `--json` has the same fields.\n\nVerified by the new group `tests/setup_nsh.rs`.",
+          "descriptionMarkdown": "The base set ends with an `nsh` step after the project's toolchain: its probe is the receipt plus `nsh --version`, its install §4.3; it asks nothing; `--check` prints its commands and installs nothing. A pin that cannot be read (two sources, a broken `rayx.toml`, no lock yet in a dry run) fails the step with the reason (the step reads the pin again when it runs, so a fresh machine's first `rayx setup` installs the project's pin once Rust is in place); the built-in default never stands in, and doctor shows the reason. `rayx setup` records a Cargo workspace by its root and an app without one by its directory; `rayx setup --update` installs each recorded project's pin. `rayx doctor` shows one line per pin (`nsh  fork-0.2.0-4 (327bb9e)  project  installed  <size>`), and `--json` has the same fields.\n\nVerified by the new group `tests/setup_nsh.rs`.",
           "verification": "automated"
         }
       ]

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 61,
-  "planRevision": 7,
+  "revision": 84,
+  "planRevision": 11,
   "specHashes": {
-    "requirements": "89cdfdea30dcf1fedb95cb846d11a94f4d93692b6e7932398cd695d550c5f9c6",
-    "design": "e37e64ac2a0af2304219e6003af8c8cfc8a226f9240afe63fc48d6faeae17d52",
-    "plan": "c8bedc206c8a3f1fc571713f93ccfb744869715195f34ed58b0d8ae611246d7e"
+    "requirements": "ea651bcac3b79b7f7fe7792541ffa6c7a001fd8c551404fc9c7170bbdbca36dd",
+    "design": "c67586ba421121125af2b2f6b0b07789524f58ab89aa21e394a73a16c8ba23f3",
+    "plan": "d3f0a510d2ae687327f01d93d4d85e886c0678b03ff48ac9c44dd2ae35bbc343"
   },
   "tasks": {
     "t01-package": {
@@ -106,19 +106,34 @@
       ]
     },
     "t17-pin": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t18-store": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t19-install": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t20-nsh-commands": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t21-install-proof": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t22-app-forward": {
       "status": "pending"
@@ -226,6 +241,18 @@
         }
       },
       "recordedAt": "2026-10-24T00:56:51Z"
+    },
+    "e358fb4c14dbaffca7fdbda1ca5f2c7bb21003411367147ac1934b77487984ce": {
+      "snapshot": {
+        "specHash": "0f9917aa47d9c50678033f57795f91fb34d1eced4f2e8ba3cc0be041d1765b53",
+        "repositories": {
+          "rayx-cli": "477439daf097247a1a121a411cf547ba9f831ae3157960180d8a14f8034510b9",
+          "nsh-release": "4c88dbe1e7fe5a4d2fc15ce1b626a3186fec1698a7cdac15fcb5ffb856ec60c0",
+          "nsh-fork-docs": "9e6c48df60162f45590ad3268a1fc0ebce9bba95756f5255e21358df88a608ca",
+          "rayx-cli-old": "0a91cabcfa47ef8639b7c693923239841428bfacc031a32c37d7acc5de5d77ee"
+        }
+      },
+      "recordedAt": "2026-10-24T02:15:40Z"
     }
   },
   "checkResults": {
@@ -516,6 +543,108 @@
       "logPath": "artifacts-temp/agentx/rayx-1-0/s5-fork-releases-final-ebfb0f3533ed.log",
       "logSha256": "db194c654ad92e523b59550e30dbd680be17b8292a330b936d0c68b8603bafa0",
       "inputsHash": "a590c93c86a8aa5ab0da3ade3ee8b1d9660390421a05d8c40192b64ccb2e8ae2"
+    },
+    "s6-pin-store/check-nsh-pin/final": {
+      "checkId": "check-nsh-pin",
+      "boundaryId": "s6-pin-store",
+      "phase": "final",
+      "batchId": "e358fb4c14dbaffca7fdbda1ca5f2c7bb21003411367147ac1934b77487984ce",
+      "definitionHash": "e71bd6ba587a6d05e853218e5bf806d8a793adb606a04b566d7899c6c58f72c3",
+      "basisHash": "36cda75cea14711cc807559385db78935fa917509709770ae880ef14e95a3502",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 23,
+      "durationSeconds": 0.5709,
+      "recordedAt": "2026-10-24T02:11:44Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s6-pin-store-final-06ce1250bede.log",
+      "logSha256": "8f05d8790187ad51966cb8d26dae137e8cae8d2ba6e236bd3d73d4fe109b6878",
+      "inputsHash": "e451c098dd9dfab3006b98a402118597d75d1a77f10e1475d93e8f45ccc3a58b"
+    },
+    "s6-pin-store/check-nsh-store/final": {
+      "checkId": "check-nsh-store",
+      "boundaryId": "s6-pin-store",
+      "phase": "final",
+      "batchId": "e358fb4c14dbaffca7fdbda1ca5f2c7bb21003411367147ac1934b77487984ce",
+      "definitionHash": "e7b7a9333ce6f415597e4a0f395bc37b7ec8e54926b9c1a2c31247f3e183f9d5",
+      "basisHash": "37b275798a60b169ccd30c34b9a5100b8986321b693d7245792bc65af4cd5f73",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 14,
+      "durationSeconds": 0.4159,
+      "recordedAt": "2026-10-24T02:11:45Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s6-pin-store-final-9fbf6d118031.log",
+      "logSha256": "89ea20dd313daa86de8ee7039fd6e7a47c1cc04b71e8f89d484b5c101f1f9ca0",
+      "inputsHash": "12d716c17913e95f2fcb075dc0b97d32e1a806ab5b811b26a6f50451adac4f74"
+    },
+    "s6-pin-store/check-nsh-install/final": {
+      "checkId": "check-nsh-install",
+      "boundaryId": "s6-pin-store",
+      "phase": "final",
+      "batchId": "e358fb4c14dbaffca7fdbda1ca5f2c7bb21003411367147ac1934b77487984ce",
+      "definitionHash": "a71e53c792143ed733d2cac3fac35290b963e900ed5fc4ff21f5afb83e4ee780",
+      "basisHash": "a8627d900e1cb43bd3314376a7d3d0591b206d5980a9211763ef081c876c6ef1",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 21,
+      "durationSeconds": 0.1698,
+      "recordedAt": "2026-10-24T02:11:45Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s6-pin-store-final-c17a4077ac45.log",
+      "logSha256": "e862e677f215338318c57ecb6392fbd93dd0d3d81fd4f25f4269993557ffd12b",
+      "inputsHash": "51acf088084c0c3bdc5b51a5076239af537345dea2cee9a5140539d6e3f06b69"
+    },
+    "s6-pin-store/check-nsh-command/final": {
+      "checkId": "check-nsh-command",
+      "boundaryId": "s6-pin-store",
+      "phase": "final",
+      "batchId": "e358fb4c14dbaffca7fdbda1ca5f2c7bb21003411367147ac1934b77487984ce",
+      "definitionHash": "79c3748b22525272ba498b46ce7c2b1cb43aed54f9e88ccd6fd925a77a2137c6",
+      "basisHash": "cae972c64166643a3ae435834919eceb345ecbcc9fc4e90e1460763fd09aadec",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 0.637,
+      "recordedAt": "2026-10-24T02:11:45Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s6-pin-store-final-fcfb6179bfe4.log",
+      "logSha256": "0589aad7d00006bc303a2b93ae8fa740a82475d0f7f7ca00248b948461774c80",
+      "inputsHash": "5e53760ef19d424374c8fd58c4cf2e8eec17b0c9e1098eed76d6e295b2cd59ae"
+    },
+    "s6-pin-store/check-setup-nsh/final": {
+      "checkId": "check-setup-nsh",
+      "boundaryId": "s6-pin-store",
+      "phase": "final",
+      "batchId": "e358fb4c14dbaffca7fdbda1ca5f2c7bb21003411367147ac1934b77487984ce",
+      "definitionHash": "e55fd5f74b7fc7770ea4719ae880367bfa5b20483d3b06e9c6db9066c35db8e9",
+      "basisHash": "cec2a64d3005b2df3b648d104d7a3ef27d7953a2dfabd21ab22277e27b203c58",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 12,
+      "durationSeconds": 0.3057,
+      "recordedAt": "2026-10-24T02:11:46Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s6-pin-store-final-79a5e8ed4917.log",
+      "logSha256": "9872a14918c67c3ef9ddfc46e09bb261eded157fa949b8d40c1a33fdaf86722b",
+      "inputsHash": "babf4364db5d9c900a0da3538a413f6e5f7a4fa2d0b6b71cb7513c8b3b3ec350"
+    },
+    "s6-pin-store/check-proof-nsh-install/final": {
+      "checkId": "check-proof-nsh-install",
+      "boundaryId": "s6-pin-store",
+      "phase": "final",
+      "batchId": "e358fb4c14dbaffca7fdbda1ca5f2c7bb21003411367147ac1934b77487984ce",
+      "definitionHash": "4d23dcbb31c8b8f2b5c6c00f06c6da84c0ec2e86bd97e6629f3b08c462d3c647",
+      "basisHash": "158d0182124db414d2b553969dbf5ca995ce18ce56bc2173e7acf197c11617b7",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 234.3233,
+      "recordedAt": "2026-10-24T02:15:40Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s6-pin-store-final-af0219a54622.log",
+      "logSha256": "b3b22b0e610f8cf64591c24e0276a0958a1a2c318050269cdceecb98ca3a0438",
+      "inputsHash": "f3c346ea1c65ff9971a3eb7aa7ab1c3d8ba9f90d7ca243700beb261b95619594"
     }
   },
   "reviews": {
@@ -1746,6 +1875,251 @@
         "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
       }
+    },
+    "s6-pin-store": {
+      "reviewerId": "reviewer-s6-3d91c7a4",
+      "snapshotId": "e358fb4c14dbaffca7fdbda1ca5f2c7bb21003411367147ac1934b77487984ce",
+      "criterionIds": [
+        "PIN-1",
+        "PIN-2",
+        "PIN-3",
+        "STORE-1",
+        "STORE-2",
+        "INST-1",
+        "INST-2",
+        "INST-3",
+        "NSHCMD-1",
+        "NSHCMD-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/nsh/pin.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1",
+            "PIN-2",
+            "PIN-3"
+          ],
+          "sha256": "7f0626cd7df27ef76be50c87fc81f5277d967d3f43e0bf733a54c0fc87f17aae"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-3"
+          ],
+          "sha256": "84722bb3e2f3c0f0ce67f3346b0b38627f7eaf461315060048718ec1bfd4f8c5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "3614d5ef2c610c8e966444f0360c9840414d46c4027dc02f0df32c732712679d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_pin.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1",
+            "PIN-2",
+            "PIN-3"
+          ],
+          "sha256": "5afeff54963e8503d9dcab76c09a877ecfcc985f5fd32023171e78250a14686d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/library_guard.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "0a6558ae34b2e81276a3fc7501449dffefa284b0de5e6bade05ae7eb3f7a294e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/nsh/store.rs",
+          "kind": "source",
+          "criterionIds": [
+            "STORE-1",
+            "STORE-2"
+          ],
+          "sha256": "05c368f4453f77c6a83a5c0d2a4228964e691c4412d3b00f984ccbca0cfef1e9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_store.rs",
+          "kind": "test",
+          "criterionIds": [
+            "STORE-1",
+            "STORE-2"
+          ],
+          "sha256": "cb9083010c479a206e469d0bea018164de03279ff806f2a6734dc9caf09dabd1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/nsh/install.rs",
+          "kind": "source",
+          "criterionIds": [
+            "STORE-1",
+            "INST-1",
+            "INST-2",
+            "INST-3"
+          ],
+          "sha256": "83b9febc1b95844acc89df309d4669819f8d88b7939729ad3f17c22007ee4e50"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/rust.rs",
+          "kind": "source",
+          "criterionIds": [
+            "INST-2"
+          ],
+          "sha256": "c43fcb6036dbcaae5096e1be410885fd36a222d92e924e77662fb3bb28079e64"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/host/runner.rs",
+          "kind": "source",
+          "criterionIds": [
+            "INST-2"
+          ],
+          "sha256": "f5ce9e9cbe3a7c787906683c0e3c8675843ad0069aa30f94b21791908b72c4df"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_install.rs",
+          "kind": "test",
+          "criterionIds": [
+            "STORE-1",
+            "INST-1",
+            "INST-2"
+          ],
+          "sha256": "b6ea37d2fdb630578c921bf9e0bd1cdb453283df9f51aae547938040d17f178e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/proof_nsh_install.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-3",
+            "INST-3"
+          ],
+          "sha256": "533d1067c90abe4ed5dcf8363314b1e7bbd33b74af494d272e6778ce954c1245"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/nsh/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "STORE-2",
+            "NSHCMD-1"
+          ],
+          "sha256": "4081d5e04786c526c14705a65d08c54b868371d9de5c5ffc236d0f2257c49a5e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/lib.rs",
+          "kind": "source",
+          "criterionIds": [
+            "NSHCMD-1"
+          ],
+          "sha256": "5e6d7590c0955501434f68e361bc57517d5d6547fd5204e327b960966c6eb934"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_command.rs",
+          "kind": "test",
+          "criterionIds": [
+            "STORE-2",
+            "NSHCMD-1"
+          ],
+          "sha256": "bbab033f28044567b4925554913327029d4a1669d85bd2de663bced6bad6af8e"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/nsh.rs",
+          "kind": "source",
+          "criterionIds": [
+            "NSHCMD-2"
+          ],
+          "sha256": "eb2f1cb74280fa76c237c7a700aabe741836237f3d8c99c092f8bada705d6ef6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1",
+            "PIN-2",
+            "NSHCMD-2"
+          ],
+          "sha256": "19f288a918b0b3e7129393c85c6b339bf68d8e5dfb8a29914446832f735b62a3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "STORE-2",
+            "NSHCMD-2"
+          ],
+          "sha256": "82e45f69960dd7e9415dfcc8f003073b9e4df817f12e3f92b8cdee5b798ae154"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/doctor/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "NSHCMD-2"
+          ],
+          "sha256": "7ea0829c26dd9def1fb7ff5abd22ef77f5878e5e6fc6c7a81514ad33250f4222"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_nsh.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1",
+            "INST-2",
+            "NSHCMD-2"
+          ],
+          "sha256": "72c85c702b126f0a450c4eb07c57751c1387ffc6df55c6e09859a87e7b8784fc"
+        }
+      ],
+      "summaryMarkdown": "Passed: S6-F13 is resolved, and S6-F1 to S6-F12 stay resolved.\n\n**What holds:** all ten criteria are met in source and in their own new groups.\n- **Pin:** the lock is read with NSH's crate list, percent-decoded refs, and a fallback to the manifest files without cargo. The `rayx.toml` and default rules hold. A dry run writes no lock, and an unreadable pin is an error, never the default.\n- **Store:** receipts are written last, the lock waits, and a broken entry is made unfinished. Prune holds locks, keeps lock files, and stops on an unreadable recorded pin.\n- **Installs:** the release path and the source path, with the Rust tools found as setup finds them, without `CARGO` and `RUSTUP_TOOLCHAIN`, and with a pinned target directory. Then the CLI check.\n- **Commands and setup:** `rayx nsh status|path|install|prune`, the setup step with its second read, recording, the `--update` offer, and doctor's line and JSON.\n\n**Evidence:** I reused the check at revision 82 (snapshot `e358fb4c…`: `nsh_pin` 23, `nsh_store` 14, `nsh_install` 21, `nsh_command` 9, `setup_nsh` 12, and the proof 3 of 3).\n\n**For s7:** nsh's own web runtime build in a checkout follows `CARGO_TARGET_DIR` (`runtime.rs:307-333`). I agree with recording it as a known limitation for source entries and path checkouts, and proposing a fork `fix/*` branch that passes `--target-dir <root>/target` there, as NSH's xtask does.",
+      "findingIds": [
+        "S6-F1",
+        "S6-F2",
+        "S6-F3",
+        "S6-F4",
+        "S6-F5",
+        "S6-F6",
+        "S6-F7",
+        "S6-F8",
+        "S6-F9",
+        "S6-F10",
+        "S6-F11",
+        "S6-F12",
+        "S6-F13"
+      ],
+      "recordedAt": "2026-10-24T02:16:38Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-release:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893",
+        "rayx-cli:CHANGELOG.md": "e6500f82ef1acfbb8b4250a19c5ddda94ed93e2b25d556b2c22e3fa4e04f1add",
+        "nsh-release:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
+      }
     }
   },
   "checkpoints": {
@@ -1803,6 +2177,17 @@
       },
       "reviewHash": "6bf105128579248ddbd28a18d61aec4a4c0904e61692e4ea5112fdb11c31dd8b",
       "recordedAt": "2026-10-24T00:58:10Z"
+    },
+    "s6-pin-store": {
+      "snapshotId": "e358fb4c14dbaffca7fdbda1ca5f2c7bb21003411367147ac1934b77487984ce",
+      "commits": {
+        "rayx-cli": "35835956ea024d94c859b979ca44a2e2bcf69e69",
+        "nsh-release": "c9d33fcac275ecdf6d329eb48fd842dee2624e5d",
+        "nsh-fork-docs": "193b480838ed70e7ce658cf0ed4a35a1035c8c24",
+        "rayx-cli-old": "d0062509bf65b57ef65375a50709f1dbc4777198"
+      },
+      "reviewHash": "be2e0ffad34bf99bae9437e5375fcc591cef852220ba563041a60f5a7b42016f",
+      "recordedAt": "2026-10-24T02:17:14Z"
     }
   },
   "findings": [
@@ -2202,6 +2587,281 @@
         }
       ],
       "boundaryId": "s5-fork-releases"
+    },
+    {
+      "id": "S6-F1",
+      "criterionIds": [
+        "PIN-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `pin::is_nsh_crate` (the defaults table's crates plus `nsh-platform-gpui`) filters both `lock_source` and `path_checkout`. An `nsh-app-*` member no longer counts, and the version comes from an NSH crate. `DEFAULTS.nsh.crates` keeps exactly the `crates/nsh-*` list, so the proof's comparison holds. The `library_guard` allowlist entry for `gpui` in `src/nsh/pin.rs` names NSH's own crate, which is a fair exception under D14.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_pin.rs",
+          "symbol": "an_apps_own_crates_are_not_nsh_packages"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_pin.rs",
+          "symbol": "nsh_platform_gpui_is_an_nsh_package_outside_the_patch_list"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F2",
+      "criterionIds": [
+        "PIN-1",
+        "PIN-2",
+        "NSHCMD-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved for every pin that resolution reports as an error: `PlanEnv.nsh` carries the `Err`. `setup::nsh::unreadable` is always missing, and its install fails with the reason. Doctor prints `nsh  the pin cannot be read: …` and JSON `nsh.error`. `kept_ids` returns the error, so prune and the `--update` offer remove nothing and say why. A pin that resolution silently misreads as `default` when cargo cannot run is the separate finding S6-F9.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_nsh.rs",
+          "symbol": "an_unreadable_pin_fails_its_step_and_nothing_stands_in_for_it"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_store.rs",
+          "symbol": "nothing_is_pruned_while_a_recorded_projects_pin_cannot_be_read"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F3",
+      "criterionIds": [
+        "PIN-1",
+        "NSHCMD-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `locked_source` writes a missing lock only on an `Execute` runner and otherwise reports the pin as unknown. `environment`/`environment_for` take the caller's runner and directory. Doctor and `rayx nsh status` read through a printing runner, and `update_host` passes its own runner. `tests/fixtures/plain-app/Cargo.lock` is gone and is not written again. `rayx nsh prune` still writes locks: see S6-F10.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_pin.rs",
+          "symbol": "a_dry_run_writes_no_missing_lock_and_says_the_pin_is_unknown"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_nsh.rs",
+          "symbol": "check_and_doctor_write_no_missing_lock_and_setup_does"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F4",
+      "criterionIds": [
+        "STORE-2",
+        "NSHCMD-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `after_run` records `project_root`, or else the directory of an app's pin. `update_host` reads each recorded directory's pin there, and `kept_ids` resolves the same directory. The test's app is pinned to the default, so its `kept_ids` assertion would pass either way. The `--update` line `(rayx.toml)` is what proves that the recorded directory is read.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_nsh.rs",
+          "symbol": "an_app_without_a_cargo_workspace_is_recorded_by_its_directory_and_updated"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F5",
+      "criterionIds": [
+        "STORE-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `setup::update::after_update` holds the condition and the offer, and is tested. With `--check` or `--vm`, nothing is said and nothing is removed. Otherwise it lists the unused entry and removes it under `--yes`.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_store.rs",
+          "symbol": "setup_update_offers_prune_after_its_runs_unless_it_only_checks_or_targets_guests"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F6",
+      "criterionIds": [
+        "PIN-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `percent_decoded` applies to tag, branch and rev, and an invalid escape stays as written. The cases now use Cargo's own encoded shape (`branch=feat%2Fx`, `tag=fork%2D0.2.0-4`).",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_pin.rs",
+          "symbol": "a_branch_or_rev_source_is_a_git_pin_without_a_release"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F7",
+      "criterionIds": [
+        "STORE-1",
+        "STORE-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: prune takes `Store::try_lock` on each candidate and holds it until removal. It keeps and names an entry another rayx holds. `Store::remove` leaves the lock file, so a waiting install locks the same file.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_store.rs",
+          "symbol": "prune_keeps_an_entry_another_rayx_is_installing_and_every_lock_file"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F8",
+      "criterionIds": [
+        "STORE-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `Install::run` calls `Store::unfinish`, under the lock, before redoing an entry whose CLI check fails. An interrupted repair then leaves the entry unfinished. A Print-mode install now takes no lock and creates no directory (`nsh_install` `a_dry_run_writes_nothing_into_the_store`).",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_install.rs",
+          "symbol": "a_broken_entry_loses_its_receipt_before_it_is_installed_again"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_install.rs",
+          "symbol": "a_dry_run_writes_nothing_into_the_store"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F9",
+      "criterionIds": [
+        "PIN-1",
+        "NSHCMD-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved:\n- `pin::workspace_root` goes through `Project::discover`, which falls back to the manifests.\n- A lock that is still missing after the write attempt is an error, never \"no NSH crates\".\n- The `unreadable` step reads the pin again when it probes and installs.\n\nI reran my reproduction against the current binary, on the fixture locked to `?branch=main#5f0c2a9…`. Both with `PATH=/usr/bin:/bin` and with a `rust-toolchain.toml` naming an uninstalled 1.80.0, it now reads `main (5f0c2a9)  project`.\n\nThe second read only helps when cargo can run by then, for example once the project's toolchain is installed. On a fresh machine it cannot write the lock: see S6-F11.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_pin.rs",
+          "symbol": "a_locked_project_is_read_from_its_files_when_cargo_cannot_run"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_pin.rs",
+          "symbol": "without_cargo_on_the_path_the_lock_still_names_the_pin"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_pin.rs",
+          "symbol": "a_workspace_with_neither_a_lock_nor_a_working_cargo_is_an_error"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_nsh.rs",
+          "symbol": "a_pin_unreadable_when_planned_is_read_again_when_its_step_runs"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F10",
+      "criterionIds": [
+        "PIN-1",
+        "STORE-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `rayx nsh prune` reads `kept_ids` through `Runner::print()`. A lockless recorded project now stops the prune with the reason and gets no lock.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_command.rs",
+          "symbol": "prune_reads_the_recorded_projects_without_writing_into_them"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F11",
+      "criterionIds": [
+        "INST-2",
+        "NSHCMD-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `RustTools::find` uses the machine-level lookups of `setup::rust`: `rustup` from `~/.cargo/bin` when it is there, `cargo` from PATH, else from `~/.cargo/bin`. The setup step and `rayx nsh path|install` pass these tools to the source build. The `unreadable` step's second read writes the lock with `rust::tool_program(cx, \"cargo\")`, through `resolve_with`. That is the pattern the ported web set already uses for `cargo install`. The first read at plan time keeps bare `cargo`, which is fine now that S6-F9 falls back to the manifests.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_nsh.rs",
+          "symbol": "right_after_rustup_is_installed_the_step_finds_rust_in_cargo_bin"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_install.rs",
+          "symbol": "the_source_build_runs_the_rustup_and_cargo_it_is_given"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F12",
+      "criterionIds": [
+        "INST-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `in_nsh_checkout` removes `CARGO` and `RUSTUP_TOOLCHAIN` from `rustup toolchain install` and from `cargo build` in the checkout, so NSH's `rust-toolchain.toml` applies. The source-commands test in `nsh_install` asserts both are removed.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_install.rs",
+          "symbol": "a_branch_pin_builds_from_source_with_exactly_these_commands_without_cargo"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S6-F13",
+      "criterionIds": [
+        "STORE-1",
+        "INST-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: the CLI build is `cargo build --release --locked -p nsh-cli --target-dir target`, run in the checkout. A relative `--target-dir` outranks `CARGO_TARGET_DIR`, `CARGO_BUILD_TARGET_DIR` and `build.target-dir`, so the CLI lands in `<id>/source/target/release/`, inside the store. The `--check` description names the flag and both unset variables. The real source build in the proof at revision 82 passed with the flag (3 passed, 234 s).",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_install.rs",
+          "symbol": "a_branch_pin_builds_from_source_with_exactly_these_commands_without_cargo"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_nsh.rs",
+          "symbol": "check_prints_the_download_and_the_source_fallback_and_installs_nothing"
+        }
+      ],
+      "boundaryId": "s6-pin-store"
     }
   ],
   "handoffMarkdown": "",

@@ -171,8 +171,8 @@
       "requirementIds": [
         "PIN"
       ],
-      "descriptionMarkdown": "`nsh::pin` resolves the pin per design §4.1 from `Cargo.lock` (read as TOML; `cargo metadata` only when the lock is missing), then `rayx.toml`, then the default. The default pin and its NSH crate list live in `project::pins`' defaults table. Ids: 12 hex digits of a commit, `v<version>` for a crates.io release; path pins have none.",
-      "invariantsMarkdown": "- The pin is read in the directory nsh will run in.\n- One source for all `nsh-*` packages, else an error naming both.\n- A pin has at most one source: `Cargo.lock` or `rayx.toml`, never both.",
+      "descriptionMarkdown": "`nsh::pin` resolves the pin per design §4.1 from `Cargo.lock` (read as TOML; the workspace from `cargo locate-project`, else from the manifests as project discovery reads them; `cargo metadata` only when the lock is missing and the runner executes), then `rayx.toml`, then the default. The default pin and its NSH crate list live in `project::pins`' defaults table. Ids: 12 hex digits of a commit, `v<version>` for a crates.io release; path pins have none.",
+      "invariantsMarkdown": "- The pin is read in the directory nsh will run in.\n- One source for all NSH packages (`pin::is_nsh_crate`: the defaults table's crates and `nsh-platform-gpui`), else an error naming both; an app's `nsh-app-*` crates are its own.\n- A dry run never writes a lock; an unreadable pin is an error the caller reports, never replaced by the default.\n- A pin has at most one source: `Cargo.lock` or `rayx.toml`, never both.",
       "rationaleMarkdown": "The crate list travels with the default pin because a distribution entry has no checkout to list crates from (design §4.7).",
       "sourceRefs": [
         {
@@ -196,7 +196,7 @@
       "requirementIds": [
         "STORE"
       ],
-      "descriptionMarkdown": "`nsh::store`: entries under `$RAYX_HOME/nsh` (else `~/.rayx/nsh`), one directory per id, `receipt.json` written last through a temporary file and rename, an OS file lock `<id>.lock` held during installs, sizes computed on demand. Prune keeps the default and every recorded project's pin.",
+      "descriptionMarkdown": "`nsh::store`: entries under `$RAYX_HOME/nsh` (else `~/.rayx/nsh`), one directory per id, `receipt.json` written last through a temporary file and rename, an OS file lock `<id>.lock` held during installs, sizes computed on demand. Prune keeps the default and every recorded project's pin, holds each candidate's lock while it removes it (an entry another rayx holds is kept), leaves lock files in place, and removes nothing while a recorded pin cannot be read.",
       "invariantsMarkdown": "- An entry without a receipt is never run.\n- Nothing outside the store and the system temporary directory is written by an install."
     },
     {
@@ -205,7 +205,7 @@
         "INST"
       ],
       "descriptionMarkdown": "`nsh::install` tries the release archive first and falls back to source (D11). Downloads run `curl` through `Runner` into the store, the digest is checked in Rust, archives are unpacked in Rust (`tar.gz` and `zip`). The source path runs `git`, `rustup` and `cargo` through `Runner` in `<id>/source`, which is a checkout nsh recognizes (`target/release/nsh` beside `crates/nsh-ios-host/Cargo.toml`), so nsh builds its hosts and runtimes there on demand. Both paths end with the version and commit check of `nsh --version`.",
-      "invariantsMarkdown": "- Platform names: `macos-arm64`, `linux-x86_64`, `linux-arm64`, `windows-x86_64`, `windows-arm64`; any other host installs from source.\n- `CARGO` is removed from every command rayx runs for nsh.",
+      "invariantsMarkdown": "- Platform names: `macos-arm64`, `linux-x86_64`, `linux-arm64`, `windows-x86_64`, `windows-arm64`; any other host installs from source.\n- `CARGO` is removed from every command rayx runs for nsh, and `RUSTUP_TOOLCHAIN` from those run in an NSH checkout.\n- `rustup` and `cargo` are found as setup's Rust steps find them (`setup::rust`), so a run that just installed rustup uses it.",
       "rationaleMarkdown": "nsh finds its runtimes in a distribution or a checkout, never next to a `cargo install`ed binary (design §3), so a bare binary is never an option.",
       "sourceRefs": [
         {
