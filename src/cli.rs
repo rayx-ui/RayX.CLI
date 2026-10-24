@@ -12,6 +12,8 @@ use clap::{ArgGroup, Args, Parser, Subcommand, ValueEnum};
 #[derive(Debug, Parser)]
 #[command(
     name = "rayx",
+    // The usage names `rayx` on every host, never `rayx.exe`.
+    bin_name = "rayx",
     version,
     about = "Set up a machine for Native Shell (NSH) work, and run any NSH app through the nsh it pins",
     arg_required_else_help = true,
