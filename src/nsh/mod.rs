@@ -351,32 +351,34 @@ pub fn install_in(
     Ok(0)
 }
 
-/// The store ids prune keeps: the default pin's and every recorded project's pin. A recorded
-/// project whose pin cannot be read is an error: which entry it uses is unknown, so nothing may
-/// be pruned. A recorded directory that no longer exists keeps nothing.
+/// The store ids prune keeps: the default pin's and every recorded project's pin. A record that
+/// cannot be read, or a recorded project whose pin cannot be read, is an error: which entries are
+/// in use is unknown, so nothing may be pruned. A recorded directory that no longer exists keeps
+/// nothing.
 pub fn kept_ids(
     runner: &mut Runner,
     machine: &dyn Machine,
     host: &HostFacts,
 ) -> Result<Vec<String>> {
     let mut keep: Vec<String> = pin::default_pin(Path::new(".")).id().into_iter().collect();
-    if let Ok(setup) = read_setup(machine, host.os) {
-        for root in setup.roots {
-            let root = PathBuf::from(root);
-            if !root.is_dir() {
-                continue;
-            }
-            let pin = pin::resolve(runner, &root).map_err(|error| {
-                anyhow!(
-                    "cannot tell which nsh {} uses ({error:#}), so nothing is pruned",
-                    root.display()
-                )
-            })?;
-            if let Some(id) = pin.id()
-                && !keep.contains(&id)
-            {
-                keep.push(id);
-            }
+    let setup = read_setup(machine, host.os).map_err(|error| {
+        anyhow!("{error}, so which nsh builds are in use is unknown and nothing is pruned")
+    })?;
+    for root in setup.roots {
+        let root = PathBuf::from(root);
+        if !root.is_dir() {
+            continue;
+        }
+        let pin = pin::resolve(runner, &root).map_err(|error| {
+            anyhow!(
+                "cannot tell which nsh {} uses ({error:#}), so nothing is pruned",
+                root.display()
+            )
+        })?;
+        if let Some(id) = pin.id()
+            && !keep.contains(&id)
+        {
+            keep.push(id);
         }
     }
     Ok(keep)
