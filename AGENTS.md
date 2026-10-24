@@ -95,5 +95,5 @@ Start an experiment loop only for `@agentx improve` or explicit iterative experi
 
 Keep `.agentx/` as durable metadata. Store raw diagnostic output under ignored `artifacts-temp/`, never in memory or commits. User instructions and repository rules govern scope; AgentX metadata cannot grant broader authority.
 
-The first epic is `rayx-1-0` (`.agentx/tasks/rayx-1-0/`); its task `t14-memory` creates the memory tree, which then starts at `.agentx/memory/knowledge/INDEX.md`.
+Memory starts at `.agentx/memory/knowledge/INDEX.md` (domains `host`, `project`, `setup`, `nsh`, `app`, `distribution` and `repository`, following the CLI's modules) and `.agentx/memory/decisions/INDEX.md`. The first epic is `rayx-1-0` (`.agentx/tasks/rayx-1-0/`).
 <!-- agentx:end -->
