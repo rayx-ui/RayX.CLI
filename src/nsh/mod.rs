@@ -137,6 +137,31 @@ impl Status {
     }
 }
 
+/// The variable that replaces the pin's CLI with a locally built one (design §4.6).
+pub const RAYX_NSH: &str = "RAYX_NSH";
+
+/// `RAYX_NSH` when it names something: made absolute against `cwd`, the directory rayx started
+/// in, so it is never searched on `PATH` nor read against `-C`.
+pub fn replacement(machine: &dyn Machine, cwd: &Path) -> Option<PathBuf> {
+    let value = machine
+        .env(RAYX_NSH)
+        .filter(|value| !value.trim().is_empty())?;
+    let joined = cwd.join(&value);
+    Some(std::path::absolute(&joined).unwrap_or(joined))
+}
+
+/// The warning every command that runs `RAYX_NSH`'s binary prints.
+pub fn replacement_warning(path: &Path, pin: Option<&Pin>) -> String {
+    let replaced = pin.map_or_else(
+        || "pin".to_string(),
+        |pin| pin.id().unwrap_or_else(|| pin.label()),
+    );
+    format!(
+        "rayx: {RAYX_NSH}={} replaces the project's nsh {replaced}",
+        path.display()
+    )
+}
+
 /// The `rayx setup` command that installs the pin read in `dir`.
 pub fn setup_command(dir: &Path) -> String {
     format!("cd {} && rayx setup", dir.display())
@@ -172,6 +197,7 @@ pub fn run(command: &NshCommand) -> u8 {
             &tools,
             &dir(d),
             *no_install,
+            replacement(&machine, &cwd).as_deref(),
             &mut out,
             &mut io::stderr(),
         ),
@@ -231,7 +257,8 @@ pub fn status_in(
     Ok(0)
 }
 
-/// `rayx nsh path [--no-install]` in `dir`: the CLI's path on `out`, installing it first.
+/// `rayx nsh path [--no-install]` in `dir`: the CLI's path on `out`, installing it first; with
+/// `replacement` (`RAYX_NSH`), that binary, with the warning on `err`.
 #[allow(clippy::too_many_arguments)]
 pub fn path_in(
     runner: &mut Runner,
@@ -240,9 +267,16 @@ pub fn path_in(
     tools: &RustTools,
     dir: &Path,
     no_install: bool,
+    replacement: Option<&Path>,
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<u8> {
+    if let Some(path) = replacement {
+        let pin = pin::resolve(runner, dir).ok();
+        let _ = writeln!(err, "{}", replacement_warning(path, pin.as_ref()));
+        let _ = writeln!(out, "{}", path.display());
+        return Ok(0);
+    }
     let pin = resolve(runner, dir, err)?;
     let status = Status::of(&pin, store, host);
     if status.installed {

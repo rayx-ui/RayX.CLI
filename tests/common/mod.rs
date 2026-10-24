@@ -3,6 +3,37 @@
 
 #![allow(dead_code)]
 
+use rayx_cli::host::{Outcome, Runner};
+
+/// A recording runner that runs Cargo's read-only queries (`locate-project`, `metadata`) for
+/// real, as a printing runner runs its queries, so pins are read from the fixtures; every other
+/// command is recorded.
+pub fn reading_cargo() -> Runner {
+    Runner::record().responder(|spec| {
+        let query = spec.program == "cargo"
+            && spec
+                .args
+                .first()
+                .is_some_and(|a| a == "locate-project" || a == "metadata");
+        query.then(|| {
+            let mut command = std::process::Command::new("cargo");
+            command.args(&spec.args);
+            if let Some(cwd) = &spec.cwd {
+                command.current_dir(cwd);
+            }
+            for (key, value) in &spec.env {
+                command.env(key, value);
+            }
+            let output = command.output().expect("cargo");
+            Outcome {
+                code: output.status.code(),
+                stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+                stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+            }
+        })
+    })
+}
+
 use std::fs;
 use std::path::{Path, PathBuf};
 

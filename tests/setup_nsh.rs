@@ -90,28 +90,9 @@ fn check(env: &PlanEnv, machine: &FakeMachine, runner: &mut Runner) -> (u8, Stri
     (code, String::from_utf8(out).expect("UTF-8"))
 }
 
-/// A recording runner that runs Cargo's commands for real, as a printing runner runs its
-/// queries, so pins are read from the fixtures (`--check` runs no Cargo action); everything else
-/// is recorded.
+/// A recording Linux runner that reads pins from the fixtures with real Cargo queries.
 fn reading_cargo() -> Runner {
-    Runner::record().with_os(Os::Linux).responder(|spec| {
-        (spec.program == "cargo").then(|| {
-            let mut command = std::process::Command::new("cargo");
-            command.args(&spec.args);
-            if let Some(cwd) = &spec.cwd {
-                command.current_dir(cwd);
-            }
-            for (key, value) in &spec.env {
-                command.env(key, value);
-            }
-            let output = command.output().expect("cargo");
-            Outcome {
-                code: output.status.code(),
-                stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-                stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
-            }
-        })
-    })
+    common::reading_cargo().with_os(Os::Linux)
 }
 
 fn versioned(line: &'static str) -> Runner {

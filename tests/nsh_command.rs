@@ -254,6 +254,7 @@ fn path_installs_a_missing_pin_first_then_prints_its_cli() {
         &RustTools::on_path(),
         &app.root,
         false,
+        None,
         &mut out,
         &mut err,
     )

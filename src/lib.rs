@@ -2,13 +2,16 @@
 //! Native Shell (NSH) app run through the nsh its project pins. The `rayx` binary only calls
 //! [`run`].
 
+pub mod app;
 pub mod cli;
 pub mod doctor;
 pub mod fmt;
 pub mod host;
+pub mod new;
 pub mod nsh;
 pub mod project;
 pub mod release;
+pub mod serve;
 pub mod setup;
 pub mod update;
 pub mod wsl;
@@ -46,26 +49,22 @@ where
 }
 
 fn dispatch(cli: Cli) -> ExitCode {
-    let name = match &cli.command {
-        Command::Setup(args) => return ExitCode::from(setup::run(args)),
+    let code = match &cli.command {
+        Command::Setup(args) => setup::run(args),
         Command::Fmt(args) => return run_fmt(args.args.clone()),
-        Command::Doctor(args) => return ExitCode::from(doctor::run(args)),
+        Command::Doctor(args) => doctor::run(args),
         Command::Wsl {
             command: WslCommand::Status { json },
-        } => return ExitCode::from(wsl::run_status(*json)),
+        } => wsl::run_status(*json),
         Command::Wsl {
             command: WslCommand::Compact(args),
-        } => return ExitCode::from(wsl::run_compact(args)),
+        } => wsl::run_compact(args),
         Command::Wsl {
             command: WslCommand::Remove(args),
-        } => {
-            return ExitCode::from(setup::remove::run(setup::guest::GuestKind::Wsl, args));
-        }
+        } => setup::remove::run(setup::guest::GuestKind::Wsl, args),
         Command::Lima {
             command: LimaCommand::Remove(args),
-        } => {
-            return ExitCode::from(setup::remove::run(setup::guest::GuestKind::Lima, args));
-        }
+        } => setup::remove::run(setup::guest::GuestKind::Lima, args),
         Command::SelfCommand {
             command:
                 SelfCommand::Update {
@@ -73,13 +72,13 @@ fn dispatch(cli: Cli) -> ExitCode {
                     release,
                     yes,
                 },
-        } => return ExitCode::from(update::run(*check, *yes, release.as_deref())),
-        Command::App(_) => "app",
-        Command::Nsh { command } => return ExitCode::from(nsh::run(command)),
-        Command::New(_) => "new",
-        Command::Serve(_) => "serve",
+        } => update::run(*check, *yes, release.as_deref()),
+        Command::App(args) => app::run(args),
+        Command::Nsh { command } => nsh::run(command),
+        Command::New(args) => new::run(args),
+        Command::Serve(args) => serve::run(args),
     };
-    not_available(name)
+    ExitCode::from(code)
 }
 
 /// Runs `rayx fmt` and turns its error into a message and an exit code.
@@ -91,10 +90,4 @@ fn run_fmt(args: Vec<String>) -> ExitCode {
             ExitCode::FAILURE
         }
     }
-}
-
-/// The answer of a command this build does not implement yet.
-fn not_available(command: &str) -> ExitCode {
-    eprintln!("rayx: `rayx {command}` is not available in this build yet");
-    ExitCode::FAILURE
 }

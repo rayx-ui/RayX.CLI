@@ -430,6 +430,14 @@ impl From<io::Error> for SetupError {
     }
 }
 
+/// The base set's `nsh` step for the environment's pin; `None` when the plan has no pin.
+pub fn nsh_step(env: &PlanEnv) -> Option<Step> {
+    env.nsh.as_ref().map(|pin| match pin {
+        Ok(pin) => nsh::step(pin),
+        Err(unreadable) => nsh::unreadable(unreadable),
+    })
+}
+
 /// Expands `sets` (plus the base set, always first) into the ordered steps for this host.
 pub fn plan(env: &PlanEnv, sets: &[Set]) -> Result<Plan, SetupError> {
     let mut wanted: Vec<Set> = vec![Set::Base];
@@ -448,10 +456,7 @@ pub fn plan(env: &PlanEnv, sets: &[Set]) -> Result<Plan, SetupError> {
                     Os::MacOs => macos::steps(env)?,
                 });
                 // Last, after the project's toolchain (design §4.5).
-                steps.extend(env.nsh.as_ref().map(|pin| match pin {
-                    Ok(pin) => nsh::step(pin),
-                    Err(unreadable) => nsh::unreadable(unreadable),
-                }));
+                steps.extend(nsh_step(env));
             }
             Set::Web => steps.extend(web::steps(env)?),
             Set::Test => steps.extend(test_tools::steps(env)?),
@@ -851,6 +856,17 @@ pub fn environment_for(
     runner: &mut Runner,
 ) -> PlanEnv {
     let nsh = crate::nsh::pin::resolve_in(runner, dir);
+    environment_with(host, project, yes, Some(nsh))
+}
+
+/// The plan environment of a known project (or none) with an nsh pin the caller read: `None`
+/// plans no nsh step (`rayx app` with `RAYX_NSH`).
+pub fn environment_with(
+    host: HostFacts,
+    project: Option<&Project>,
+    yes: bool,
+    nsh: Option<Result<crate::nsh::pin::Pin, crate::nsh::pin::Unreadable>>,
+) -> PlanEnv {
     PlanEnv {
         host,
         pins: Pins::resolve(project),
@@ -861,7 +877,7 @@ pub fn environment_for(
             .and_then(|value| value.as_str())
             .map(str::to_string),
         yes,
-        nsh: Some(nsh),
+        nsh,
     }
 }
 

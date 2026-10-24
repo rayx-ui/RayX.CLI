@@ -232,8 +232,16 @@ fn outside_any_workspace_the_crates_nsh_json_lists_decide() {
         .expect_err("different sources")
         .to_string();
     assert!(error.contains("different sources"), "{error}");
+    // Each lock as this host writes its path (`\\` on Windows).
+    let lock = |name: &str| {
+        Path::new("rust")
+            .join(name)
+            .join("Cargo.lock")
+            .display()
+            .to_string()
+    };
     assert!(
-        error.contains("rust/one/Cargo.lock") && error.contains("rust/two/Cargo.lock"),
+        error.contains(&lock("one")) && error.contains(&lock("two")),
         "{error}"
     );
 }
