@@ -75,19 +75,21 @@ fn run_prepare(args: &AppArgs, dir: &Path, machine: &FakeMachine) -> Prepared {
 fn rayx_nsh_runs_that_binary_and_warns_naming_the_pin_it_replaces() {
     let home = Workspace::empty();
     let app = Workspace::fixture("nsh-fork-app");
+    // An absolute path on every host (`/Users/dev/…` has no drive on Windows).
+    let built = home.path("nsh/target/release/nsh");
     let machine = FakeMachine::new()
         .with_home("/Users/dev")
         .with_env("RAYX_HOME", &home.path("rayx-home").display().to_string())
-        .with_env("RAYX_NSH", "/Users/dev/nsh/target/release/nsh");
+        .with_env("RAYX_NSH", &built.display().to_string());
     for command in ["build", "run"] {
         let prepared = run_prepare(&app_args(&[command, "."]), &app.root, &machine);
-        assert_eq!(
-            prepared.launch.program,
-            PathBuf::from("/Users/dev/nsh/target/release/nsh")
-        );
+        assert_eq!(prepared.launch.program, built);
         assert_eq!(
             prepared.warnings.trim(),
-            "rayx: RAYX_NSH=/Users/dev/nsh/target/release/nsh replaces the project's nsh 327bb9ea65d0",
+            format!(
+                "rayx: RAYX_NSH={} replaces the project's nsh 327bb9ea65d0",
+                built.display()
+            ),
             "{command}: the warning comes with every command"
         );
         assert_eq!(
