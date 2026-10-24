@@ -298,10 +298,10 @@ fn a_release_install_checks_the_digest_unpacks_nsh_and_writes_a_distribution_rec
         commands[0].ends_with("nsh-macos-arm64.tar.gz.sha256"),
         "{commands:?}"
     );
+    // The CLI's path as this host writes it (`\\` on Windows), compared by its components.
     assert!(
-        commands
-            .iter()
-            .any(|l| l.ends_with("/nsh/bin/nsh --version")),
+        runner.specs().iter().any(|spec| spec.args == ["--version"]
+            && Path::new(&spec.program).ends_with(Path::new("nsh").join("bin").join("nsh"))),
         "{commands:?}"
     );
     assert!(

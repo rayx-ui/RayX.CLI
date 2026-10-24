@@ -9,7 +9,9 @@ use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use common::Workspace;
-use rayx_cli::app::{Launch, Launcher, ProcessLauncher, launch_for, prepare};
+use rayx_cli::app::{Launch, launch_for, prepare};
+#[cfg(unix)]
+use rayx_cli::app::{Launcher, ProcessLauncher};
 use rayx_cli::cli::{AppArgs, Cli, Command};
 use rayx_cli::host::path_env::{MemoryPathStore, UserPath};
 use rayx_cli::host::{Arch, HostFacts, Os, Outcome, Runner};

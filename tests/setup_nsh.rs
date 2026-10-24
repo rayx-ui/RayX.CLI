@@ -583,17 +583,18 @@ fn right_after_rustup_is_installed_the_step_finds_rust_in_cargo_bin() {
         panic!("one install action");
     };
     run(&mut cx).expect("installs");
-    let programs: Vec<String> = runner
+    // Compared as paths, so `\\` on Windows matches.
+    let programs: Vec<PathBuf> = runner
         .specs()
         .iter()
-        .map(|spec| spec.program.clone())
-        .filter(|program| program.contains("rustup") || program.contains("cargo"))
+        .map(|spec| PathBuf::from(&spec.program))
+        .filter(|program| program.ends_with("rustup") || program.ends_with("cargo"))
         .collect();
     assert_eq!(
         programs,
         [
-            "/Users/dev/.cargo/bin/rustup",
-            "/Users/dev/.cargo/bin/cargo"
+            PathBuf::from("/Users/dev/.cargo/bin/rustup"),
+            PathBuf::from("/Users/dev/.cargo/bin/cargo")
         ],
         "the rustup and cargo setup just installed"
     );
