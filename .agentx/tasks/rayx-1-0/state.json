@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 84,
-  "planRevision": 11,
+  "revision": 98,
+  "planRevision": 12,
   "specHashes": {
-    "requirements": "ea651bcac3b79b7f7fe7792541ffa6c7a001fd8c551404fc9c7170bbdbca36dd",
+    "requirements": "ae7ade30fe8db4afe681adca1da9ce2dbf1962dc1570a2f05a1f51b914e4960e",
     "design": "c67586ba421121125af2b2f6b0b07789524f58ab89aa21e394a73a16c8ba23f3",
-    "plan": "d3f0a510d2ae687327f01d93d4d85e886c0678b03ff48ac9c44dd2ae35bbc343"
+    "plan": "1573cdcc6b676d00afe7f28b0c2a8774fe424cf4556a800706b0d9338b751c19"
   },
   "tasks": {
     "t01-package": {
@@ -136,19 +136,34 @@
       ]
     },
     "t22-app-forward": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t23-prereqs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t24-fork-dev": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t25-new": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t26-serve": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t27-app-proof": {
       "status": "pending"
@@ -253,6 +268,18 @@
         }
       },
       "recordedAt": "2026-10-24T02:15:40Z"
+    },
+    "bd8e09b901594a1d533ae1cbdde8fbd2e490e29c4bfb1dda65ca3da89a001e6a": {
+      "snapshot": {
+        "specHash": "750f54686ed0e039615ef55af6ee8d6bb8d0aa50a36b86e230743b98ef3761fd",
+        "repositories": {
+          "rayx-cli": "43a92e2e884cbdd5f9fea8e3033a038b063a2e13eb5c27423dd3261997e10e35",
+          "nsh-release": "4c88dbe1e7fe5a4d2fc15ce1b626a3186fec1698a7cdac15fcb5ffb856ec60c0",
+          "nsh-fork-docs": "9e6c48df60162f45590ad3268a1fc0ebce9bba95756f5255e21358df88a608ca",
+          "rayx-cli-old": "0a91cabcfa47ef8639b7c693923239841428bfacc031a32c37d7acc5de5d77ee"
+        }
+      },
+      "recordedAt": "2026-10-24T02:40:37Z"
     }
   },
   "checkResults": {
@@ -645,6 +672,91 @@
       "logPath": "artifacts-temp/agentx/rayx-1-0/s6-pin-store-final-af0219a54622.log",
       "logSha256": "b3b22b0e610f8cf64591c24e0276a0958a1a2c318050269cdceecb98ca3a0438",
       "inputsHash": "f3c346ea1c65ff9971a3eb7aa7ab1c3d8ba9f90d7ca243700beb261b95619594"
+    },
+    "s7-run-nsh/check-nsh-run/final": {
+      "checkId": "check-nsh-run",
+      "boundaryId": "s7-run-nsh",
+      "phase": "final",
+      "batchId": "bd8e09b901594a1d533ae1cbdde8fbd2e490e29c4bfb1dda65ca3da89a001e6a",
+      "definitionHash": "d630909214e0877872248b2120898e634c05dc3ace4b91c3fea3ffd80a7388ba",
+      "basisHash": "15ff6316a611f77a96b10e12c2d0d74c8ba4a878a7cb0fdec42043e69cedbc5b",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 11,
+      "durationSeconds": 0.8891,
+      "recordedAt": "2026-10-24T02:40:35Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s7-run-nsh-final-803a3230952b.log",
+      "logSha256": "5c49e0e62d8564fde10a1180ffc58816fc31a79ebd4a5c0f506c1dfa964eaa83",
+      "inputsHash": "b7f530e9102e213fe1bd92c84c7e3b68bb905e9e2d2f99ae4ff9511091734701"
+    },
+    "s7-run-nsh/check-app-prereqs/final": {
+      "checkId": "check-app-prereqs",
+      "boundaryId": "s7-run-nsh",
+      "phase": "final",
+      "batchId": "bd8e09b901594a1d533ae1cbdde8fbd2e490e29c4bfb1dda65ca3da89a001e6a",
+      "definitionHash": "2ad5fcfb98bb1ab15b499fd02565ed5f3944dcedb48838d0031a4fac1d6d305c",
+      "basisHash": "ac77fd801da01b734a69730260ddaf5ea093001fc8d05ca444c6474530b851b0",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 19,
+      "durationSeconds": 0.0957,
+      "recordedAt": "2026-10-24T02:40:35Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s7-run-nsh-final-6e90af999dbe.log",
+      "logSha256": "8e8c03d897477f7fd89e59492ea66a99a12a52bf2eb3b6e823a213b7eac522ec",
+      "inputsHash": "38d1503be41a0da3f4c7609d18c08faf98257fde6998e1c7c8e98344a7944f83"
+    },
+    "s7-run-nsh/check-nsh-fork-dev/final": {
+      "checkId": "check-nsh-fork-dev",
+      "boundaryId": "s7-run-nsh",
+      "phase": "final",
+      "batchId": "bd8e09b901594a1d533ae1cbdde8fbd2e490e29c4bfb1dda65ca3da89a001e6a",
+      "definitionHash": "73e42723d274b40ff9c45b04e3e745013c354733ba0f748cfeb5e18ad4c87f48",
+      "basisHash": "9d75c0add8c912d588c4bcd6d42cd303c97739919ab376634083d69f50c69722",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 0.5971,
+      "recordedAt": "2026-10-24T02:40:35Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s7-run-nsh-final-5b4bc9ad4078.log",
+      "logSha256": "63c7df3068160ebb49356435d2fc19f71e1a8be8f43f72671b5221ecc0f48e53",
+      "inputsHash": "bd691e4f0c185c6729a1382a83dd702f0903cd260a01c89642e7aadc245ea7a6"
+    },
+    "s7-run-nsh/check-new-app/final": {
+      "checkId": "check-new-app",
+      "boundaryId": "s7-run-nsh",
+      "phase": "final",
+      "batchId": "bd8e09b901594a1d533ae1cbdde8fbd2e490e29c4bfb1dda65ca3da89a001e6a",
+      "definitionHash": "f70d069f696c691c2b78b453c2be7efa7886c0da0d9079084067dbb5cf7b189a",
+      "basisHash": "31f6540ed713256e9970700cdcd769d3fd76836ea0e292d26ca7cf306c4ca2da",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 9,
+      "durationSeconds": 0.5567,
+      "recordedAt": "2026-10-24T02:40:36Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s7-run-nsh-final-d491c2e8ea1c.log",
+      "logSha256": "ec9435a38be7cd176fb28c33031853df986d56d7f60e57a4571c19d3db51951d",
+      "inputsHash": "25a578a191cda5fdd031e57f73464fd272e83cd841fa538d73d908c5abbe654c"
+    },
+    "s7-run-nsh/check-serve/final": {
+      "checkId": "check-serve",
+      "boundaryId": "s7-run-nsh",
+      "phase": "final",
+      "batchId": "bd8e09b901594a1d533ae1cbdde8fbd2e490e29c4bfb1dda65ca3da89a001e6a",
+      "definitionHash": "c1e9c22c14ea6e758f0d17e9942678d7b2ef8e2e956f13a02d221138f9fc327f",
+      "basisHash": "7c2d61b6882bbde667d9c452ee6b404937066f1b5c904bafe68eb54e119ec6b8",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 1.2778,
+      "recordedAt": "2026-10-24T02:40:37Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s7-run-nsh-final-4b8e79b69929.log",
+      "logSha256": "c0ff64da3af246eaa5803c0e31ab1cd099cd95b3abe0ef688ff872051e5ce2d2",
+      "inputsHash": "7a53a5472221f83e0d6065c73b21e4d999c3f87b72359c25971612561c857035"
     }
   },
   "reviews": {
@@ -2120,6 +2232,166 @@
         "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
       }
+    },
+    "s7-run-nsh": {
+      "reviewerId": "reviewer-s7-b5e21c94",
+      "snapshotId": "bd8e09b901594a1d533ae1cbdde8fbd2e490e29c4bfb1dda65ca3da89a001e6a",
+      "criterionIds": [
+        "RUN-1",
+        "RUN-2",
+        "RUN-3",
+        "NEW-1",
+        "SERVE-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "RUN-1",
+            "RUN-2",
+            "RUN-3"
+          ],
+          "sha256": "0b98a3dff94a0f8096afd633e792b65cc888201b0628dd8d634e15eed7ea9057"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/prereqs.rs",
+          "kind": "source",
+          "criterionIds": [
+            "RUN-2"
+          ],
+          "sha256": "beb08a8fff0bd5897d2c8f2ec0949fe2c1165ef37e29ce0b92187397c0bf577f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "RUN-2",
+            "RUN-3"
+          ],
+          "sha256": "9914d851399cb4a230e610f61e3fdb2d86d3e84bded05a2d32a02f2fad67f1bf"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/nsh/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "RUN-3"
+          ],
+          "sha256": "cb68e736873aacbdc2d35d405b97455c9ba7fd1f1426d3c46eeaeee2eef983f5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/lib.rs",
+          "kind": "source",
+          "criterionIds": [
+            "RUN-1",
+            "NEW-1",
+            "SERVE-1"
+          ],
+          "sha256": "c0a12bb0aea434cef0ce9ea7d579afa828824bc853574e397a7b77127f92ec3f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/new.rs",
+          "kind": "source",
+          "criterionIds": [
+            "NEW-1"
+          ],
+          "sha256": "d64fd720b16d9e9650c5ac700d6705ee8f6efe5b7943a07d0330409b56f676b7"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/serve.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SERVE-1"
+          ],
+          "sha256": "a9425022b92dc8033f01376c11c9a5576f81170cb26576e240708b02e83b7c08"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_run.rs",
+          "kind": "test",
+          "criterionIds": [
+            "RUN-1"
+          ],
+          "sha256": "64aaaea481f6126c4c85c95426660a7f720929961c4ec45dceae109e527652e1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_prereqs.rs",
+          "kind": "test",
+          "criterionIds": [
+            "RUN-2"
+          ],
+          "sha256": "222004f08c04ed750d3a2dae8091f2d3c47b441a3a4ce041d3ac3c8371e8d918"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_fork_dev.rs",
+          "kind": "test",
+          "criterionIds": [
+            "RUN-3"
+          ],
+          "sha256": "def5c7aba52cf19444d8edc532e03e87c81b770118f25fbfedd4b284298093e8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/common/mod.rs",
+          "kind": "test",
+          "criterionIds": [
+            "RUN-1",
+            "RUN-3"
+          ],
+          "sha256": "41e0eec89fd43927b437964ddc70488a4ce80f715a0eff792063fff37c7bea03"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/new_app.rs",
+          "kind": "test",
+          "criterionIds": [
+            "NEW-1"
+          ],
+          "sha256": "a7d162c3b84980bb12fdb67094e86fde0abfb9f07e9be311070372096e45454f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/serve.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SERVE-1"
+          ],
+          "sha256": "0876305e6fe4f31d4c064b64e33d7ebdd3d5f36f0c79c66e68c29ea31d4b6e8e"
+        }
+      ],
+      "deltaSummaryMarkdown": "Inspected the delta since revision 95: `ProcessLauncher`'s Windows branch and `ignore_ctrl` in `src/app/mod.rs`, the doc comments of `nsh_step` and `plan` in `src/setup/mod.rs`, and the separator fixes in `tests/new_app.rs` (`a_pin_file_already_there_is_never_replaced`), `tests/nsh_fork_dev.rs` (the relative-`RAYX_NSH` and `rayx nsh path` tests) and `tests/nsh_pin.rs` (`outside_any_workspace_the_crates_nsh_json_lists_decide`). The handler's types match windows-sys 0.61.2: `PHANDLER_ROUTINE = Option<unsafe extern \"system\" fn(u32) -> windows_sys::core::BOOL>`, and `core::BOOL = i32` (`Win32/System/Console/mod.rs:70`, `:406`). No criterion changed since revision 93. I reused the check that passed at revision 96.",
+      "reattestedFrom": "ea84337471bbc938fd68d467972db6e581319008c67e6fc042b38d89ee0a642d",
+      "summaryMarkdown": "The full review at revision 94 confirms S7-F1, F2, F3, F4 and F6 resolved, each with its own regression test, and the amended RUN-2, RUN-3 and NEW-1 met. RUN-1's forwarding, directory, environment and Unix `exec` are unchanged and still pass. It fails on S7-F5. The Windows repair uses the inherited `SetConsoleCtrlHandler(NULL, TRUE)`, which also stops Ctrl+C reaching nsh's own handler, so Ctrl+C no longer stops `rayx app` on Windows. S7-F7, a misplaced doc comment from the F2 refactor, is minor.",
+      "findingIds": [
+        "S7-F1",
+        "S7-F2",
+        "S7-F3",
+        "S7-F4",
+        "S7-F5",
+        "S7-F6",
+        "S7-F7"
+      ],
+      "recordedAt": "2026-10-24T02:41:46Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-release:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893",
+        "rayx-cli:CHANGELOG.md": "e6500f82ef1acfbb8b4250a19c5ddda94ed93e2b25d556b2c22e3fa4e04f1add",
+        "nsh-release:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
+      }
     }
   },
   "checkpoints": {
@@ -2188,6 +2460,17 @@
       },
       "reviewHash": "be2e0ffad34bf99bae9437e5375fcc591cef852220ba563041a60f5a7b42016f",
       "recordedAt": "2026-10-24T02:17:14Z"
+    },
+    "s7-run-nsh": {
+      "snapshotId": "bd8e09b901594a1d533ae1cbdde8fbd2e490e29c4bfb1dda65ca3da89a001e6a",
+      "commits": {
+        "rayx-cli": "6a09a5bb55c9659849057d56979131d5128b3f00",
+        "nsh-release": "c9d33fcac275ecdf6d329eb48fd842dee2624e5d",
+        "nsh-fork-docs": "193b480838ed70e7ce658cf0ed4a35a1035c8c24",
+        "rayx-cli-old": "d0062509bf65b57ef65375a50709f1dbc4777198"
+      },
+      "reviewHash": "141ccaf5822463ee6dd80afd859a960a2db31d9fc21c958eee62ef93291dba84",
+      "recordedAt": "2026-10-24T02:42:10Z"
     }
   },
   "findings": [
@@ -2862,6 +3145,126 @@
         }
       ],
       "boundaryId": "s6-pin-store"
+    },
+    {
+      "id": "S7-F1",
+      "boundaryId": "s7-run-nsh",
+      "criterionIds": [
+        "RUN-3"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `cli_of` builds the path checkout with `cargo build --release -p nsh-cli --target-dir target` (`src/app/mod.rs:255-290`), still without `CARGO` and `RUSTUP_TOOLCHAIN`. A relative `--target-dir` outranks `CARGO_TARGET_DIR` and `build.target-dir`, so the binary rayx execs is the one just built, and the one `Status::of` reports. The test asserts the exact arguments and RUN-3's text was amended to match.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_fork_dev.rs",
+          "symbol": "a_path_pin_builds_the_checkouts_cli_and_runs_it_writing_nothing_to_the_store"
+        }
+      ]
+    },
+    {
+      "id": "S7-F2",
+      "boundaryId": "s7-run-nsh",
+      "criterionIds": [
+        "RUN-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: on `SetupError::Unsupported`, `prereqs::ensure` still prints `prerequisites not checked` and then runs `ensure_plan` over a one-step plan of `setup::nsh_step(env)`, with `rayx nsh install -C <dir>` as its command (`src/app/prereqs.rs:132-163`). That is the same path as the silent install, the owner question and `--no-install`. With no pin it returns `Ok(0)` as before, and `plan` uses the same `nsh_step`. The test covers Fedora with `--no-install`: the error names the pin and `rayx nsh install -C /work/app`, not `rayx setup`. The install branch is the same `ensure_plan` code that `the_pinned_nsh_installs_without_asking_like_any_silent_step` covers.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_prereqs.rs",
+          "symbol": "on_a_host_setup_cannot_install_for_the_pinned_nsh_is_still_ensured"
+        }
+      ]
+    },
+    {
+      "id": "S7-F3",
+      "boundaryId": "s7-run-nsh",
+      "criterionIds": [
+        "RUN-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `path_in` takes `replacement` and, when it is set, prints that path on stdout and `replacement_warning` on stderr, and installs nothing (`src/nsh/mod.rs:263-279`). `nsh::run` passes `replacement(&machine, &cwd)`. RUN-3 now names `rayx nsh path`. The test runs the real binary: stdout is the absolute replacement, stderr has the warning with the pin's id, and there is no store.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_fork_dev.rs",
+          "symbol": "rayx_nsh_path_prints_the_replacement_with_the_warning"
+        }
+      ]
+    },
+    {
+      "id": "S7-F4",
+      "boundaryId": "s7-run-nsh",
+      "criterionIds": [
+        "RUN-3",
+        "RUN-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `nsh::replacement` makes a non-empty `RAYX_NSH` absolute against the directory rayx started in (`std::path::absolute(cwd.join(value))`, `src/nsh/mod.rs:145-151`). `prepare` and `path_in` both use it, and `launch_for` takes the resulting `Option<&Path>`. So `-C` changes only where nsh runs, and a bare `nsh` names a file in the starting directory, never the `nsh` on `PATH`. Both cases are tested.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/nsh_fork_dev.rs",
+          "symbol": "a_relative_rayx_nsh_is_read_against_where_rayx_started_not_c_or_path"
+        }
+      ]
+    },
+    {
+      "id": "S7-F5",
+      "boundaryId": "s7-run-nsh",
+      "criterionIds": [
+        "RUN-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: on Windows, `ProcessLauncher` registers `SetConsoleCtrlHandler(Some(ignore_ctrl), TRUE)`, a handler that returns `TRUE`, before `status()` (`src/app/mod.rs:76-100`). The null form is gone. A registered handler applies only to rayx and is not inherited, so nsh keeps its own `on_ctrl` and its children keep normal Ctrl+C. rayx survives the event, waits, and exits with nsh's code, as cargo-util's `exec_replace` and rustup do. This cannot be compiled or run on this Mac, so it rests on Windows CI and OWN-3. I recommend adding to OWN-3's log one line confirming that Ctrl+C stops `rayx app dev` there.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/mod.rs",
+          "symbol": "ignore_ctrl"
+        }
+      ]
+    },
+    {
+      "id": "S7-F6",
+      "boundaryId": "s7-run-nsh",
+      "criterionIds": [
+        "NEW-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `create` refuses, before the store, the install or `nsh init`, when the file it would write is already there: `.cargo/config.toml` for `mixed` and `rust`, `rayx.toml` for `ts` (`src/new.rs:77-89`). The test checks each template: the file is unchanged and no command ran. NEW-1 was amended to match.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/new_app.rs",
+          "symbol": "a_pin_file_already_there_is_never_replaced"
+        }
+      ]
+    },
+    {
+      "id": "S7-F7",
+      "boundaryId": "s7-run-nsh",
+      "criterionIds": [
+        "RUN-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `plan`'s doc line is back above `pub fn plan`, and `nsh_step` has only its own (`src/setup/mod.rs:433-442`).",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "symbol": "plan"
+        }
+      ]
     }
   ],
   "handoffMarkdown": "",
