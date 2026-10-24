@@ -292,8 +292,8 @@
         "FORK",
         "OWN"
       ],
-      "descriptionMarkdown": "`fork-release.yml` is a new file on `fork/release` (D9) that copies upstream's `dist` job and replaces its trigger, version check and release job. `windows-arm64` is a matrix entry with `continue-on-error`; the release job runs after the matrix unless cancelled, requires the four required archives and attaches whatever built. The release is published at once because rayx downloads without signing in. `sync-main.sh upstream` warns when an upstream range changes `release.yml`, because the copy must then be updated by hand.",
-      "invariantsMarkdown": "- `fork/release` differs from `origin/main` only by `fork-release.yml`.\n- Upstream's `release.yml`, `release-crate.yml` and `packages.yml` stay untouched and keep running only on `v*` tags, which the fork never creates.",
+      "descriptionMarkdown": "`fork-release.yml` is a new file on `fork/release` (D9) that copies upstream's `dist` job and replaces its trigger, version check and release job. `windows-arm64` is a matrix entry with `continue-on-error`; the release job runs after the matrix unless cancelled, requires the four required archives and attaches whatever built. The release is published at once because rayx downloads without signing in. `sync-main.sh upstream` warns when an upstream range changes `release.yml`, because the copy must then be updated by hand. `linux-arm64` stays required (D8) but its archive has no Android runtime: at the fork's tags `cargo xtask dist` builds the Android runtime on every Linux host with the NDK's x86-64 toolchain, which arm64 Linux cannot run and for which no arm64 NDK exists, so that leg switches the Android part off in its own checkout (a guarded one-line change) and skips the SDK. Lima guests cannot build Android apps anyway. A `fix/*` branch that makes `xtask dist` skip Android where the NDK has no host toolchain would remove the change for later tags.",
+      "invariantsMarkdown": "- `fork/release` differs from `origin/main` only by `fork-release.yml`.\n- Upstream's `release.yml`, `release-crate.yml` and `packages.yml` stay untouched and keep running only on `v*` tags, which the fork never creates.\n- The linux-arm64 leg changes nothing but the one `let android` line of `crates/xtask/src/dist.rs`, in the runner's checkout, and fails when that line is gone.",
       "rationaleMarkdown": "A separate file never conflicts with upstream syncs; the warning covers its one weakness, drift (design §10). It builds on Gamify's record of the fork process (main as the integration line, `fork-*` tags, `feat/*` and `fix/*` pull requests with merge commits) and adds a third branch kind, `fork/*`, without changing the others; Gamify's record gains that kind in Gamify's follow-up epic.",
       "sourceRefs": [
         {
@@ -427,6 +427,14 @@
     {
       "repositoryId": "rayx-cli-old",
       "path": ".agentx/memory/decisions/repository/2026-10-08-repository-rayx-keeps-a-slim-xtask.md"
+    },
+    {
+      "repositoryId": "gamify",
+      "path": ".agentx/memory/decisions/frontend-runtime/layout/2026-10-24-frontend-runtime-layout-feature-folders.md"
+    },
+    {
+      "repositoryId": "gamify",
+      "path": ".agentx/memory/decisions/frontend-runtime/theme/2026-10-24-frontend-runtime-theme-one-theme-file.md"
     }
   ]
 }

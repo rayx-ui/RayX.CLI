@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 6,
+  "revision": 7,
   "title": "rayx 1.0.0: the new RayX CLI for NSH apps, with the machine side ported, nsh managed per project, and fork releases",
   "validationMode": "sprint",
   "repositories": [
@@ -560,12 +560,12 @@
       "criterionIds": [
         "FORK-1"
       ],
-      "descriptionMarkdown": "`fork-release.yml` parses without duplicate keys, and its parsed triggers, matrix, non-blocking Windows ARM64 entry, published release and absence of installers match FORK-1.",
+      "descriptionMarkdown": "`fork-release.yml` parses without duplicate keys, and its parsed triggers, the five platforms, the non-blocking `windows-arm64`, the Android-free `linux-arm64`, the required archives, the published release and the absence of installers match FORK-1.",
       "argv": [
         "ruby",
         "-ryaml",
         "-e",
-        "system('ruby', '/Users/dinko/.claude/skills/agentx/scripts/check_workflow_yaml.rb', '.github/workflows/fork-release.yml') or abort('yaml'); w = YAML.load_file('.github/workflows/fork-release.yml'); on = w[true] || w['on']; abort 'tags' unless on['push']['tags'] == ['fork-*']; abort 'dispatch' unless on['workflow_dispatch']['inputs'].key?('tag'); jobs = w['jobs']; dist = jobs.values.find { |j| j.dig('strategy', 'matrix', 'include') }; names = dist['strategy']['matrix']['include'].map { |e| e['name'] }; %w[macos-arm64 linux-x86_64 linux-arm64 windows-x86_64 windows-arm64].each { |n| abort n unless names.include?(n) }; s = File.read('.github/workflows/fork-release.yml'); abort 'draft' if s =~ /draft:\\s*true/; abort 'installers' if s =~ /install\\.sh|install\\.ps1|envsubst|homebrew|scoop|cargo publish/i; abort 'continue-on-error' unless s.include?('continue-on-error'); puts 'fork-release.yml ok'"
+        "system('ruby', '/Users/dinko/.claude/skills/agentx/scripts/check_workflow_yaml.rb', '.github/workflows/fork-release.yml') or abort('yaml')\nf = '.github/workflows/fork-release.yml'\nw = YAML.load_file(f)\ns = File.read(f)\non = w[true] || w['on']\nabort 'tags' unless on['push']['tags'] == ['fork-*']\nabort 'dispatch' unless on['workflow_dispatch']['inputs']['tag']['required'] == true\njobs = w['jobs']\ndist = jobs.values.find { |j| j.dig('strategy', 'matrix', 'include') }\nentries = dist['strategy']['matrix']['include']\nnames = entries.map { |e| e['name'] }\nabort \"platforms #{names}\" unless names.sort == %w[linux-arm64 linux-x86_64 macos-arm64 windows-arm64 windows-x86_64]\noptional = entries.select { |e| e['optional'] == true }.map { |e| e['name'] }\nabort \"optional #{optional}\" unless optional == ['windows-arm64']\nabort 'continue-on-error' unless dist['continue-on-error'] == '${{ matrix.optional == true }}'\nno_android = entries.select { |e| e['android'] == 'none' }.map { |e| e['name'] }\nabort \"android #{no_android}\" unless no_android == ['linux-arm64']\nabort 'android steps' unless dist['steps'].any? { |st| st['if'] == \"matrix.android == 'none'\" && st['run'].to_s.include?('let android = false;') }\nrequired = entries.reject { |e| e['optional'] }.map { |e| \"nsh-#{e['name']}\" + (e['name'].start_with?('windows') ? '.zip' : '.tar.gz') }\nrelease = jobs['release']\nabort 'needs' unless release['needs'] == 'dist' && release['if'].to_s.include?('!cancelled()')\ncheck = release['steps'].find { |st| st['name'] == 'Check the archives' }\nlisted = check['run'][/for archive in ([^;]+);/, 1].split\nabort \"archives #{listed} != #{required}\" unless listed.sort == required.sort\ngh = release['steps'].find { |st| st['uses'].to_s.start_with?('softprops/action-gh-release@') }\nabort 'draft' unless gh['with']['draft'] == false && gh['with']['generate_release_notes'] == true && gh['with']['name'] == '${{ env.TAG }}'\nabort 'attest' unless release['steps'].any? { |st| st['uses'].to_s.start_with?('actions/attest-build-provenance@') }\nabort 'installers' if s =~ /install\\.sh|install\\.ps1|envsubst|homebrew|scoop|cargo publish/i\nputs 'fork-release.yml ok'\n"
       ],
       "expected": {
         "exitCode": 0,
@@ -582,14 +582,14 @@
       "criterionIds": [
         "FORK-2"
       ],
-      "descriptionMarkdown": "New TAP script for the release-workflow warning of `sync-main.sh upstream` (a range that changes `release.yml` and one that does not).",
+      "descriptionMarkdown": "TAP script for the release-workflow warning of `sync-main.sh upstream` (a range that changes `release.yml` and one that does not) and `sync-main.sh branch` (a change reaching a topic branch).",
       "argv": [
         "bash",
         "scripts/tests/sync-main-release-warning.sh"
       ],
       "expected": {
         "exitCode": 0,
-        "minimumTests": 2
+        "minimumTests": 3
       },
       "inputs": [
         "scripts/**",

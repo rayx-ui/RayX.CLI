@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 49,
-  "planRevision": 6,
+  "revision": 61,
+  "planRevision": 7,
   "specHashes": {
-    "requirements": "21671d4f7e98b32bfa7df18a4b6025692146068f5d5df0f1508f6729038f5275",
-    "design": "228318d3f441e3d9105308ab0c0b949df321b782790a24217b3d1c3d81e078bc",
-    "plan": "3c7b3085269616e935eb5d527a90a0d58b6f4b9ce80b63a603b4f84fb749e8ec"
+    "requirements": "89cdfdea30dcf1fedb95cb846d11a94f4d93692b6e7932398cd695d550c5f9c6",
+    "design": "e37e64ac2a0af2304219e6003af8c8cfc8a226f9240afe63fc48d6faeae17d52",
+    "plan": "c8bedc206c8a3f1fc571713f93ccfb744869715195f34ed58b0d8ae611246d7e"
   },
   "tasks": {
     "t01-package": {
@@ -94,10 +94,16 @@
       ]
     },
     "t15-fork-release-workflow": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t16-fork-docs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t17-pin": {
       "status": "pending"
@@ -196,6 +202,30 @@
         }
       },
       "recordedAt": "2026-10-24T00:32:08Z"
+    },
+    "13875a3565d8a27cf0e90882bc8dac540f0fd7aebcf83777a2148126f71a4e4c": {
+      "snapshot": {
+        "specHash": "7716a667e13055bb77b2ea74ddb4cd93dfc9f6c161aa76d1fb33f4cd72d7df62",
+        "repositories": {
+          "rayx-cli": "281530afd810a393a788b984d45c787e833acbc5b052885fe40165c5de1ffe35",
+          "nsh-release": "4c88dbe1e7fe5a4d2fc15ce1b626a3186fec1698a7cdac15fcb5ffb856ec60c0",
+          "nsh-fork-docs": "524624656e228c60d5178d14a0d48ea29dbe6b5da612113a8a68d3997d0335b9",
+          "rayx-cli-old": "0a91cabcfa47ef8639b7c693923239841428bfacc031a32c37d7acc5de5d77ee"
+        }
+      },
+      "recordedAt": "2026-10-24T00:49:52Z"
+    },
+    "e51de7b69994f7c459262c78bfdb176f567647db22b9ced34d8ae5bdf13b9b7a": {
+      "snapshot": {
+        "specHash": "7716a667e13055bb77b2ea74ddb4cd93dfc9f6c161aa76d1fb33f4cd72d7df62",
+        "repositories": {
+          "rayx-cli": "281530afd810a393a788b984d45c787e833acbc5b052885fe40165c5de1ffe35",
+          "nsh-release": "4c88dbe1e7fe5a4d2fc15ce1b626a3186fec1698a7cdac15fcb5ffb856ec60c0",
+          "nsh-fork-docs": "9e6c48df60162f45590ad3268a1fc0ebce9bba95756f5255e21358df88a608ca",
+          "rayx-cli-old": "0a91cabcfa47ef8639b7c693923239841428bfacc031a32c37d7acc5de5d77ee"
+        }
+      },
+      "recordedAt": "2026-10-24T00:56:51Z"
     }
   },
   "checkResults": {
@@ -452,6 +482,40 @@
       "messageMarkdown": "Expectation matched",
       "logPath": "artifacts-temp/agentx/rayx-1-0/s4-guests-doctor-update-final-09f7c67bb2ad.log",
       "logSha256": "163073f6c31cfe3415e6c8ca4971853a7d1fcde92009e02e10b5645dfa815ffd"
+    },
+    "s5-fork-releases/check-fork-workflow/final": {
+      "checkId": "check-fork-workflow",
+      "boundaryId": "s5-fork-releases",
+      "phase": "final",
+      "batchId": "13875a3565d8a27cf0e90882bc8dac540f0fd7aebcf83777a2148126f71a4e4c",
+      "definitionHash": "f330b3160fcccd29e7b1a2d07ecb92bd9bdbc33473841695dd7269a3a6cdd80f",
+      "basisHash": "940552fcf02aca7a17fba4f0d6e2df8c4d37328fd5ec6871e4b4b3314eb13c75",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.0649,
+      "recordedAt": "2026-10-24T00:49:50Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s5-fork-releases-final-75c9ddb580c6.log",
+      "logSha256": "16ddca6bda6c8fc791062f852d7e744680903996db7026319421fb2887cadd43",
+      "inputsHash": "e4355340939015d45a2584d92477dc1302218e9aaffb83b740a2935a4928f7fd"
+    },
+    "s5-fork-releases/check-fork-docs/final": {
+      "checkId": "check-fork-docs",
+      "boundaryId": "s5-fork-releases",
+      "phase": "final",
+      "batchId": "e51de7b69994f7c459262c78bfdb176f567647db22b9ced34d8ae5bdf13b9b7a",
+      "definitionHash": "aacb9b2a444bf1f6211cf06973da78afd8fca77028dff1a8c663cf1f1a6393fc",
+      "basisHash": "0e7a8dee319b7b32463bc5b0a79e0f7f13294fd862d96ba0b0d5cdf314a27f73",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 5,
+      "durationSeconds": 3.5143,
+      "recordedAt": "2026-10-24T00:56:51Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s5-fork-releases-final-ebfb0f3533ed.log",
+      "logSha256": "db194c654ad92e523b59550e30dbd680be17b8292a330b936d0c68b8603bafa0",
+      "inputsHash": "a590c93c86a8aa5ab0da3ade3ee8b1d9660390421a05d8c40192b64ccb2e8ae2"
     }
   },
   "reviews": {
@@ -1560,6 +1624,128 @@
         "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
       }
+    },
+    "s5-fork-releases": {
+      "reviewerId": "reviewer-s5-845eac2b",
+      "snapshotId": "e51de7b69994f7c459262c78bfdb176f567647db22b9ced34d8ae5bdf13b9b7a",
+      "criterionIds": [
+        "FORK-1",
+        "FORK-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "nsh-release",
+          "path": ".github/workflows/fork-release.yml",
+          "kind": "source",
+          "criterionIds": [
+            "FORK-1"
+          ],
+          "sha256": "e5eafd07b89a8459c5b8b1908b1bef1b23b8f94d2c7de77c3509faaef5a990f4"
+        },
+        {
+          "repositoryId": "nsh-release",
+          "path": ".github/workflows/release.yml",
+          "kind": "source",
+          "criterionIds": [
+            "FORK-1"
+          ],
+          "sha256": "735a3f32569d095f8e1a0bd94e5243c6496359dc9ca782dd26bdea0830f8d0de"
+        },
+        {
+          "repositoryId": "nsh-release",
+          "path": ".github/workflows/packages.yml",
+          "kind": "source",
+          "criterionIds": [
+            "FORK-1"
+          ],
+          "sha256": "785274ee50efe35e19e220caffd0aa3240c0118788432a76e88a73a89f8bf9c5"
+        },
+        {
+          "repositoryId": "nsh-release",
+          "path": "crates/xtask/src/dist.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FORK-1"
+          ],
+          "sha256": "a73f4f53c571a1bee161faf759d1f0def1045e42f5a4b9c8cfb595f2aa7ff0fa"
+        },
+        {
+          "repositoryId": "nsh-release",
+          "path": "crates/xtask/src/android.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FORK-1"
+          ],
+          "sha256": "dd2262f34e60ef926906778410ca55cf1d6b5c0b9983fa7a40f6d43c43187f1d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "artifacts-temp/agentx/rayx-1-0/s5-fork-releases-final-75c9ddb580c6.log",
+          "kind": "runtime",
+          "criterionIds": [
+            "FORK-1"
+          ],
+          "sha256": "16ddca6bda6c8fc791062f852d7e744680903996db7026319421fb2887cadd43"
+        },
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "FORK-2"
+          ],
+          "sha256": "bd2d48a73da660afa1400f37fa349d235a6f28a7a9eba6cf637d95d601731a36"
+        },
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "scripts/sync-main.sh",
+          "kind": "source",
+          "criterionIds": [
+            "FORK-2"
+          ],
+          "sha256": "4210d1c677e249250fbff1124746e742f883fd1e52afda015570a6aa858713a0"
+        },
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "scripts/tests/sync-main-release-warning.sh",
+          "kind": "test",
+          "criterionIds": [
+            "FORK-2"
+          ],
+          "sha256": "02fc2df919b8d010591a25b14b0a5884dd7b8bf3f0ced43e3dc5e60a595ccf89"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "artifacts-temp/agentx/rayx-1-0/s5-fork-releases-final-07cf58d585e8.log",
+          "kind": "runtime",
+          "criterionIds": [
+            "FORK-2"
+          ],
+          "sha256": "8dad90983e71ea70b0ba7ceca951908a1bc65212b484b9106c58a09bcfe7aca9"
+        }
+      ],
+      "deltaSummaryMarkdown": "Inspected `private/fork-docs` `193b4808` against `355335a3`. `rayx-cli` and `nsh-release` are unchanged.\n- **`sync-main.sh`:** `upstream` and `branch` now call `release_changed` right after computing `base`, before `replay`/`merge_in`. That check is a diff between two commits and does not depend on the worktree, so moving it ahead of the merge is safe. The `--push` line of `branch` is an `if`.\n- **TAP script:** five cases. Cases 1-3 require exit 0, and cases 4 and 5 (`upstream` and `branch` stopping on a `README.md` conflict) require exit 1, the warning and the conflict message.\n- **My own reproduction against the new script:** the throwaway `branch` conflict case now warns before the merge stops, and the rerun after resolving exits 0.\n- **README:** \"Bringing in upstream\" now says both commands warn before merging.\n\nThe checks at revision 59 passed: `fork-release.yml ok` and 5 TAP tests (`s5-fork-releases-final-ebfb0f3533ed.log`). S5-F1 to S5-F4 stay resolved, and S5-F5 is resolved.",
+      "reattestedFrom": "13875a3565d8a27cf0e90882bc8dac540f0fd7aebcf83777a2148126f71a4e4c",
+      "summaryMarkdown": "This is a full review at revision 57; the runtime held no earlier s5 review to reattest. Inspected the delta at revision 57: `fork/release` `c9d33fca` (still only `fork-release.yml` against `origin/main`), `private/fork-docs` `6a6d838c` and `355335a3`, the amended FORK-1, FORK-2 and `d-fork-release`, and the new `check-fork-workflow`.\n- **S5-F1:** `android: \"none\"` on `linux-arm64` only. `matrix.android != 'none'` holds for the other legs, where the value is null. I ran the guarded step on `dist.rs` at `327bb9ea`: it makes only the one-line change, and a second run fails with its error. The tree is changed but `--version` is unaffected: `nsh-cli/build.rs` stamps `rev-parse HEAD`, with no dirty flag. No deny-warnings lint trips. A Windows runner without an SDK exits 0, which `dist.rs:161` allows.\n- **S5-F3:** the check now fails when the archive list drops `linux-arm64`, when the `android == 'none'` guard is changed, on `draft: true` and when `linux-x86_64` is optional (I tried each mutation myself).\n- **S5-F2:** the README now names the right file and directory, keeps the reinstall until Gamify runs NSH through rayx, and covers `fork/*` pull requests.\n- **S5-F4:** `branch` warns for the range it merges, and TAP case 3 shows it.\n- **New, S5-F5:** I reproduced it with throwaway repositories: `branch` never warns when its merge stops on a conflict.\n\nThe checks at revision 57 passed: `fork-release.yml ok` and 3 TAP tests.\n\nThe earlier passing checks still hold: the triggers, the tag check, the release gating, the non-draft publish, `packages.yml` not firing on a release created with `GITHUB_TOKEN`, and the `upstream` warning. The review fails on S5-F5 only (minor).",
+      "findingIds": [
+        "S5-F1",
+        "S5-F2",
+        "S5-F3",
+        "S5-F4",
+        "S5-F5"
+      ],
+      "recordedAt": "2026-10-24T00:57:47Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-release:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893",
+        "rayx-cli:CHANGELOG.md": "e6500f82ef1acfbb8b4250a19c5ddda94ed93e2b25d556b2c22e3fa4e04f1add",
+        "nsh-release:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
+      }
     }
   },
   "checkpoints": {
@@ -1606,6 +1792,17 @@
       },
       "reviewHash": "681d0e677af192e5802de5d3bd1aea8a3a3682b1a0e7928db237c9348485e3d9",
       "recordedAt": "2026-10-24T00:33:36Z"
+    },
+    "s5-fork-releases": {
+      "snapshotId": "e51de7b69994f7c459262c78bfdb176f567647db22b9ced34d8ae5bdf13b9b7a",
+      "commits": {
+        "rayx-cli": "240e34ba59310b23b02e05bcfd6b86af1cab09d3",
+        "nsh-release": "c9d33fcac275ecdf6d329eb48fd842dee2624e5d",
+        "nsh-fork-docs": "193b480838ed70e7ce658cf0ed4a35a1035c8c24",
+        "rayx-cli-old": "d0062509bf65b57ef65375a50709f1dbc4777198"
+      },
+      "reviewHash": "6bf105128579248ddbd28a18d61aec4a4c0904e61692e4ea5112fdb11c31dd8b",
+      "recordedAt": "2026-10-24T00:58:10Z"
     }
   },
   "findings": [
@@ -1892,6 +2089,119 @@
         }
       ],
       "boundaryId": "s4-guests-doctor-update"
+    },
+    {
+      "id": "S5-F1",
+      "criterionIds": [
+        "FORK-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved:\n- `linux-arm64` stays required. It skips Java and the Android SDK, and switches `xtask dist`'s Android part off in its own checkout with a guarded one-line change that fails the run when the line is gone. FORK-1 and `d-fork-release` say why the archive has no Android runtime.\n- A Windows runner without an Android SDK now builds without the runtime.",
+      "regressionRefs": [
+        {
+          "repositoryId": "nsh-release",
+          "path": ".github/workflows/fork-release.yml",
+          "symbol": "Leave the Android runtime out"
+        },
+        {
+          "repositoryId": "nsh-release",
+          "path": "crates/xtask/src/dist.rs",
+          "symbol": "dist"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "artifacts-temp/agentx/rayx-1-0/s5-fork-releases-final-75c9ddb580c6.log"
+        }
+      ],
+      "boundaryId": "s5-fork-releases"
+    },
+    {
+      "id": "S5-F2",
+      "criterionIds": [
+        "FORK-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved:\n- \"After tagging\" names `src/frontend/.cargo/config.toml` and the places `cargo xtask nsh verify` names, and lets the next build rewrite the NSH lock entries.\n- It keeps the `cargo install` until Gamify runs NSH through rayx, then gives `rayx setup` in `src/frontend`.\n- \"A branch into main\" covers `fork/*` pull requests, which have no draft.",
+      "regressionRefs": [
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "README.md"
+        }
+      ],
+      "boundaryId": "s5-fork-releases"
+    },
+    {
+      "id": "S5-F3",
+      "criterionIds": [
+        "FORK-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `check-fork-workflow` asserts from the parsed YAML:\n- the five platforms, with `windows-arm64` alone optional, through `${{ matrix.optional == true }}`;\n- `linux-arm64` alone without Android, with its step;\n- an archive list equal to the required entries;\n- a non-draft release named after the tag, with generated notes;\n- the attestation.\n\nThe mutations I tried all fail it.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/tasks/rayx-1-0/implementation-plan.json",
+          "symbol": "check-fork-workflow"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "artifacts-temp/agentx/rayx-1-0/s5-fork-releases-final-75c9ddb580c6.log"
+        }
+      ],
+      "boundaryId": "s5-fork-releases"
+    },
+    {
+      "id": "S5-F4",
+      "criterionIds": [
+        "FORK-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `release_changed <worktree> <base>` takes the base of the merged range, computed before the merge. `branch` calls it with `merge-base HEAD upstream/main` from the topic worktree, and TAP case 3 shows that it warns.",
+      "regressionRefs": [
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "scripts/sync-main.sh",
+          "symbol": "release_changed"
+        },
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "scripts/tests/sync-main-release-warning.sh"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "artifacts-temp/agentx/rayx-1-0/s5-fork-releases-final-07cf58d585e8.log"
+        }
+      ],
+      "boundaryId": "s5-fork-releases"
+    },
+    {
+      "id": "S5-F5",
+      "criterionIds": [
+        "FORK-2"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "Resolved: `upstream` and `branch` warn before merging, so a merge that stops on a conflict has warned too. `branch` without `--push` exits 0. TAP cases 1-3 require exit 0, and cases 4 and 5 cover both conflicting merges.",
+      "regressionRefs": [
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "scripts/sync-main.sh",
+          "symbol": "release_changed"
+        },
+        {
+          "repositoryId": "nsh-fork-docs",
+          "path": "scripts/tests/sync-main-release-warning.sh"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "artifacts-temp/agentx/rayx-1-0/s5-fork-releases-final-ebfb0f3533ed.log"
+        }
+      ],
+      "boundaryId": "s5-fork-releases"
     }
   ],
   "handoffMarkdown": "",
