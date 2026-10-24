@@ -476,7 +476,12 @@ fn chromium_executables(os: Os) -> &'static [&'static str] {
             "chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
             "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
         ],
-        Os::Linux => &["chrome-linux64/chrome", "chrome-linux/chrome"],
+        // `chrome-linux-arm64` is Playwright's layout on ARM64 Linux (a Lima guest on a Mac).
+        Os::Linux => &[
+            "chrome-linux64/chrome",
+            "chrome-linux-arm64/chrome",
+            "chrome-linux/chrome",
+        ],
         Os::Windows => &["chrome-win64/chrome.exe", "chrome-win/chrome.exe"],
     }
 }

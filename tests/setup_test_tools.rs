@@ -708,6 +708,13 @@ fn the_chromium_executable_is_found_in_each_hosts_cache_layout() {
                 .join("chrome"),
         ),
         (
+            Os::Linux,
+            linux_cache
+                .join("chromium-1248")
+                .join("chrome-linux-arm64")
+                .join("chrome"),
+        ),
+        (
             Os::MacOs,
             mac_cft
                 .iter()
