@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 3,
+  "revision": 5,
   "title": "rayx 1.0.0: the new RayX CLI for NSH apps, with the machine side ported, nsh managed per project, and fork releases",
   "validationMode": "sprint",
   "repositories": [
@@ -1401,7 +1401,8 @@
             "SETS-6"
           ],
           "designIds": [
-            "d-nsh-sets"
+            "d-nsh-sets",
+            "d-ndk"
           ],
           "dependsOn": [],
           "checkIds": [
@@ -1465,7 +1466,7 @@
         {
           "id": "t12-doctor",
           "title": "Port doctor",
-          "descriptionMarkdown": "Port `src/doctor/` with the group `doctor`, without the GPU section (PORT-5). Add to `tests/doctor.rs` the old `pin_sources` test `doctor_shows_only_project_and_default_sources`, which moved out of `pin_sources` in sprint 2 because `doctor` did not exist yet; adapt it to `android-36`.",
+          "descriptionMarkdown": "Port `src/doctor/` with the group `doctor`, without the GPU section (PORT-5). Add to `tests/doctor.rs` the doctor halves of two ported tests that moved because `doctor` did not exist yet: `pin_sources`'s `doctor_shows_only_project_and_default_sources` (sprint 2, adapted to `android-36`) and `setup_android`'s check that doctor reports a wrong JDK and a wrong `JAVA_HOME` as `WrongVersion` (sprint 3; the probe half stays in `setup_android` as `a_wrong_jdk_and_a_wrong_java_home_report_their_versions`).",
           "criterionIds": [
             "PORT-5"
           ],
@@ -1743,12 +1744,13 @@
         {
           "id": "t22-app-forward",
           "title": "rayx app",
-          "descriptionMarkdown": "Write `src/app/` for RUN-1 with `tests/nsh_run.rs` (an `exec` seam the tests can record).",
+          "descriptionMarkdown": "Write `src/app/` for RUN-1 with `tests/nsh_run.rs` (an `exec` seam the tests can record). Set `ANDROID_NDK_HOME` to the pinned NDK when it is unset and installed (`d-ndk`, `setup::android::pinned_ndk`).",
           "criterionIds": [
             "RUN-1"
           ],
           "designIds": [
-            "d-run"
+            "d-run",
+            "d-ndk"
           ],
           "dependsOn": [],
           "checkIds": [

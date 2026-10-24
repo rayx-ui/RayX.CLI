@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 22,
-  "planRevision": 3,
+  "revision": 36,
+  "planRevision": 5,
   "specHashes": {
-    "requirements": "85472d11ba34d3f58552b0dbe94dcab55f1238f5ef2dc2ded8d4e542b3a2fec2",
-    "design": "1ec2827ec4daf63dff4ad1ccd02d6c0e9284550549388d8160426c4efc441bb5",
-    "plan": "f19f9e9b4b601082799c7692a4c5d66adbc283bb347eda2545326a33475d16e9"
+    "requirements": "21671d4f7e98b32bfa7df18a4b6025692146068f5d5df0f1508f6729038f5275",
+    "design": "228318d3f441e3d9105308ab0c0b949df321b782790a24217b3d1c3d81e078bc",
+    "plan": "c7a8bab7c5352325716d6f173d9a68ee6403c1d6a2cad752a59b62ad91f3dc56"
   },
   "tasks": {
     "t01-package": {
@@ -46,16 +46,28 @@
       ]
     },
     "t07-web-set": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t08-test-set": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t09-ios-set": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t10-android-set": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t11-guests": {
       "status": "pending"
@@ -148,6 +160,18 @@
         }
       },
       "recordedAt": "2026-10-23T23:55:59Z"
+    },
+    "c88e361ce525f61fa04e7e341ea729d358340d69fb205f03529b13531bdf0931": {
+      "snapshot": {
+        "specHash": "b835cd13006d17b2d37ff07141b322dba4777f4c45f3277e99f1d51f4c668296",
+        "repositories": {
+          "rayx-cli": "926f7471b1c661929d3f233f2ff45fcc733316dbaeb4fa9b037c6da369c48b99",
+          "nsh-release": "14ed95fc71adaaab3ea3a3e8481e900d14835a4d38674de1c63baa49414121f7",
+          "nsh-fork-docs": "d931ff0a99d2910762a9a9960dd27e71244d1851c434194547d1747de596cf04",
+          "rayx-cli-old": "0a91cabcfa47ef8639b7c693923239841428bfacc031a32c37d7acc5de5d77ee"
+        }
+      },
+      "recordedAt": "2026-10-24T00:13:36Z"
     }
   },
   "checkResults": {
@@ -269,6 +293,74 @@
       "logPath": "artifacts-temp/agentx/rayx-1-0/s2-host-engine-final-918135964a17.log",
       "logSha256": "62969fb7114540965ebb9b7fd9caf97892830771c4c0b0f59d8e3a41990e64fe",
       "inputsHash": "44739cc0fa36ee351bbe6d9f5531329ea7c937a3c0877c2e7b90bb6f460a8bb5"
+    },
+    "s3-optional-sets/check-web-set/final": {
+      "checkId": "check-web-set",
+      "boundaryId": "s3-optional-sets",
+      "phase": "final",
+      "batchId": "c88e361ce525f61fa04e7e341ea729d358340d69fb205f03529b13531bdf0931",
+      "definitionHash": "9ae1992e3cafdb14de0a1cbe06a3fda70dc6dbec556ce2a3a492bb5b8cdd9a77",
+      "basisHash": "5c465f65fb658bd248135296b93cf3b91620da2dc63f661bdf77e3ce5eb0d47a",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 0.6025,
+      "recordedAt": "2026-10-24T00:13:35Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s3-optional-sets-final-ad9b398376a2.log",
+      "logSha256": "c5430c1dbfcab44fe659d486c0a339681f98f2c91d2495e200eb612ca22ec3df",
+      "inputsHash": "258e6e94a4ec66d68be7403f5a9bf1f8c0535ca236dfd87c71bc02b2021e53d9"
+    },
+    "s3-optional-sets/check-test-set/final": {
+      "checkId": "check-test-set",
+      "boundaryId": "s3-optional-sets",
+      "phase": "final",
+      "batchId": "c88e361ce525f61fa04e7e341ea729d358340d69fb205f03529b13531bdf0931",
+      "definitionHash": "64c94537df5d266efadb16a7c45ae50eb4e9c298503e07d0942f08febd8a3856",
+      "basisHash": "72ca14cd4fa1efe145c2c14ade61ae34309476a46eacc34a96c9aa980474ccf8",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 22,
+      "durationSeconds": 0.6326,
+      "recordedAt": "2026-10-24T00:13:35Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s3-optional-sets-final-99c2abe66d59.log",
+      "logSha256": "2c50030b1bd04ca392237cba25f52c5fe967c8025969628d9c7b6abfde961d90",
+      "inputsHash": "b754d7569354a6df2dd067a6465a60ee1be36aaf33641cd1dd9cf855d716b42a"
+    },
+    "s3-optional-sets/check-ios-set/final": {
+      "checkId": "check-ios-set",
+      "boundaryId": "s3-optional-sets",
+      "phase": "final",
+      "batchId": "c88e361ce525f61fa04e7e341ea729d358340d69fb205f03529b13531bdf0931",
+      "definitionHash": "e976a30d5c4315cd7c2c470681cf6adf8b3c9e001b216736d0b3226d56ad213f",
+      "basisHash": "beb8a2a203165f7f05b12d79dc5b6771fd1aa640586b8c0e5ddf3ba2bcf0b486",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 11,
+      "durationSeconds": 0.5895,
+      "recordedAt": "2026-10-24T00:13:36Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s3-optional-sets-final-ae4f7f2ae168.log",
+      "logSha256": "b82c9788b368c0f4bef4b2a5bb7637f51dd2b173ad1620deab6276e22647e710",
+      "inputsHash": "2ef67a03126a2ea9f81476c00f83c6c9cdf05fe94ac0580245c9d149ea236d25"
+    },
+    "s3-optional-sets/check-android-set/final": {
+      "checkId": "check-android-set",
+      "boundaryId": "s3-optional-sets",
+      "phase": "final",
+      "batchId": "c88e361ce525f61fa04e7e341ea729d358340d69fb205f03529b13531bdf0931",
+      "definitionHash": "f4766eec1251c45efc6795c8fe72bb0394a8b784431bd5805d276312d50374b5",
+      "basisHash": "1b86d323880a63408284002124cefee4cf3511241cee9afb3b242b19de3485d1",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 23,
+      "durationSeconds": 0.1141,
+      "recordedAt": "2026-10-24T00:13:36Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s3-optional-sets-final-1565cbf06b52.log",
+      "logSha256": "0025adcd5bd6cd138af453e0d4e7fdcf2db4c096d198b07dda15a50da996252e",
+      "inputsHash": "dfdc623a86350d9c66e4612ecc575e222a7ae4e75d904980f36b560bc37617e3"
     }
   },
   "reviews": {
@@ -795,6 +887,147 @@
         "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
       }
+    },
+    "s3-optional-sets": {
+      "reviewerId": "reviewer-s3-81e28755",
+      "snapshotId": "3924babf07ed7dd4f139292faa2c59bc63f1752e9bd1a6640c6afa2b62cba063",
+      "criterionIds": [
+        "SETS-3",
+        "SETS-4",
+        "SETS-5",
+        "SETS-6"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-3",
+            "SETS-4",
+            "SETS-5",
+            "SETS-6"
+          ],
+          "sha256": "3cb9d6333e87f34c885a4d47f4c2ae99195cf64b826f144e3e619111f90ccaf9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-3",
+            "SETS-6"
+          ],
+          "sha256": "0a9d29c49ac9d38482e5190af925b4baa96f7742c65ef38a4a00726dbfb67211"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/web.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-3"
+          ],
+          "sha256": "7ef8083fd4b90c615dc4c4dad742c0fe3fe77d328d3d54931fc5771c3e65f486"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/test_tools.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-4"
+          ],
+          "sha256": "e30d85bef22dbf0f0f61e65f07be72308db1f6ee02c699f8c54883ff58c26a6c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/ios.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-5"
+          ],
+          "sha256": "e1e72b6388d62b241469aace6dbee8df0d82c1afb3b091de5059115f52a349e0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/android.rs",
+          "kind": "source",
+          "criterionIds": [
+            "SETS-6"
+          ],
+          "sha256": "1e9b392a78af0559440ed77e1759e75ebed080a4806b57e7a83e66abeb4b5850"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_web.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETS-3"
+          ],
+          "sha256": "6449eb2e37e64f2ac4677f41dc5efd8447f8ef3d473216be27b44a4c3792deec"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_test_tools.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETS-4"
+          ],
+          "sha256": "14443fb78421f420439e337434d4f2bffe32d2f341e6e915e05286c7b90df9a0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_node_selection.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETS-4"
+          ],
+          "sha256": "3010f40b76aa04b378b8e5c58ea19b6366f9d2d7578bcaa8ea6f786e7d830099"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_ios.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETS-5"
+          ],
+          "sha256": "0eb2307bf1a550befd169f0ad31b7cd8d2f66ec69132345dcf403fa877249546"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETS-6"
+          ],
+          "sha256": "51d2439f7e6dc177828df4dacd222fabb1d00864b4f715b22ae1f722ddfa1d05"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android_pins.rs",
+          "kind": "test",
+          "criterionIds": [
+            "SETS-6"
+          ],
+          "sha256": "20c3d10bf44777f033afb7877309a7a6b4a0f2b2f469ec06bec3e75b84ba8c38"
+        }
+      ],
+      "summaryMarkdown": "The four sets match design §6, D3, D15 and the new `d-ndk`:\n- **Web:** the wasm32 target on the project toolchain, `wasm-bindgen-cli` only when the lock has it, and `llvm` only on macOS. No nightly and no `rust-src`.\n- **iOS:** the three targets nsh's `runtime.rs:80-82` names. No XcodeGen.\n- **Android:** `platforms;android-35`, `build-tools;35.0.1` always, nsh's three ABI targets, no `cargo-ndk`, and the NDK found as nsh finds it.\n- **Test:** the set is unchanged from 1.x, plus `playwright_chromium` over Playwright's real layouts.\n\nEvery module and test group was diffed against `d006250`. Every dropped or changed assertion follows a criterion or plan revision 4. The amended SETS-6 and RUN-1 agree with nsh's `Sdk::ndk_cargo`. The checks passed at revision 32: setup_android_pins now has 9 tests. They were reused at revision 34, and `cargo fmt --check` is clean.\n\nS3-F1 and S3-F2 are resolved.",
+      "findingIds": [
+        "S3-F1",
+        "S3-F2"
+      ],
+      "recordedAt": "2026-10-24T00:16:18Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-release:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893",
+        "rayx-cli:CHANGELOG.md": "e6500f82ef1acfbb8b4250a19c5ddda94ed93e2b25d556b2c22e3fa4e04f1add",
+        "nsh-release:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
+      }
     }
   },
   "checkpoints": {
@@ -819,6 +1052,17 @@
       },
       "reviewHash": "13995b7be635c06dc0b9c12d21294fea89f809c83cb45984c2a50f793055f6bb",
       "recordedAt": "2026-10-23T23:57:45Z"
+    },
+    "s3-optional-sets": {
+      "snapshotId": "3924babf07ed7dd4f139292faa2c59bc63f1752e9bd1a6640c6afa2b62cba063",
+      "commits": {
+        "rayx-cli": "f149ad692395dc4a98ed3024161c8c6fe9a5b7f1",
+        "nsh-release": "327bb9ea65d08ffac4af498cc7fbbfa18a1b3623",
+        "nsh-fork-docs": "3c3cd5c177c16618d8cbdee5e61ef929a45d887c",
+        "rayx-cli-old": "d0062509bf65b57ef65375a50709f1dbc4777198"
+      },
+      "reviewHash": "a538b2b2bf02e7438a2299ef9f53bbe7585cb6861002477bf321bf5d524a0175",
+      "recordedAt": "2026-10-24T00:17:02Z"
     }
   },
   "findings": [
@@ -1001,6 +1245,60 @@
           "symbol": "too_old"
         }
       ]
+    },
+    {
+      "id": "S3-F1",
+      "criterionIds": [
+        "SETS-6"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "The Android set used to find the NDK the way cargo-ndk did, not the way nsh does. Resolved: it now follows nsh (`Sdk::ndk_cargo`):\n- `ndk_home` reads only `ANDROID_NDK_HOME`, as `JAVA_HOME` is read; `ANDROID_NDK_ROOT` and `NDK_HOME` choose nothing.\n- `ndk;<pin>` counts as present when `ANDROID_NDK_HOME` names a directory or the pinned NDK is installed.\n- The new `android-ndk-home` step reports an `ANDROID_NDK_HOME` that names no directory, and its install fails with a `Prerequisite` that names the fix.\n- `find_ndk` returns `ANDROID_NDK_HOME` when it is set, even when nsh would fail with it, else the pinned NDK, else the newest.\n\nHow the pin takes effect is now recorded as `d-ndk`: through RUN-1, `rayx app` sets `ANDROID_NDK_HOME` to the pinned NDK when it is unset and installed (t22, via the public `pinned_ndk`). With that, `a_build_uses_the_pinned_ndk_when_it_is_installed` is true again. The stale \"RayX xtask\" note on `find_sdk` names nsh's variables now.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android_pins.rs",
+          "symbol": "only_android_ndk_home_names_an_ndk_as_it_does_for_nsh"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android_pins.rs",
+          "symbol": "an_android_ndk_home_that_names_no_directory_is_what_nsh_uses_and_is_reported"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android_pins.rs",
+          "symbol": "a_broken_android_ndk_home_stops_setup_with_the_fix"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/android.rs",
+          "symbol": "ndk_home_step"
+        }
+      ],
+      "boundaryId": "s3-optional-sets"
+    },
+    {
+      "id": "S3-F2",
+      "criterionIds": [
+        "SETS-4"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "`chromium_executables` listed two layouts no Playwright release creates. Resolved: `chrome-mac-arm64/Chromium.app/...` and `chrome-linux-arm64/chrome` are gone. The list now holds exactly the seven layouts in playwright-core 1.56.1 and 1.59.1. `the_chromium_executable_is_found_in_each_hosts_cache_layout` covers all seven, `chrome-mac-x64` (Chrome for Testing) and `chrome-win` included.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_test_tools.rs",
+          "symbol": "the_chromium_executable_is_found_in_each_hosts_cache_layout"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/test_tools.rs",
+          "symbol": "chromium_executables"
+        }
+      ],
+      "boundaryId": "s3-optional-sets"
     }
   ],
   "handoffMarkdown": "",

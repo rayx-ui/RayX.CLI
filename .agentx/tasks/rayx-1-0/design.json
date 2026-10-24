@@ -369,6 +369,22 @@
           "path": "tests/readme_versions.rs"
         }
       ]
+    },
+    {
+      "id": "d-ndk",
+      "requirementIds": [
+        "SETS",
+        "RUN"
+      ],
+      "descriptionMarkdown": "The NDK pin takes effect through `ANDROID_NDK_HOME`, resolving design §7's note on `android_ndk`. nsh reads `ANDROID_NDK_HOME` without checking it, else builds with the newest NDK of the SDK. So the Android set finds the NDK the same way: an `ANDROID_NDK_HOME` naming a directory satisfies the pin, one naming none is reported by its own step with the fix, and other variables (`ANDROID_NDK_ROOT`, `NDK_HOME`) choose nothing. `rayx app` sets `ANDROID_NDK_HOME` to the pinned NDK when it is unset and installed, so a newer NDK beside the pin does not win.",
+      "invariantsMarkdown": "- An `ANDROID_NDK_HOME` the user set always wins, as it does for nsh.\n- rayx never deletes or replaces an NDK it did not install.",
+      "rationaleMarkdown": "The set must report what nsh will use; a pin nsh ignores would be a pin in name only.",
+      "sourceRefs": [
+        {
+          "repositoryId": "nsh",
+          "path": "crates/nsh-cli/src/android.rs"
+        }
+      ]
     }
   ],
   "memoryDecisionsConsidered": [

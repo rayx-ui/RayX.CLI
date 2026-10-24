@@ -168,7 +168,7 @@
         },
         {
           "id": "SETS-6",
-          "descriptionMarkdown": "`--android`: the JDK at the pin, `JAVA_HOME`, Android Studio (optional for builds), the SDK command-line tools, `platform-tools`, `platforms;android-35`, `build-tools;35.0.1`, the NDK at the pin, the emulator and its system image, a default AVD, acceleration, and the targets `aarch64-linux-android`, `armv7-linux-androideabi` and `x86_64-linux-android`; no `cargo-ndk`.\n\nVerified by `setup_android` and `setup_android_pins` (ported, adapted).",
+          "descriptionMarkdown": "`--android`: the JDK at the pin, `JAVA_HOME`, Android Studio (optional for builds), the SDK command-line tools, `platform-tools`, `platforms;android-35`, `build-tools;35.0.1`, the NDK at the pin, the emulator and its system image, a default AVD, acceleration, and the targets `aarch64-linux-android`, `armv7-linux-androideabi` and `x86_64-linux-android`; no `cargo-ndk`. The NDK is found the way nsh finds it: `ANDROID_NDK_HOME` (the one variable nsh reads) satisfies the pin when it names a directory and is reported, with its fix, when it names none; `ANDROID_NDK_ROOT` and `NDK_HOME` choose nothing.\n\nVerified by `setup_android` and `setup_android_pins` (ported, adapted).",
           "verification": "automated"
         }
       ]
@@ -347,7 +347,7 @@
       "criteria": [
         {
           "id": "RUN-1",
-          "descriptionMarkdown": "`rayx app [-C <dir>] [--no-install] <command> [arguments]` runs the pin's CLI with every argument after the command unchanged (including `--` and what follows), in the current directory or `-C`, which is also where the pin was read. The environment loses `CARGO`; `CC_wasm32_unknown_unknown` and `AR_wasm32_unknown_unknown` are set to the web set's LLVM only when unset; everything else passes through. On Unix rayx replaces itself with nsh; on Windows it waits and exits with nsh's code.\n\nVerified by the new group `tests/nsh_run.rs`.",
+          "descriptionMarkdown": "`rayx app [-C <dir>] [--no-install] <command> [arguments]` runs the pin's CLI with every argument after the command unchanged (including `--` and what follows), in the current directory or `-C`, which is also where the pin was read. The environment loses `CARGO`; `CC_wasm32_unknown_unknown` and `AR_wasm32_unknown_unknown` are set to the web set's LLVM only when unset; `ANDROID_NDK_HOME` is set to the pinned NDK in the SDK only when it is unset and that NDK is installed (nsh otherwise builds with the newest NDK of the SDK); everything else passes through. On Unix rayx replaces itself with nsh; on Windows it waits and exits with nsh's code.\n\nVerified by the new group `tests/nsh_run.rs`.",
           "verification": "automated"
         },
         {
