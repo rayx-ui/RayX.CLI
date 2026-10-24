@@ -5,7 +5,7 @@
 mod common;
 
 use std::cell::RefCell;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use assert_cmd::Command;
@@ -113,7 +113,7 @@ fn status_json_has_the_same_fields() {
     assert!(
         json["cli"]
             .as_str()
-            .is_some_and(|c| c.ends_with("source/target/release/nsh")),
+            .is_some_and(|c| Path::new(c).ends_with(Path::new("source/target/release/nsh"))),
         "{json}"
     );
     assert_eq!(json["commit"], "327bb9ea65d08ffac4af498cc7fbbfa18a1b3623");

@@ -186,16 +186,19 @@ fn the_wasm32_c_tools_are_the_web_sets_llvm_and_only_when_unset() {
         &mac,
         Os::MacOs,
     );
+    // Compared as paths, so the separators of this host do not matter.
+    let as_paths = |set: &[(String, String)]| -> Vec<(String, PathBuf)> {
+        set.iter()
+            .map(|(name, value)| (name.clone(), PathBuf::from(value)))
+            .collect()
+    };
     assert_eq!(
-        launch_mac.set,
+        as_paths(&launch_mac.set),
         [
-            (
-                "CC_wasm32_unknown_unknown".to_string(),
-                llvm.join("clang").display().to_string()
-            ),
+            ("CC_wasm32_unknown_unknown".to_string(), llvm.join("clang")),
             (
                 "AR_wasm32_unknown_unknown".to_string(),
-                llvm.join("llvm-ar").display().to_string()
+                llvm.join("llvm-ar")
             ),
         ]
     );

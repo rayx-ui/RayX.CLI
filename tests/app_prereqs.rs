@@ -594,10 +594,11 @@ fn browser(command: &str, args: &[&str], machine: &FakeMachine) -> Vec<OsString>
 #[test]
 fn test_on_the_web_without_a_browser_gets_the_test_sets_chromium() {
     let (machine, chromium) = mac_with_chromium();
-    assert_eq!(
-        browser("test", &["--target", "web"], &machine),
-        [OsString::from("--browser"), chromium.into_os_string()]
-    );
+    let args = browser("test", &["--target", "web"], &machine);
+    assert_eq!(args.len(), 2, "{args:?}");
+    assert_eq!(args[0], "--browser");
+    // Compared as a path, so the separators of this host do not matter.
+    assert_eq!(PathBuf::from(&args[1]), chromium);
 }
 
 #[test]

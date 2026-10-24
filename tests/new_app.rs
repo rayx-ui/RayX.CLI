@@ -150,8 +150,8 @@ fn a_mixed_app_is_made_by_the_default_pins_nsh_init_and_pinned_through_its_lock(
 
     let init = &created.runner.specs()[1];
     assert_eq!(
-        init.program,
-        cli.display().to_string(),
+        PathBuf::from(&init.program),
+        cli,
         "the default pin's CLI, from the store"
     );
     assert_eq!(
