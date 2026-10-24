@@ -4,7 +4,7 @@ agentx:
   scope: knowledge/setup
   status: current
   created: 2026-10-24T03:30:00+02:00
-  updated: 2026-10-24T03:30:00+02:00
+  updated: 2026-10-24T06:00:00+02:00
   topics:
     - setup
   supersedes: []
@@ -22,7 +22,8 @@ Read before changing what `rayx setup` installs, how it decides what is missing,
 - Engine (`src/setup/mod.rs`, `machine.rs`): `Set` is `base`, `web`, `test`, `android`, `ios` (no GPU set, D15); `plan`, `check`, `execute`, `run_plan`, `--check`, `--yes`, the outdated-item prompt; `records.rs` writes `setup.json` and `guests.json` (version 1, atomic, never on `--check`; `--gpu` from old records is dropped on read).
 - Base set: Linux installs NSH's apt packages (GTK 4, WebKitGTK 6.0, GStreamer plugins, clang, LLVM) and refuses Ubuntu below 24.04 and Debian below 13 (`linux::too_old`); Windows adds the WebView2 Runtime and has no `fxc.exe` step; macOS and the Rust steps are 1.x's.
 - Web: wasm32 on the project toolchain, `wasm-bindgen-cli` only when `Cargo.lock` has `wasm-bindgen`, Homebrew's LLVM on macOS; no nightly (D3). Test: Node, pnpm, Playwright and its Chromium; `test_tools::playwright_chromium` finds that Chromium for `rayx app test --target web`. iOS: Xcode, simulator runtime, the device, simulator and Catalyst targets, no XcodeGen. Android: platform 35, build-tools 35.0.1, the pinned NDK (found through `ANDROID_NDK_HOME` as nsh finds it), three ABI targets, no cargo-ndk.
-- Doctor (`src/doctor/`): every applicable set's steps, the pins with their sources, guests, the interactive desktop and WSL PATH findings; no GPU section.
+- The base set ends with the `nsh` step (`src/setup/nsh.rs`, NSHCMD-2); `PlanEnv.nsh` is `Option<Result<Pin, Unreadable>>`, read in the directory setup runs in through the run's runner. `after_run` records a Cargo workspace by its root and an app without one by its directory; `setup --update` reads each recorded directory's pin and then offers `rayx nsh prune` (`update::after_update`).
+- Doctor (`src/doctor/`): every applicable set's steps, the pins with their sources (the nsh line among them, or its unreadable reason), guests, the interactive desktop and WSL PATH findings; no GPU section.
 - Guests (`guest.rs`, `wsl.rs`, `lima/`, `migrate.rs`, `refresh.rs`, `remove.rs`, `update.rs`, `src/wsl.rs`): as in 1.4.1, without the Windows-side GPU step; `wsl compact --clean` also removes `.nsh/`.
 
 ## Backlinks

@@ -447,7 +447,7 @@
       "criteria": [
         {
           "id": "DOCS-1",
-          "descriptionMarkdown": "`README.md`: installing; that this is a new CLI, how it relates to the old one (GPUI apps stay on `RayX.CLI.Old`; the installer replaces the old binary; records and guests carry over); every command with its options; how rayx chooses and installs nsh (pins, `rayx.toml`, the store, prune, `RAYX_NSH`, path checkouts); the sets per target. `docs/projects.md`: the project contract (pins and their sources, `[workspace.metadata.rayx]` keys, `rayx.toml`). `docs/manual-verification.md` with sections for Linux, Windows and WSL, and releases.\n\nVerified by `readme_versions` and `readme_guests` (ported, adapted) and the new `readme_nsh` (every documented command and flag exists in the CLI; the documented pins table equals the defaults table).",
+          "descriptionMarkdown": "`README.md`: installing; that this is a new CLI, how it relates to the old one (GPUI apps stay on `RayX.CLI.Old`; the installer replaces the old binary; records and guests carry over); every command with its options; how rayx chooses and installs nsh (pins, `rayx.toml`, the store, prune, `RAYX_NSH`, path checkouts); the sets per target. `docs/projects.md`: the project contract (pins and their sources, `[workspace.metadata.rayx]` keys, `rayx.toml`). `docs/manual-verification.md` with sections for Linux, Windows and WSL, and releases.\n\nVerified by `readme_versions` and `readme_guests` (ported, adapted) and the new `readme_nsh` (every documented command line and every flag of the flag tables exists in the CLI, and every command and flag of the CLI is documented; the sets-per-target table equals the prerequisite map; the documented pins tables of the README and `docs/projects.md` equal the defaults table).",
           "verification": "automated"
         }
       ]
@@ -475,7 +475,7 @@
         },
         {
           "id": "OWN-3",
-          "descriptionMarkdown": "In a Lima guest on this Mac (`rayx setup --lima --web`) and on the owner's Windows PC with WSL: `rayx setup --web --check`, `rayx doctor` and the web proof pass; results logged in `docs/manual-verification.md`.",
+          "descriptionMarkdown": "In a Lima guest on this Mac (`rayx setup --lima --web --test`, plus Playwright's Chromium in the guest, not the Chromium snap, with an AppArmor profile that lets it create its sandbox) and on the owner's Windows PC with WSL (`rayx setup --web --test --yes` first, and Playwright's Chromium in the distribution): `rayx setup --web --test --check`, `rayx doctor` and the web proof pass; results logged in `docs/manual-verification.md`.",
           "verification": "manual"
         },
         {

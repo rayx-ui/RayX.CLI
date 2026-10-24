@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-1-0",
-  "revision": 98,
-  "planRevision": 12,
+  "revision": 116,
+  "planRevision": 15,
   "specHashes": {
-    "requirements": "ae7ade30fe8db4afe681adca1da9ce2dbf1962dc1570a2f05a1f51b914e4960e",
+    "requirements": "514ef04613c66762e010bc67d18531fe96fdaeb0a6dc9f8e4d0d0b878aab8783",
     "design": "c67586ba421121125af2b2f6b0b07789524f58ab89aa21e394a73a16c8ba23f3",
-    "plan": "1573cdcc6b676d00afe7f28b0c2a8774fe424cf4556a800706b0d9338b751c19"
+    "plan": "2305adbc6f46f0fce8ac4cb3b80159e80ff7141dd2f22c0a93254f7253fe02a8"
   },
   "tasks": {
     "t01-package": {
@@ -166,13 +166,22 @@
       ]
     },
     "t27-app-proof": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t28-gamify-proof": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t29-docs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "79f8ee3d-d77e-4f3e-ae3b-741c2f400eeb"
+      ]
     },
     "t30-fork-release-publish": {
       "status": "pending"
@@ -280,6 +289,18 @@
         }
       },
       "recordedAt": "2026-10-24T02:40:37Z"
+    },
+    "13a3883c62810f555e0a12de4d1d2dd4e929be83127c1108a44aab65cbf3d4fe": {
+      "snapshot": {
+        "specHash": "cb9dd62d1b91fc1b67722803fcec9be30ae190a0ec2c831b0ca411d1bb2c378f",
+        "repositories": {
+          "rayx-cli": "f2e315a23e78f8546b65b38401d454815fd43250eaa285aa39aeebab2c539fe3",
+          "nsh-release": "4c88dbe1e7fe5a4d2fc15ce1b626a3186fec1698a7cdac15fcb5ffb856ec60c0",
+          "nsh-fork-docs": "9e6c48df60162f45590ad3268a1fc0ebce9bba95756f5255e21358df88a608ca",
+          "rayx-cli-old": "0a91cabcfa47ef8639b7c693923239841428bfacc031a32c37d7acc5de5d77ee"
+        }
+      },
+      "recordedAt": "2026-10-24T04:43:00Z"
     }
   },
   "checkResults": {
@@ -757,6 +778,74 @@
       "logPath": "artifacts-temp/agentx/rayx-1-0/s7-run-nsh-final-4b8e79b69929.log",
       "logSha256": "c0ff64da3af246eaa5803c0e31ab1cd099cd95b3abe0ef688ff872051e5ce2d2",
       "inputsHash": "7a53a5472221f83e0d6065c73b21e4d999c3f87b72359c25971612561c857035"
+    },
+    "s8-proof-docs/check-proof-app-web/final": {
+      "checkId": "check-proof-app-web",
+      "boundaryId": "s8-proof-docs",
+      "phase": "final",
+      "batchId": "13a3883c62810f555e0a12de4d1d2dd4e929be83127c1108a44aab65cbf3d4fe",
+      "definitionHash": "6ef0ff91b27bcc0278b8e5665d1d9e1caa2e36a607953f226b738005b99136a0",
+      "basisHash": "b425913f8ed0c3fbc9c4d19191e23b071b2fa6b86a5c0595f4c907c006ca5a5a",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 1,
+      "durationSeconds": 345.3296,
+      "recordedAt": "2026-10-24T04:30:08Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s8-proof-docs-final-0251f75c8fc3.log",
+      "logSha256": "2bdb09cb939c0ec262ab3399954d64b1f458555fb7beb17f25735e92083fd8d9",
+      "inputsHash": "19caf9848fc3b4e0845ee2d9e0ac4ca3d56f42f4043f27c07d7d3dda78751b20"
+    },
+    "s8-proof-docs/check-proof-app-apple/final": {
+      "checkId": "check-proof-app-apple",
+      "boundaryId": "s8-proof-docs",
+      "phase": "final",
+      "batchId": "13a3883c62810f555e0a12de4d1d2dd4e929be83127c1108a44aab65cbf3d4fe",
+      "definitionHash": "5cf05d9fd91c9f3988a2273f43f22a4b531e400740f68aaffa662ed2d6c29cea",
+      "basisHash": "58d06c1dc3c1cd5dc7e578a183c88139fddc01fcd55f41f46f738b508ea90ae1",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 2,
+      "durationSeconds": 554.4627,
+      "recordedAt": "2026-10-24T04:39:22Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s8-proof-docs-final-b83a8e043744.log",
+      "logSha256": "25960be371d18c4166c5dd989a654411d59f799abe154b0fe02332cb4eb323f8",
+      "inputsHash": "e414f029a71616cf7feb52142bcc0a16be0ec2fb4fa78f68b98bc74fafb94be2"
+    },
+    "s8-proof-docs/check-proof-gamify/final": {
+      "checkId": "check-proof-gamify",
+      "boundaryId": "s8-proof-docs",
+      "phase": "final",
+      "batchId": "13a3883c62810f555e0a12de4d1d2dd4e929be83127c1108a44aab65cbf3d4fe",
+      "definitionHash": "e151e8bf3ef6b38888d966d5f190681c09c81720e6c670afceac2be39a1d62eb",
+      "basisHash": "84281102019877fdfa8d19d337f03f7d201a260500302178894b4a382971486a",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 1,
+      "durationSeconds": 216.6243,
+      "recordedAt": "2026-10-24T04:42:59Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s8-proof-docs-final-29996ddab866.log",
+      "logSha256": "ffa9780ad33015b2f7b224f16a8f2ddf287d5a00d64d23186f5d63b7fa7f5a14",
+      "inputsHash": "ef4c803672c49aec40289169c0c601f34aa6c05b484ff146dea44b33440ae6a4"
+    },
+    "s8-proof-docs/check-docs/final": {
+      "checkId": "check-docs",
+      "boundaryId": "s8-proof-docs",
+      "phase": "final",
+      "batchId": "13a3883c62810f555e0a12de4d1d2dd4e929be83127c1108a44aab65cbf3d4fe",
+      "definitionHash": "061f4dd7a9e98feb035166a0fe5a1701f8c289a4d2c9a4d531f3fb981b6622a6",
+      "basisHash": "071e1fa3deb727d2f0a11e8da2623b2f2a257ee8501daae0a54f1badfebaa7d2",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 21,
+      "durationSeconds": 0.7451,
+      "recordedAt": "2026-10-24T04:43:00Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-1-0/s8-proof-docs-final-a5d58673adeb.log",
+      "logSha256": "166ebd301b15d948aed7bde45078b35c80480353a634325577f9140ba8410b41",
+      "inputsHash": "976b383c2a0950594b56cc2e5f365d4c46687876a4fc832236ff03d288740794"
     }
   },
   "reviews": {
@@ -2392,6 +2481,207 @@
         "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
       }
+    },
+    "s8-proof-docs": {
+      "reviewerId": "reviewer-s8-a6400971",
+      "criterionIds": [
+        "PROOF-1",
+        "PROOF-2",
+        "PROOF-3",
+        "DOCS-1"
+      ],
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PROOF-1",
+            "PROOF-2",
+            "PROOF-3"
+          ],
+          "sha256": "0b98a3dff94a0f8096afd633e792b65cc888201b0628dd8d634e15eed7ea9057"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/new.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PROOF-1",
+            "PROOF-2"
+          ],
+          "sha256": "d64fd720b16d9e9650c5ac700d6705ee8f6efe5b7943a07d0330409b56f676b7"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/serve.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PROOF-1",
+            "PROOF-3"
+          ],
+          "sha256": "a9425022b92dc8033f01376c11c9a5576f81170cb26576e240708b02e83b7c08"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/nsh/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PROOF-3"
+          ],
+          "sha256": "cb68e736873aacbdc2d35d405b97455c9ba7fd1f1426d3c46eeaeee2eef983f5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "8a0535e456478cb78596c7429c20b15e33dcf1b0f51e999cdd074af633386f70"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/projects.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "9397e55447a6444d30c1f46626b0ca7a01016ae4e08f0ea3d26b3b7d82d0207d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "f49c40a19a6eb2981fe0ffb7c616e1d7d7ccbf567a556dc50eb577ebaed8bce3"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "659b5041093dc9db31bdca1aa40d19b9bd0d241ab00b56ad0d0264e287d24f7b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "84722bb3e2f3c0f0ce67f3346b0b38627f7eaf461315060048718ec1bfd4f8c5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/prereqs.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "beb08a8fff0bd5897d2c8f2ec0949fe2c1165ef37e29ce0b92187397c0bf577f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/common/proof.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PROOF-1",
+            "PROOF-2",
+            "PROOF-3"
+          ],
+          "sha256": "817e701782fb915a39355fbccaa21d68d624ca3dfd7515b2124e8c7a337c0d2c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/proof_app_web.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PROOF-1"
+          ],
+          "sha256": "81bda84a6b4c0b2fc70880535f6847a2d3ce83973035a79c7ba66898fd12d350"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/proof_app_apple.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PROOF-2"
+          ],
+          "sha256": "3c266b03266418d18404fbb189a962a895b72ce8f8db477742c5e3a8193df29d"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/proof_gamify.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PROOF-3"
+          ],
+          "sha256": "06aef6b8ef9a87b358145eb2da63e076de528441f0e161f3ab8b4d5711312826"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_nsh.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "1e0800164384d9fdfbd813f819ef643729374704c52544618556eaee12c85b2f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_guests.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "c974cd77fcc86265108c124e676425ad5a1b66e66eddb45b380dd03186d9b193"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_versions.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "7d09d7ccf1e8cf19b0e807301c14cc731e2ecda9d80d148d5152efee76737f5f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DOCS-1"
+          ],
+          "sha256": "efe6f30c78a30fb95241e742a8248397e77702ce952436bd8452ad169d65c07a"
+        }
+      ],
+      "snapshotId": "13a3883c62810f555e0a12de4d1d2dd4e929be83127c1108a44aab65cbf3d4fe",
+      "verdict": "passed",
+      "summaryMarkdown": "Full review at revision 114.\n\n**Proofs (PROOF-1 to PROOF-3).** They prove their criteria and fail when they should. The final logs pass, nothing is left running or written outside the temporary directories, and Gamify's tree is unchanged; its git queries take no optional locks. On Windows the proof helper stops the whole process tree.\n\n**Docs (DOCS-1).** The README, `docs/projects.md` and `docs/manual-verification.md` match the code. The `readme_nsh` checks are now exact, each with a mutation self-test:\n\n- flag tables per section;\n- sets per target, which equal the prerequisite map;\n- both pins tables, all 7 projects.md keys and the built-in nsh pin.\n\n**Manual verification (OWN-3).** The Lima and WSL steps install the web and test sets in a terminal and use Playwright's Chromium, not the snap. The Lima steps add an AppArmor `userns` profile (the pattern of Ubuntu's `chrome` profile: the glob covers Lima's `/home/<user>.linux` and both `chrome-linux*` layouts), plus a row recording that the browser starts sandboxed. Whether it does in a real guest is left to that owner-run row; nsh passing `--no-sandbox` is recorded as a fork follow-up.",
+      "findingIds": [
+        "S8-F1",
+        "S8-F2",
+        "S8-F3",
+        "S8-F4",
+        "S8-F5",
+        "S8-F6"
+      ],
+      "recordedAt": "2026-10-24T04:44:02Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "4c6e294a9c98b31b593b3f60aef3de9c2f87d17370968c0c27f70478bf77a23b",
+        "nsh-release:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:docs/manual-verification.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893",
+        "rayx-cli:CHANGELOG.md": "e6500f82ef1acfbb8b4250a19c5ddda94ed93e2b25d556b2c22e3fa4e04f1add",
+        "nsh-release:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "nsh-fork-docs:CHANGELOG.md": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "rayx-cli-old:CHANGELOG.md": "94f401b82cb5913322ae94964656fc29cc13fe463d4185e66bac5f8266d426a5"
+      }
     }
   },
   "checkpoints": {
@@ -2471,6 +2761,17 @@
       },
       "reviewHash": "141ccaf5822463ee6dd80afd859a960a2db31d9fc21c958eee62ef93291dba84",
       "recordedAt": "2026-10-24T02:42:10Z"
+    },
+    "s8-proof-docs": {
+      "snapshotId": "13a3883c62810f555e0a12de4d1d2dd4e929be83127c1108a44aab65cbf3d4fe",
+      "commits": {
+        "rayx-cli": "372628be6094b42e179e7de9f0d1af44a7cf1d4c",
+        "nsh-release": "c9d33fcac275ecdf6d329eb48fd842dee2624e5d",
+        "nsh-fork-docs": "193b480838ed70e7ce658cf0ed4a35a1035c8c24",
+        "rayx-cli-old": "d0062509bf65b57ef65375a50709f1dbc4777198"
+      },
+      "reviewHash": "30063a04a46bcb26e6c5d2639eaf1f09edd783fd71f06aafd3b397c224a6f579",
+      "recordedAt": "2026-10-24T04:44:41Z"
     }
   },
   "findings": [
@@ -3263,6 +3564,127 @@
           "repositoryId": "rayx-cli",
           "path": "src/setup/mod.rs",
           "symbol": "plan"
+        }
+      ]
+    },
+    {
+      "id": "S8-F1",
+      "boundaryId": "s8-proof-docs",
+      "criterionIds": [
+        "DOCS-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Repaired except for one key: projects.md's `xcode` row is still not checked against the code** (`tests/readme_nsh.rs:604-625`).\n\nVerified: the sets-per-target test now requires exactly the 23 `(command, target)` cases, and its dropped-row self-test shows the exact check catches a missing row (`:352-409`). Each projects.md key row is resolved through `Pins::resolve(Some(&project_with(key)))`.\n\nObserved: the key loop keeps only the rows where `pin_of(&Pins::resolve(None), …)` is `Some`. Xcode's pin is `None` without a project (`pin_of` returns `pins.xcode.as_ref()`, `:518`), so the `xcode` row is skipped and the test counts 6 keys. A wrong `xcode` key in the table and the example together passes. The README test checks all 7 (`:535-565`).\n\n**Repair:** iterate the key rows as the README test does: every row whose key cell is not `none…`, with Xcode included. Assert 7.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_nsh.rs",
+          "symbol": "the_projects_doc_names_the_same_defaults_and_keys"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_nsh.rs",
+          "symbol": "the_sets_per_target_table_equals_the_prerequisite_map"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_nsh.rs",
+          "symbol": "every_flag_a_readme_table_lists_is_a_flag_of_its_sections_command"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_nsh.rs",
+          "symbol": "the_projects_doc_names_the_built_in_nsh_pin"
+        }
+      ]
+    },
+    {
+      "id": "S8-F2",
+      "boundaryId": "s8-proof-docs",
+      "criterionIds": [
+        "DOCS-1"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "**Playwright's Chromium fixes the snap problem, but in the Lima guest it most likely cannot start under nsh: Ubuntu 24.04 blocks the sandbox it needs** (`docs/manual-verification.md:20-36`).\n\nVerified: Lima and WSL now install `pnpm dlx playwright install --with-deps chromium`. The check rows require a `chromium-<revision>` in `~/.cache/ms-playwright` and no system browser on `PATH`, so `browser_args` passes it as `--browser` (`src/app/prereqs.rs:292-302`; the Linux paths `chrome-linux64/chrome` and `chrome-linux/chrome`, `src/setup/test_tools.rs:472-481`). OWN-3 matches.\n\nObserved:\n\n- nsh starts the browser with its own flags and never `--no-sandbox` (`nsh: crates/nsh-cli/src/cdp.rs:136-160`; no `no-sandbox` anywhere in `crates/`).\n- Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor by default (`kernel.apparmor_restrict_unprivileged_userns=1`), and Lima's VM runs Ubuntu's own kernel. Chromium needs those namespaces for its sandbox.\n- Ubuntu's AppArmor profiles grant that only to known installs such as Google Chrome under `/opt/google/chrome`, not to a browser in `~/.cache/ms-playwright`. Playwright itself avoids this by launching with `--no-sandbox`.\n- So in the Lima guest nsh's launch most likely ends with Chromium's \"No usable sandbox!\" (nsh: \"… exited with … as it started\"), and the web proof fails at `rayx app test --target web`.\n- WSL's Microsoft kernel has no such restriction. On arm64 Lima there is no Chrome `.deb` to fall back on.\n- I have not run a guest. This follows from nsh's launch flags and Ubuntu 24.04's defaults.\n\n**Repair:** in the Lima section, allow the sandbox before the proof. For example, `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`, kept in `/etc/sysctl.d/`, or an AppArmor profile that grants `userns` to the Playwright Chromium. Add a check row such as `sysctl kernel.apparmor_restrict_unprivileged_userns` prints `0`, and amend OWN-3. Otherwise, run the browser launch once in a guest and record that it works. A fork `fix/*` branch that lets nsh pass `--no-sandbox` would be the other route.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ]
+    },
+    {
+      "id": "S8-F3",
+      "boundaryId": "s8-proof-docs",
+      "criterionIds": [
+        "DOCS-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**The README misstates how `--release` treats the old CLI's releases** (`README.md:177-179`).\n\nExpected: the relation to the old CLI is described as the code behaves.\n\nObserved: the README says \"the releases before it, up to 1.4.1, are the old CLI's … and naming one is refused with that reason\". The old CLI's releases are `v1.0.0`…`v1.4.1` (`RayX.CLI.Old` tags), none of them older than 1.0.0. `release::parse` refuses only versions below 1.0.0 (`src/release.rs:124-137`). So `--release 1.4.1` is accepted and looked for in `rayx-ui/RayX.CLI` (`src/release.rs:13`): it is \"not found\" today, and once this CLI ships its own 1.1.0 or later, those numbers are this CLI's releases. No old release can be installed through `--release`. `release.rs`'s doc comment and its `too_old` message (`:17-18`, `:39-44`) have the same wording; they are sealed s3 code, but they mislead in the same way.\n\n**Repair:** say that releases are looked for in `rayx-ui/RayX.CLI` only, so the old CLI's releases (1.0.0 to 1.4.1, in `RayX.CLI.Old`) cannot be installed with `--release`, and that a name below 1.0.0 is refused. Adjust the `readme_versions` needle, and optionally the message in `release.rs`.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_versions.rs",
+          "symbol": "the_readme_documents_choosing_a_release_in_both_directions"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/release.rs",
+          "symbol": "ReleaseError"
+        }
+      ]
+    },
+    {
+      "id": "S8-F4",
+      "boundaryId": "s8-proof-docs",
+      "criterionIds": [
+        "PROOF-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**On Windows, stopping `rayx app run` leaves nsh's dev server running** (`tests/common/proof.rs:83-107`).\n\nExpected: dropping `Running` stops the command and everything it started, as the doc comment promises (`:51-52`).\n\nObserved: outside Unix, `drop` only calls `child.kill()`, which terminates `rayx`. On Windows, `rayx app` runs nsh as a child and waits for it (`src/app/mod.rs:75-92`). So the nsh dev server, with the port and open files in the temporary app, outlives the test, and `TempDir` cannot delete the directory it holds. `docs/manual-verification.md:37,42` run this proof on Windows (OWN-3).\n\n**Repair:** on Windows, end the process tree before `child.kill()`, for example with `taskkill /PID <pid> /T /F` or a job object with kill-on-close, and update the doc comment.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/common/proof.rs",
+          "symbol": "Running"
+        }
+      ]
+    },
+    {
+      "id": "S8-F5",
+      "boundaryId": "s8-proof-docs",
+      "criterionIds": [
+        "PROOF-3"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**The Gamify proof's `git status` may write Gamify's index** (`tests/proof_gamify.rs:38-51`).\n\nExpected: the proof only reads Gamify, where the owner works at the same time.\n\nObserved: plain `git status` refreshes the index's stat cache. It takes `.git/index.lock` and may rewrite `.git/index`, so a git command the owner runs at that moment can fail with `index.lock` exists. Tracked content is never changed.\n\n**Repair:** run the two git queries with `--no-optional-locks` (or `GIT_OPTIONAL_LOCKS=0`).",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/proof_gamify.rs",
+          "symbol": "tracked_state"
+        }
+      ]
+    },
+    {
+      "id": "S8-F6",
+      "boundaryId": "s8-proof-docs",
+      "criterionIds": [
+        "DOCS-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Smaller README and projects.md statements differ from the code.**\n\n- `README.md:239`: doctor's line ends `3.1 GB`; `format_bytes` prints binary units, `3.1 GiB` (`src/doctor/mod.rs:231-243`).\n- `README.md:308` and `docs/projects.md:25`: \"every `nsh-*` package has one and the same `source`\". Only NSH's crates count (`pin::is_nsh_crate`, `src/nsh/pin.rs:282-284`). A `rayx new` app's own `nsh-app-<slug>` has no source and is ignored.\n- `README.md:328,341`: the store and path-checkout builds are `cargo build --release [--locked] -p nsh-cli --target-dir target` (`src/nsh/install.rs:440-451`, `src/app/mod.rs:280-289`). `--target-dir target` is what keeps a user's `CARGO_TARGET_DIR` away from the CLI build (S7-F1), next to the README's `CARGO_TARGET_DIR` advice at `:347-350`. `readme_nsh` pins the shortened form.\n- `README.md:274` (and memory `app/rules.md`): \"`rayx` reads only the command name and `--target`\". It also reads `--browser` (`src/app/prereqs.rs:53-59`, `:292-302`).\n- `docs/projects.md:3-5`: \"`rayx` writes nothing into it except what `rayx new` creates and … the `Cargo.lock`\". `rayx fmt` rewrites the sources, and `rayx setup --test` runs `pnpm install` in the project's `tools-node` (`src/setup/test_tools.rs:433`).\n\n**Repair:** correct each statement and update the matching `readme_nsh` needles.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_nsh.rs",
+          "symbol": "the_readme_says_how_rayx_chooses_and_installs_nsh"
         }
       ]
     }

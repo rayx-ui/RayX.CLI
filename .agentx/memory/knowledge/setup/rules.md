@@ -4,7 +4,7 @@ agentx:
   scope: knowledge/setup
   status: current
   created: 2026-10-24T03:30:00+02:00
-  updated: 2026-10-24T03:30:00+02:00
+  updated: 2026-10-24T06:00:00+02:00
   topics:
     - setup
   supersedes: []
@@ -18,3 +18,4 @@ agentx:
 - Accept licenses only with `--yes`; never let a probe or `--check` mutate the machine.
 - Never install a nightly, `rust-src`, XcodeGen, `cargo-ndk`, Vulkan tools or GPU drivers (D3, D15).
 - Touch only recorded guests; ask before an outdated requirement is updated, never before a first install.
+- Run Rust tools as `setup::rust` finds them (`PATH`, else `~/.cargo/bin`): a run that just installed rustup does not have it on its own `PATH`.
